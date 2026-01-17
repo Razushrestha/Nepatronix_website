@@ -1,0 +1,266 @@
+@import "tailwindcss";
+
+:root {
+  /* Core Brand Colors */
+  --color-deep-blue: #0A2A66; /* Trust, Deep Tech */
+  --color-bright-blue: #2563EB; /* Accent */
+  --color-crimson: #C1121F; /* Innovation, Action */
+  --color-crimson-soft: #E63946; /* Hover */
+  --color-white: #FFFFFF;
+
+  /* Backgrounds */
+  --color-bg-main: #FFFFFF;
+  --color-bg-section: #F8FAFC;
+  --color-bg-dark: #020617;
+
+  /* Typography */
+  --color-text-main: #020617;
+  --color-text-body: #1F2937;
+  --color-text-muted: #6B7280;
+
+  /* Legacy variable mapping for compatibility */
+  --color-background: var(--color-bg-main);
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f5f9;
+  --color-accent: var(--color-bright-blue);
+  --color-text: var(--color-text-body);
+  --color-text-subtle: var(--color-text-muted);
+  --color-header: var(--color-deep-blue);
+  --color-footer: var(--color-deep-blue);
+  --color-primary: var(--color-crimson);
+  --color-primary-hover: var(--color-crimson-soft);
+  --color-secondary: var(--color-bright-blue);
+  --color-secondary-hover: #1E40AF;
+}
+
+@theme inline {
+  --color-deep-blue: var(--color-deep-blue);
+  --color-bright-blue: var(--color-bright-blue);
+  --color-crimson: var(--color-crimson);
+  --color-crimson-soft: var(--color-crimson-soft);
+  --color-bg-dark: var(--color-bg-dark);
+  --color-bg-section: var(--color-bg-section);
+  
+  --color-background: var(--color-surface);
+  --color-foreground: var(--color-text);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
+
+.animate-marquee-reverse {
+  animation: marquee-reverse 25s linear infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-reverse {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* Flip Card Animation */
+.flip-card {
+  perspective: 1000px;
+  animation: randomFlip infinite ease-in-out;
+}
+
+.flip-card-inner {
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.flip-card:hover .flip-card-inner,
+.flip-card.active .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  backface-visibility: hidden;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+
+@keyframes randomFlip {
+  0%, 80% {
+    transform: rotateY(0deg);
+  }
+  10%, 70% {
+    transform: rotateY(180deg);
+  }
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background-color: var(--color-primary);
+  color: #ffffff;
+  font-weight: 600;
+  transition: background-color 150ms ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid var(--color-secondary);
+  color: var(--color-secondary);
+  font-weight: 600;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-secondary-hover);
+  border-color: var(--color-secondary-hover);
+  color: #ffffff;
+}
+
+.surface-card {
+  background-color: var(--color-surface);
+}
+
+.surface-muted {
+  background-color: var(--color-surface-muted);
+}
+
+.surface-accent {
+  background-color: var(--color-accent);
+}
+
+.text-subtle {
+  color: var(--color-text-subtle);
+}
+
+/* Radar pulse animation for hero */
+@keyframes radar-pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+.animate-radar-pulse {
+  animation: radar-pulse 4s ease-out infinite;
+}
+
+.animate-radar-pulse-delay-1 {
+  animation: radar-pulse 4s ease-out 1s infinite;
+}
+
+.animate-radar-pulse-delay-2 {
+  animation: radar-pulse 4s ease-out 2s infinite;
+}
+
+/* Circuit line animation */
+@keyframes circuit-flow {
+  0% {
+    stroke-dashoffset: 1000;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-circuit {
+  stroke-dasharray: 20 10;
+  animation: circuit-flow 20s linear infinite;
+}
+
+/* Fade in up animation for recognition cards */
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+/* Flip card animations */
+@keyframes randomFlip {
+  0%, 70% { transform: rotateY(0deg); }
+  75%, 95% { transform: rotateY(180deg); }
+  100% { transform: rotateY(0deg); }
+}
+
+@keyframes flipRandom {
+  0% { transform: rotateY(0deg); }
+  50% { transform: rotateY(180deg); }
+  100% { transform: rotateY(360deg); }
+}
+
+.flip-card {
+  perspective: 1000px;
+  animation: randomFlip 8s infinite ease-in-out;
+}
+
+.flip-card-random {
+  perspective: 1000px;
+}
+
+.flip-card-random:hover {
+  animation-play-state: paused;
+}
+
+.flip-card-random.flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-inner {
+  transform-style: preserve-3d;
+  transition: transform 5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.flip-card-front,
+.flip-card-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+}

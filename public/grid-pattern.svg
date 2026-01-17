@@ -1,0 +1,5 @@
+<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M24 0H0v24h24V0z" fill="none"/>
+    <path d="M23 1h-1V0h-1v1h-1V0h-1v1h-1V0h-1v1h-1V0h-1v1h-1V0h-1v1h-1V0h-1v1H0v22h1v1h22v-1h1v-1h-1v-1h1v-1h-1v-1h1v-1h-1v-1h1v-1h-1v-1h1v-1h-1V1zm-2 21h-1v1h-1v-1h-1v1h-1v-1h-1v1h-1v-1h-1v1h-1v-1h-1v1h-1v-1H2V2h1V1h1v1h1V1h1v1h1V1h1v1h1V1h1v1h1V1h1v1h1v19z" fill-opacity="0.1" fill="currentColor"/>
+    <path d="M1 1h22v22H1z" fill="none"/>
+</svg>

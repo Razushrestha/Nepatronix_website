@@ -1,0 +1,103 @@
+name: Deploy to Linux Server
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Sync files to server (excluding build junk)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          source: "."
+          target: ${{ secrets.SERVER_APP_DIR }}
+          rm: true
+          strip_components: 0
+          exclude: |
+            **/.git**
+            **/.github**
+            **/node_modules/**
+            **/.next/**
+
+      - name: Build & restart on server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            set -e
+            cd ${{ secrets.SERVER_APP_DIR }}
+            
+            # Load Node.js environment (try multiple common paths)
+            export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+            if [ -f "$HOME/.nvm/nvm.sh" ]; then
+              source "$HOME/.nvm/nvm.sh"
+              nvm use node
+            elif [ -f "/usr/local/nvm/nvm.sh" ]; then
+              source "/usr/local/nvm/nvm.sh"
+              nvm use node
+            fi
+            
+            # Alternative: try to find npm manually if not in PATH
+            if ! command -v npm &> /dev/null; then
+              echo "npm not found in PATH, searching..."
+              if [ -d "$HOME/.nvm" ]; then
+                export NVM_DIR="$HOME/.nvm"
+                [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+                nvm use node
+              elif [ -f "/usr/local/bin/npm" ]; then
+                export PATH="/usr/local/bin:$PATH"
+              elif [ -f "/opt/nodejs/bin/npm" ]; then
+                export PATH="/opt/nodejs/bin:$PATH"
+              fi
+            fi
+            
+            # Verify npm is available
+            which npm || (echo "npm not found in PATH" && exit 1)
+            npm --version
+            
+            # Check for required environment variables
+            if [ -f ".env.production" ]; then
+              echo ".env.production found"
+              source .env.production
+            elif [ -f ".env.local" ]; then
+              echo "Using .env.local as fallback"
+              source .env.local
+            else
+              echo "Error: No environment file found (.env.production or .env.local)"
+              echo "Creating minimal .env.production with required Sanity variables..."
+              cat > .env.production << EOF
+NEXT_PUBLIC_SANITY_PROJECT_ID=${{ secrets.SANITY_PROJECT_ID }}
+NEXT_PUBLIC_SANITY_DATASET=${{ secrets.SANITY_DATASET || 'production' }}
+NEXT_PUBLIC_SANITY_API_VERSION=2024-01-16
+EOF
+            fi
+            
+            # Verify critical environment variables are set
+            if [ -z "$NEXT_PUBLIC_SANITY_PROJECT_ID" ]; then
+              echo "Error: NEXT_PUBLIC_SANITY_PROJECT_ID is not set"
+              echo "Please add SANITY_PROJECT_ID to your GitHub repository secrets"
+              exit 1
+            fi
+            
+            # Install deps, build, then prune dev deps
+            npm ci
+            npm run build
+            npm prune --production
+            
+            # Start/restart with PM2
+            pm2 describe nepatronix >/dev/null 2>&1 && \
+              pm2 restart nepatronix || \
+              pm2 start "npm run start" --name nepatronix --cwd ${{ secrets.SERVER_APP_DIR }}
+            pm2 save
