@@ -25,6 +25,7 @@ jobs:
           target: ${{ secrets.SERVER_APP_DIR }}
           rm: true
           strip_components: 0
+          debug: true
 
       - name: Build & restart on server
         uses: appleboy/ssh-action@v1.0.0
@@ -34,37 +35,29 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
+          debug: true
           script: |
             set -e
+            # Ensure target directory exists
+            mkdir -p ${{ secrets.SERVER_APP_DIR }}
             cd ${{ secrets.SERVER_APP_DIR }}
             
-            # Load Node.js environment (try multiple common paths)
+            # Load Node.js environment
             export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
-            if [ -f "$HOME/.nvm/nvm.sh" ]; then
-              source "$HOME/.nvm/nvm.sh"
-              nvm use node
-            elif [ -f "/usr/local/nvm/nvm.sh" ]; then
-              source "/usr/local/nvm/nvm.sh"
-              nvm use node
-            fi
+            # Support for NVM
+            [ -s "$HOME/.nvm/nvm.sh" ] && \. "$HOME/.nvm/nvm.sh"
+            [ -s "/usr/local/nvm/nvm.sh" ] && \. "/usr/local/nvm/nvm.sh"
             
-            # Alternative: try to find npm manually if not in PATH
-            if ! command -v npm &> /dev/null; then
-              echo "npm not found in PATH, searching..."
-              if [ -d "$HOME/.nvm" ]; then
-                export NVM_DIR="$HOME/.nvm"
-                [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
-                nvm use node
-              elif [ -f "/usr/local/bin/npm" ]; then
-                export PATH="/usr/local/bin:$PATH"
-              elif [ -f "/opt/nodejs/bin/npm" ]; then
-                export PATH="/opt/nodejs/bin:$PATH"
-              fi
+            # If nvm is present, use it
+            if command -v nvm &> /dev/null; then
+              nvm use default || nvm use node || true
             fi
             
             # Verify npm is available
-            which npm || (echo "npm not found in PATH" && exit 1)
-            npm --version
+            if ! command -v npm &> /dev/null; then
+              echo "Error: npm not found. Please install Node.js on your server."
+              exit 1
+            fi
 
             # Ensure PM2 is available
             if ! command -v pm2 &> /dev/null; then
@@ -72,33 +65,19 @@ jobs:
               npm i -g pm2
             fi
             
-            # Check for required environment variables
-            if [ -f ".env.production" ]; then
-              echo ".env.production found"
-              source .env.production
-            elif [ -f ".env.local" ]; then
-              echo "Using .env.local as fallback"
-              source .env.local
-            else
-              echo "Error: No environment file found (.env.production or .env.local)"
-              echo "Creating minimal .env.production with required Sanity variables..."
-              printf "NEXT_PUBLIC_SANITY_PROJECT_ID=${{ secrets.SANITY_PROJECT_ID }}\nNEXT_PUBLIC_SANITY_DATASET=${{ secrets.SANITY_DATASET || 'production' }}\nNEXT_PUBLIC_SANITY_API_VERSION=2024-01-16\n" > .env.production
+            # Configure environment
+            if [ ! -f ".env.production" ] && [ ! -f ".env.local" ] && [ ! -f ".env" ]; then
+              echo "Creating minimal .env.production..."
+              echo "NEXT_PUBLIC_SANITY_PROJECT_ID=${{ secrets.SANITY_PROJECT_ID }}" > .env.production
+              echo "NEXT_PUBLIC_SANITY_DATASET=${{ secrets.SANITY_DATASET || 'production' }}" >> .env.production
+              echo "NEXT_PUBLIC_SANITY_API_VERSION=2024-01-16" >> .env.production
             fi
             
-            # Verify critical environment variables are set
-            if [ -z "$NEXT_PUBLIC_SANITY_PROJECT_ID" ]; then
-              echo "Error: NEXT_PUBLIC_SANITY_PROJECT_ID is not set"
-              echo "Please add SANITY_PROJECT_ID to your GitHub repository secrets"
-              exit 1
-            fi
-            
-            # Install deps, build, then prune dev deps
-            npm ci
+            # Install, build, and restart
+            npm install --include=dev
             npm run build
-            npm prune --production
             
-            # Start/restart with PM2
-            pm2 describe nepatronix >/dev/null 2>&1 && \
-              pm2 restart nepatronix || \
-              pm2 start "npm run start" --name nepatronix --cwd ${{ secrets.SERVER_APP_DIR }}
+            # Restart with PM2
+            pm2 delete nepatronix || true
+            pm2 start "npm run start" --name nepatronix
             pm2 save
