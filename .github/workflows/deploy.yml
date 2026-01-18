@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Sync files to server (excluding build junk)
+      - name: Sync files to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -21,7 +21,7 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
-          source: "*,!.git*,!.github*,!node_modules*,!.next*"
+          source: ".,!.git,!.github,!node_modules,!.next"
           target: ${{ secrets.SERVER_APP_DIR }}
           rm: true
           strip_components: 0
