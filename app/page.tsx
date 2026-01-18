@@ -15,7 +15,7 @@ import { PartnersGrid } from "./components/PartnersGrid";
 export const metadata: Metadata = {
   title: "IoT, Robotics & STEM Education in Nepal",
   description:
-    " the best IoT and Robotics training institute in Nepal. Nepatronix offers expert-led workshops for schools covering Arduino, PCB Design, and Electronics.",
+    "Nepatronix is the best IoT and Robotics training institute in Nepal. Nepatronix offers expert-led workshops for schools covering Arduino, PCB Design, and Electronics.",
 };
 
 export default function Home() {
@@ -38,7 +38,7 @@ export default function Home() {
         />
         <div className="mx-auto max-w-4xl text-center">
           <p className="text-xl leading-relaxed text-[#6B7280]">
-            <span className="font-semibold text-[#020617]">Nepa</span> is a
+            <span className="font-semibold text-[#020617]">NepaTronix</span> is a
             leading Nepal-based IOT, STEM EdTech and software company dedicated
             to bridging the persistent gap between theoretical knowledge and
             real-world innovation. Founded in{" "}
