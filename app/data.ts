@@ -76,10 +76,15 @@ export const aboutUsData = {
   mission: "To revolutionize the technological landscape of Nepal by empowering youth with industry-relevant skills and promoting indigenous product development.",
   vision: "To be the leading catalyst in Nepal's journey towards technological self-sufficiency and innovation.",
   ceo: {
-    name: "Narayan K.C.", // Placeholder name
-    role: "Founder & CEO",
-    message: "At Nepatronix, we believe in the power of local innovation. Our journey started with a simple question: 'Why can't we build it here?' Today, we are answering that question with every product we engineer and every student we train. Join us in building a self-reliant technological future for Nepal.",
-    image: "/ceo-placeholder.jpg"
+    name: "Razu Shrestha",
+    role: "CEO and Founder",
+    message: "At Nepatronix, we are committed to building a future where innovation, education, and engineering come together to create real-world impact. Our focus is on empowering students, educators, and industries through practical STEM education, advanced technology solutions, and globally aligned engineering services while staying rooted in Nepal’s needs and values. We believe in long-term thinking, ethical innovation, and meaningful collaboration as we grow from a national leader to a global technology partner. Our mission is simple: to transform ideas into impactful solutions that shape the future.",
+    image: "/Raju%20Shrestha.jpg",
+    socials: {
+      facebook: "https://www.facebook.com/razu.shrestha.226563",
+      whatsapp: "https://wa.me/9779803661701",
+      linkedin: "https://www.linkedin.com/in/razu-shrestha-1a732024b/"
+    }
   },
   verticals: [
     { title: "Innovator", description: "Providing STEM kits and training modules for schools and colleges." },

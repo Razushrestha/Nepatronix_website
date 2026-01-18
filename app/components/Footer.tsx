@@ -10,6 +10,10 @@ interface FooterData {
     weekdayHours: string;
     weekendHours: string;
   };
+  quickLinks?: {
+    name: string;
+    href: string;
+  }[];
   expertise: {
     name: string;
     desc: string;
@@ -21,9 +25,39 @@ interface FooterData {
   copyrightText: string;
 }
 
+function SocialIcon({ platform }: { platform: string }) {
+  const key = platform?.toLowerCase();
+
+  if (key?.includes("facebook")) {
+    return (
+      <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" aria-hidden>
+        <path d="M22 12.07C22 6.48 17.52 2 11.93 2 6.35 2 1.87 6.48 1.87 12.07c0 5 3.66 9.14 8.44 9.93v-7.03H7.9V12.1h2.4V9.83c0-2.38 1.42-3.69 3.6-3.69 1.04 0 2.13.19 2.13.19v2.35h-1.2c-1.18 0-1.55.73-1.55 1.48v1.75h2.64l-.42 2.87h-2.22v7.03c4.78-.79 8.44-4.93 8.44-9.93Z" />
+      </svg>
+    );
+  }
+
+  if (key?.includes("linkedin")) {
+    return (
+      <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" aria-hidden>
+        <path d="M20.45 20.45h-3.55v-5.29c0-1.26-.02-2.88-1.76-2.88-1.76 0-2.03 1.37-2.03 2.79v5.38h-3.55V9h3.41v1.56h.05c.48-.9 1.66-1.85 3.41-1.85 3.65 0 4.32 2.4 4.32 5.51v6.23ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12Zm-1.78 13.02h3.55V9H3.56v11.45Z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5" aria-hidden>
+      <circle cx="12" cy="12" r="10" />
+    </svg>
+  );
+}
+
 export async function Footer() {
   const query = `*[_type == "footer"][0]`;
-  const footerData: FooterData | null = await client.fetch(query);
+  const footerData: FooterData | null = await client.fetch(
+    query,
+    {},
+    { next: { revalidate: 60 } }
+  );
 
   if (!footerData) {
     // Fallback if data is not present
@@ -81,7 +115,26 @@ export async function Footer() {
             </div>
           </div>
 
-          {/* Quick Navigation - REMOVED */}
+          {/* Quick Navigation */}
+          <div className="col-span-1 space-y-6">
+            <h4 className="text-lg font-bold text-white relative inline-block">
+              Quick Links
+              <span className="absolute -bottom-2 left-0 w-12 h-1 bg-[#C1121F] rounded-full"></span>
+            </h4>
+
+            <nav className="space-y-3">
+              {footerData.quickLinks?.map((link, i) => (
+                <a
+                  key={i}
+                  href={link.href}
+                  className="group flex items-center gap-2 text-sm text-slate-300 hover:text-white transition-colors"
+                >
+                  <span className="w-2 h-2 rounded-full bg-slate-600 group-hover:bg-[#C1121F] transition-colors"></span>
+                  <span className="leading-tight">{link.name}</span>
+                </a>
+              ))}
+            </nav>
+          </div>
 
           {/* Services Showcase */}
           <div className="col-span-1 space-y-6">
@@ -152,10 +205,7 @@ export async function Footer() {
                       className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-[#C1121F] hover:text-white transition-all duration-300 hover:-translate-y-1"
                       aria-label={social.platform}
                     >
-                      {/* Placeholder Icon */}
-                      <svg fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5">
-                          <circle cx="12" cy="12" r="10" />
-                      </svg>
+                        <SocialIcon platform={social.platform} />
                     </a>
                   ))}
             </div>

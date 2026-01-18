@@ -22,6 +22,32 @@ interface ContactPageData {
   }[];
 }
 
+function SocialIcon({ platform }: { platform: string }) {
+  const key = platform?.toLowerCase();
+
+  if (key?.includes("facebook")) {
+    return (
+      <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" aria-hidden>
+        <path d="M22 12.07C22 6.48 17.52 2 11.93 2 6.35 2 1.87 6.48 1.87 12.07c0 5 3.66 9.14 8.44 9.93v-7.03H7.9V12.1h2.4V9.83c0-2.38 1.42-3.69 3.6-3.69 1.04 0 2.13.19 2.13.19v2.35h-1.2c-1.18 0-1.55.73-1.55 1.48v1.75h2.64l-.42 2.87h-2.22v7.03c4.78-.79 8.44-4.93 8.44-9.93Z" />
+      </svg>
+    );
+  }
+
+  if (key?.includes("linkedin")) {
+    return (
+      <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" aria-hidden>
+        <path d="M20.45 20.45h-3.55v-5.29c0-1.26-.02-2.88-1.76-2.88-1.76 0-2.03 1.37-2.03 2.79v5.38h-3.55V9h3.41v1.56h.05c.48-.9 1.66-1.85 3.41-1.85 3.65 0 4.32 2.4 4.32 5.51v6.23ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12Zm-1.78 13.02h3.55V9H3.56v11.45Z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5" aria-hidden>
+      <circle cx="12" cy="12" r="10" />
+    </svg>
+  );
+}
+
 export default function ContactPage() {
   const [data, setData] = useState<ContactPageData | null>(null);
   const [formData, setFormData] = useState({
@@ -70,6 +96,13 @@ export default function ContactPage() {
   };
 
   if (!data) return <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">Loading...</div>;
+
+  const socialLinks = (data.socialMedia && data.socialMedia.length > 0)
+    ? data.socialMedia
+    : [
+        { platform: "LinkedIn", url: "https://www.linkedin.com/company/nepatronix" },
+        { platform: "Facebook", url: "https://www.facebook.com/nepatronix" },
+      ];
 
   return (
     <div className="bg-[#F8FAFC]">
@@ -215,29 +248,34 @@ export default function ContactPage() {
 
             {/* Additional Contact Info / Map / Socials */}
             <div className="space-y-8">
-               {/* Map Placeholder */}
+               {/* Location Map */}
                <div className="rounded-3xl border border-slate-100 bg-slate-200 h-64 w-full relative overflow-hidden group">
-                  <iframe 
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1565.3426804576394!2d85.33230689912068!3d27.69339023689405!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb19a0026e63df%3A0xc3927d7301c609c2!2sNew%20Baneshwor%2C%20Kathmandu%2044600!5e0!3m2!1sen!2snp!4v1700000000000!5m2!1sen!2snp" 
-                    width="100%" 
-                    height="100%" 
-                    style={{ border: 0 }} 
-                    allowFullScreen 
-                    loading="lazy" 
-                    className="grayscale group-hover:grayscale-0 transition-all duration-700"
-                  ></iframe>
+                 <iframe
+                   src="https://www.google.com/maps?q=27.6857024,85.3165181&z=18&output=embed"
+                   width="100%"
+                   height="100%"
+                   style={{ border: 0 }}
+                   allowFullScreen
+                   loading="lazy"
+                   className="grayscale group-hover:grayscale-0 transition-all duration-700"
+                   referrerPolicy="no-referrer-when-downgrade"
+                   title="Nepatronix Location"
+                 ></iframe>
                </div>
 
                {/* Socials */}
                <div className="rounded-3xl border border-slate-100 bg-white p-8">
                   <h3 className="text-xl font-bold text-[#020617] mb-6">Follow us</h3>
                   <div className="flex flex-wrap gap-4">
-                     {data.socialMedia?.map((social, i) => (
+                     {socialLinks.map((social, i) => (
                         <a 
                           key={i} 
                           href={social.url} 
                           className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-[#C1121F]/20 hover:bg-[#C1121F]/5 transition-all group"
                         >
+                            <span className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-[#C1121F] transition-colors">
+                              <SocialIcon platform={social.platform} />
+                            </span>
                             <span className="font-semibold text-slate-600 group-hover:text-[#C1121F]">{social.platform}</span>
                         </a>
                      ))}

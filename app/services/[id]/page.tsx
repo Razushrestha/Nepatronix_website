@@ -3,8 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const service = ourServices.find((s) => s.id === params.id);
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const service = ourServices.find((s) => s.id === id);
   
   if (!service) {
     return {
@@ -24,8 +25,9 @@ export function generateStaticParams() {
   }));
 }
 
-export default function ServiceDetail({ params }: { params: { id: string } }) {
-  const service = ourServices.find((s) => s.id === params.id);
+export default async function ServiceDetail({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const service = ourServices.find((s) => s.id === id);
 
   if (!service) {
     notFound();
