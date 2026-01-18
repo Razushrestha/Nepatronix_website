@@ -1,0 +1,39 @@
+[00:00:02.912] Server  LOG     ✓ Ready in 2.7s
+[00:00:23.117] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:28.833] Browser WARN    Image with src "/recognition/IITM_pravatak-removebg-preview.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:00:40.637] Browser WARN    Image with src "/partner/laxmisunrise.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:01:35.648] Server  LOG     ✓ Compiled in 142ms
+[00:01:37.183] Browser ERROR   ./app/page.tsx:23:21
+Parsing ecmascript source code failed
+  21 | export const metadata: Metadata = {
+  22 |   title: "IoT, Robotics & STEM Education in Nepal",
+> 23 |   description:  the best IoT and Robotics training institute in Nepal. Nepatronix offers expert-led workshops for schools covering Arduino, PCB Design, and Electronics.",
+     |                     ^^^^
+  24 | };
+  25 |
+  26 | export default function Home() {
+
+Expected ',', got 'best'
+[00:01:37.183] Browser ERROR   ./app/page.tsx:23:21
+Parsing ecmascript source code failed
+  21 | export const metadata: Metadata = {
+  22 |   title: "IoT, Robotics & STEM Education in Nepal",
+> 23 |   description:  the best IoT and Robotics training institute in Nepal. Nepatronix offers expert-led workshops for schools covering Arduino, PCB Design, and Electronics.",
+     |                     ^^^^
+  24 | };
+  25 |
+  26 | export default function Home() {
+
+Expected ',', got 'best'
+[00:01:39.632] Browser ERROR   ./app/page.tsx:23:19
+Parsing ecmascript source code failed
+  21 | export const metadata: Metadata = {
+  22 |   title: "IoT, Robotics & STEM Education in Nepal",
+> 23 |   description: "" the best IoT and Robotics training institute in Nepal. Nepatronix offers expert-led workshops for schools covering Arduino, PCB Design, and Electronics.",
+     |                   ^^^
+  24 | };
+  25 |
+  26 | export default function Home() {
+
+Expected ',', got 'the'
+[00:02:09.852] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
