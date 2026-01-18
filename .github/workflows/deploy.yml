@@ -21,15 +21,10 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
-          source: "."
+          source: "*,!.git*,!.github*,!node_modules*,!.next*"
           target: ${{ secrets.SERVER_APP_DIR }}
           rm: true
           strip_components: 0
-          exclude: |
-            **/.git**
-            **/.github**
-            **/node_modules/**
-            **/.next/**
 
       - name: Build & restart on server
         uses: appleboy/ssh-action@v1.0.0
