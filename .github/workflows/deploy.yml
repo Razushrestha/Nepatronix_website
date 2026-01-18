@@ -6,78 +6,63 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Sync files to server
-        uses: appleboy/scp-action@v0.1.7
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Next.js App
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ secrets.SANITY_PROJECT_ID }}
+          NEXT_PUBLIC_SANITY_DATASET: ${{ secrets.SANITY_DATASET || 'production' }}
+          NEXT_PUBLIC_SANITY_API_VERSION: '2024-01-16'
+
+      - name: Sync to Server
+        uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
-          source: ".,!.git,!.github,!node_modules,!.next"
+          # Sync only what's needed for production
+          source: ".next/,public/,package.json,package-lock.json,next.config.ts"
           target: ${{ secrets.SERVER_APP_DIR }}
           rm: true
-          strip_components: 0
-          debug: true
 
-      - name: Build & restart on server
-        uses: appleboy/ssh-action@v1.0.0
+      - name: Restart App on Server
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
-          debug: true
           script: |
             set -e
-            # Ensure target directory exists
-            mkdir -p ${{ secrets.SERVER_APP_DIR }}
             cd ${{ secrets.SERVER_APP_DIR }}
             
-            # Load Node.js environment
-            export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
-            # Support for NVM
+            # Load environment
+            export PATH=$PATH:/usr/local/bin:/usr/bin
             [ -s "$HOME/.nvm/nvm.sh" ] && \. "$HOME/.nvm/nvm.sh"
-            [ -s "/usr/local/nvm/nvm.sh" ] && \. "/usr/local/nvm/nvm.sh"
             
-            # If nvm is present, use it
-            if command -v nvm &> /dev/null; then
-              nvm use default || nvm use node || true
-            fi
-            
-            # Verify npm is available
-            if ! command -v npm &> /dev/null; then
-              echo "Error: npm not found. Please install Node.js on your server."
-              exit 1
-            fi
-
-            # Ensure PM2 is available
-            if ! command -v pm2 &> /dev/null; then
-              echo "PM2 not found, installing globally..."
-              npm i -g pm2
-            fi
-            
-            # Configure environment
-            if [ ! -f ".env.production" ] && [ ! -f ".env.local" ] && [ ! -f ".env" ]; then
-              echo "Creating minimal .env.production..."
-              echo "NEXT_PUBLIC_SANITY_PROJECT_ID=${{ secrets.SANITY_PROJECT_ID }}" > .env.production
-              echo "NEXT_PUBLIC_SANITY_DATASET=${{ secrets.SANITY_DATASET || 'production' }}" >> .env.production
-              echo "NEXT_PUBLIC_SANITY_API_VERSION=2024-01-16" >> .env.production
-            fi
-            
-            # Install, build, and restart
-            npm install --include=dev
-            npm run build
+            # Install production dependencies only
+            npm install --production
             
             # Restart with PM2
             pm2 delete nepatronix || true
-            pm2 start "npm run start" --name nepatronix
+            pm2 start "npm start" --name nepatronix
             pm2 save
+
