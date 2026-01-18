@@ -87,11 +87,7 @@ jobs:
             else
               echo "Error: No environment file found (.env.production or .env.local)"
               echo "Creating minimal .env.production with required Sanity variables..."
-              cat > .env.production << EOF
-NEXT_PUBLIC_SANITY_PROJECT_ID=${{ secrets.SANITY_PROJECT_ID }}
-NEXT_PUBLIC_SANITY_DATASET=${{ secrets.SANITY_DATASET || 'production' }}
-NEXT_PUBLIC_SANITY_API_VERSION=2024-01-16
-EOF
+              printf "NEXT_PUBLIC_SANITY_PROJECT_ID=${{ secrets.SANITY_PROJECT_ID }}\nNEXT_PUBLIC_SANITY_DATASET=${{ secrets.SANITY_DATASET || 'production' }}\nNEXT_PUBLIC_SANITY_API_VERSION=2024-01-16\n" > .env.production
             fi
             
             # Verify critical environment variables are set
