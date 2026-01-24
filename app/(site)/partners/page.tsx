@@ -92,7 +92,12 @@ export default function AboutPage() {
                 <div className="relative z-10 flex flex-col h-full justify-between">
                   <div>
                     <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-[#C1121F]/10 px-4 py-2 w-fit">
-                      <span className="text-2xl">🚀</span>
+                      <svg className="w-5 h-5 text-[#C1121F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
+                        <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+                        <path d="M9 12H4s.55-3.03 2-5c1.62-2.2 5-3 5-3" />
+                        <path d="M12 15v5s3.03-.55 5-2c2.2-1.62 3-5 3-5" />
+                      </svg>
                       <span className="text-sm font-semibold uppercase tracking-widest text-[#C1121F]">Mission</span>
                     </div>
                     <p className="text-lg leading-relaxed text-slate-600">
@@ -109,7 +114,11 @@ export default function AboutPage() {
                 <div className="relative z-10 flex flex-col h-full justify-between">
                   <div>
                     <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-[#2563EB]/10 px-4 py-2 w-fit">
-                      <span className="text-2xl">🎯</span>
+                      <svg className="w-5 h-5 text-[#2563EB]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="6" />
+                        <circle cx="12" cy="12" r="2" />
+                      </svg>
                       <span className="text-sm font-semibold uppercase tracking-widest text-[#2563EB]">Vision</span>
                     </div>
                     <p className="text-lg leading-relaxed text-[#1F2937]">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ourServices, servicesPageData } from "../data";
 
 const ICON_MAP: Record<string, string> = {
@@ -64,7 +65,7 @@ export default function ServicesPage() {
   const [focusedService, setFocusedService] = useState<number | null>(null);
 
   // Destructure data for cleaner usage
-  const { header, recognizedBy, whyChooseUs, ourImpact } = servicesPageData;
+  const { header, recognizedBy, whyChooseUs } = servicesPageData;
 
   return (
     <div className="overflow-hidden bg-white font-sans">
@@ -242,71 +243,88 @@ export default function ServicesPage() {
       </section>
 
       {/* 3. WHY CHOOSE US */}
-      <section className="py-24 bg-[#F8FAFC]">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-            <div className="grid md:grid-cols-2 gap-16 items-center">
-                <div>
-                    <h2 className="text-4xl font-bold text-[#020617] mb-6">Why Choose Us?</h2>
-                    <p className="text-lg text-slate-600 mb-8">
-                        Our commitment to local innovation and global standards sets us apart.
-                    </p>
-                    <ul className="space-y-4 mb-8">
-                       {whyChooseUs.map((reason, i) => (
-                          <li key={i} className="flex gap-3 items-start"><span className="text-[#C1121F] mt-1">✓</span> <span className="text-slate-700">{reason}</span></li>
-                       ))}
-                    </ul>
-                    <Link href="/contact" className="hidden md:inline-flex items-center font-bold text-[#C1121F] hover:gap-2 transition-all">
-                        Learn about our mission <span className="ml-1">→</span>
-                    </Link>
-                </div>
-                <div className="relative">
-                     {/* Placeholder for an image or graphic */}
-                     <div className="aspect-square rounded-3xl bg-slate-200 overflow-hidden relative">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-[#020617] to-[#C1121F] opacity-10"></div>
-                        {/* You can add an actual image here later */}
-                        <div className="flex items-center justify-center h-full text-slate-400">
-                           Image Placeholder
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
+                <FadeIn direction="left">
+                    <div>
+                        <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-[#C1121F]/10 px-4 py-2">
+                           <span className="h-2 w-2 rounded-full bg-[#C1121F]"></span>
+                           <span className="text-xs font-bold uppercase tracking-widest text-[#C1121F]">Why Choose Us</span>
                         </div>
-                     </div>
-                </div>
+                        <h2 className="text-4xl md:text-5xl font-bold text-[#020617] mb-6 leading-tight">
+                           Innovation Driven by <span className="text-[#C1121F]">Impact</span>
+                        </h2>
+                        <p className="text-lg text-slate-600 mb-10 leading-relaxed">
+                            Our commitment to local innovation and global standards sets us apart in the STEM ecosystem of Nepal.
+                        </p>
+                        
+                        <div className="space-y-6 mb-10">
+                           {whyChooseUs.map((reason, i) => (
+                              <div key={i} className="flex gap-4 items-start group">
+                                 <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-[#C1121F] group-hover:text-white">
+                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                 </div>
+                                 <span className="text-base font-medium text-slate-700 leading-snug transition-colors group-hover:text-[#020617]">{reason}</span>
+                              </div>
+                           ))}
+                        </div>
+                        
+                        <Link href="/partners" className="inline-flex items-center gap-2 px-8 py-4 bg-[#C1121F] text-white rounded-full font-bold text-sm shadow-lg shadow-red-910/20 hover:bg-[#A30F19] transition-all hover:-translate-y-1">
+                            Learn about our mission
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                               <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                        </Link>
+                    </div>
+                </FadeIn>
+
+                <FadeIn direction="right">
+                    <div className="relative group">
+                        {/* Decorative background blobs */}
+                        <div className="absolute -top-10 -right-10 h-64 w-64 rounded-full bg-[#C1121F]/5 blur-3xl group-hover:bg-[#C1121F]/10 transition-colors"></div>
+                        <div className="absolute -bottom-10 -left-10 h-64 w-64 rounded-full bg-blue-500/5 blur-3xl"></div>
+                        
+                        <div className="relative aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-2xl shadow-slate-200/50 border-8 border-white group-hover:scale-[1.02] transition-transform duration-700">
+                           <Image 
+                              src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=2070&auto=format&fit=crop"
+                              alt="STEM Innovation at Nepatronix"
+                              fill
+                              className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                           />
+                           {/* Overlay gradient */}
+                           <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/40 via-transparent to-transparent"></div>
+                           
+                           {/* Floating Stats or Element */}
+                           <div className="absolute bottom-6 left-6 right-6 p-6 rounded-2xl bg-white/90 backdrop-blur-sm border border-white/20 shadow-xl">
+                              <p className="text-xs font-bold text-[#C1121F] uppercase tracking-widest mb-1">Nepatronix Ecosystem</p>
+                              <p className="text-sm font-medium text-slate-800 italic leading-relaxed">
+                                 "Bridging the gap between theory and practical innovation."
+                              </p>
+                           </div>
+                        </div>
+                    </div>
+                </FadeIn>
             </div>
         </div>
       </section>
 
-      {/* 4. IMPACT STATEMENT */}
-      <section className="py-24 bg-white text-center px-6">
-        <FadeIn>
-            <div className="max-w-4xl mx-auto">
-                <span className="inline-block mb-4 p-3 rounded-2xl bg-emerald-50 text-emerald-600 text-3xl">🌱</span>
-                <h2 className="text-3xl md:text-5xl font-bold text-[#020617] mb-8 leading-tight">
-                    Our Impact
-                </h2>
-                <p className="text-xl md:text-2xl text-slate-600 leading-relaxed">
-                    "{ourImpact}"
-                </p>
-            </div>
-        </FadeIn>
-      </section>
-
       {/* 5. FINAL CTA */}
-      <section className="py-20 px-6 bg-white">
-         <div className="max-w-5xl mx-auto rounded-[2.5rem] bg-[#C1121F] relative overflow-hidden text-center px-6 py-16 md:py-20 text-white shadow-2xl shadow-red-900/20">
-            {/* Background pattern */}
-            <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20 pointer-events-none"></div>
-            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/10 blur-[100px] rounded-full pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-black/10 blur-[80px] rounded-full pointer-events-none"></div>
-
-            <div className="relative z-10 max-w-3xl mx-auto">
+      <section className="py-10 px-6 bg-white">
+         <div className="max-w-3xl mx-auto rounded-2xl bg-[#C1121F] relative overflow-hidden text-center px-6 py-10 md:py-12 text-white shadow-lg">
+            <div className="relative z-10 max-w-xl mx-auto">
                 <FadeIn>
-                    <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to Get Started?</h2>
-                    <p className="text-lg md:text-xl text-red-50 mb-10 leading-relaxed font-medium">
+                    <h2 className="text-xl md:text-2xl font-bold mb-3">Ready to Get Started?</h2>
+                    <p className="text-sm md:text-base text-red-50 mb-6 leading-relaxed opacity-90">
                         Build Future-Ready STEM Solutions With Us. Partner with us to implement certified STEM education and engineering solutions.
                     </p>
-                    <div className="flex flex-col sm:flex-row justify-center gap-5">
-                        <Link href="/contact" className="group bg-white text-[#C1121F] px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
+                    <div className="flex flex-col sm:flex-row justify-center gap-3">
+                        <Link href="/contact" className="group bg-white text-[#C1121F] px-6 py-2.5 rounded-full font-bold text-sm hover:translate-y-[-1px] transition-all shadow-sm active:scale-95">
                             Get a Quote
                         </Link>
-                        <Link href="/partners" className="group bg-transparent border border-white/40 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/10 transition-all">
+                        <Link href="/partners" className="group bg-transparent border border-white/30 text-white px-6 py-2.5 rounded-full font-bold text-sm hover:bg-white/5 transition-all active:scale-95">
                             Partner With Us
                         </Link>
                     </div>

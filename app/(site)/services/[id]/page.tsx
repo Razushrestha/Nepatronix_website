@@ -108,18 +108,20 @@ export default async function ServiceDetail({ params }: { params: Promise<{ id: 
       </section>
 
       {/* Contact CTA */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#0B3C74] text-white text-center">
-         <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold mb-6">Ready to get started?</h2>
-            <p className="text-xl text-blue-100 mb-8">
-              Let's discuss how our {service.title.toLowerCase()} can help transform your organization.
-            </p>
-            <Link 
-              href="/contact" 
-              className="inline-block px-8 py-4 bg-[#C4161C] text-white font-semibold rounded-lg hover:bg-[#a01217] transition-all shadow-lg"
-            >
-              Contact Us Today
-            </Link>
+      <section className="py-12 px-6 bg-white">
+         <div className="max-w-3xl mx-auto rounded-2xl bg-[#0B3C74] text-white text-center py-10 md:py-12 px-6 shadow-lg relative overflow-hidden">
+            <div className="relative z-10 max-w-xl mx-auto">
+               <h2 className="text-xl md:text-2xl font-bold mb-3">Ready to get started?</h2>
+               <p className="text-sm md:text-base text-blue-50 mb-6 opacity-90">
+                 Let's discuss how our {service.title.toLowerCase()} can help transform your organization.
+               </p>
+               <Link 
+                 href="/contact" 
+                 className="inline-block px-6 py-2.5 bg-[#C4161C] text-white font-bold text-sm rounded-full hover:translate-y-[-1px] transition-all shadow-md active:scale-95"
+               >
+                 Contact Us Today
+               </Link>
+            </div>
          </div>
       </section>
 
