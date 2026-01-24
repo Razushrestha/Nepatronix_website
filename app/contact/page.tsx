@@ -3,6 +3,7 @@
 import { client } from "@/sanity/lib/client";
 import { useState, useEffect } from "react";
 import type { ChangeEvent, FormEvent } from "react";
+import emailjs from "@emailjs/browser";
 
 // Define interface based on your Sanity schema
 interface ContactPageData {
@@ -76,22 +77,42 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+    
+    // Credentials provided by user
+    const SERVICE_ID = "service_kjd43s2";
+    const TEMPLATE_ID = "template_lew7hye";
+    const PUBLIC_KEY = "Qn6NLMmkaLabSyyZR";
 
-      if (response.ok) {
+    try {
+      // Modern EmailJS Browser initialization
+      emailjs.init(PUBLIC_KEY);
+
+      const templateParams = {
+        from_name: formData.name,
+        from_email: formData.email,
+        phone_number: formData.phone,
+        message: formData.message,
+        reply_to: formData.email,
+      };
+
+      console.log('Attempting to send email with:', { SERVICE_ID, TEMPLATE_ID });
+
+      const result = await emailjs.send(
+        SERVICE_ID,
+        TEMPLATE_ID,
+        templateParams
+      );
+
+      if (result.status === 200) {
         alert('Message sent successfully!');
         setFormData({ name: '', email: '', phone: '', message: '' });
       } else {
-        alert('Failed to send message.');
+        alert('EmailJS Error: ' + result.text);
       }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('An error occurred.');
+    } catch (error: any) {
+      console.error('Full EmailJS Error Object:', error);
+      const errorDetail = error?.text || error?.message || 'Check Template ID in EmailJS Dashboard';
+      alert('Error: ' + errorDetail);
     }
   };
 
@@ -101,13 +122,13 @@ export default function ContactPage() {
     ? data.socialMedia
     : [
         { platform: "LinkedIn", url: "https://www.linkedin.com/company/nepatronix" },
-        { platform: "Facebook", url: "https://www.facebook.com/nepatronix" },
+        { platform: "Facebook", url: "https://www.facebook.com/NepaTronixx" },
       ];
 
   return (
     <div className="bg-[#F8FAFC]">
       {/* Hero */}
-      <section className="bg-[#020617] py-20 sm:py-24 relative overflow-hidden">
+      <section className="bg-[#020617] pt-44 pb-20 relative overflow-hidden">
          <div className="absolute inset-0 opacity-10 bg-[url('/grid-pattern.svg')]"></div>
         <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
             <span className="inline-block px-3 py-1 rounded-full bg-[#C1121F]/10 mb-6 border border-[#C1121F]/20 text-[#C1121F] text-xs font-bold uppercase tracking-widest">
@@ -174,7 +195,7 @@ export default function ContactPage() {
       <section className="pb-20">
         <div className="mx-auto max-w-7xl px-4">
           <div className="grid gap-10 lg:grid-cols-[1.5fr_1fr]">
-            <div className="rounded-3xl border border-slate-100 bg-white p-10 shadow-sm">
+            <div className="rounded-3xl border border-slate-100 bg-white p-10 shadow-sm relative z-20">
               <h2 className="text-3xl font-extrabold text-[#020617]">{data.formTitle}</h2>
               <p className="mt-2 text-slate-600">{data.formSubtitle}</p>
 
@@ -188,7 +209,7 @@ export default function ContactPage() {
                       id="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      className="mt-2 block w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-[#020617] focus:border-[#C1121F] focus:bg-white focus:ring-0 transition-all outline-none"
+                      className="mt-2 block w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-[#020617] focus:border-[#C1121F] focus:bg-white focus:ring-2 focus:ring-[#C1121F]/20 transition-all outline-none"
                       placeholder="Your full name"
                       required
                     />
@@ -201,7 +222,7 @@ export default function ContactPage() {
                       id="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="mt-2 block w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-[#020617] focus:border-[#C1121F] focus:bg-white focus:ring-0 transition-all outline-none"
+                      className="mt-2 block w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-[#020617] focus:border-[#C1121F] focus:bg-white focus:ring-2 focus:ring-[#C1121F]/20 transition-all outline-none"
                       placeholder="you@example.com"
                       required
                     />
@@ -216,7 +237,7 @@ export default function ContactPage() {
                     id="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="mt-2 block w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-[#020617] focus:border-[#C1121F] focus:bg-white focus:ring-0 transition-all outline-none"
+                    className="mt-2 block w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-[#020617] focus:border-[#C1121F] focus:bg-white focus:ring-2 focus:ring-[#C1121F]/20 transition-all outline-none"
                     placeholder="+977 (984) 000-0000"
                   />
                 </div>
@@ -229,7 +250,7 @@ export default function ContactPage() {
                     rows={4}
                     value={formData.message}
                     onChange={handleInputChange}
-                    className="mt-2 block w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-[#020617] focus:border-[#C1121F] focus:bg-white focus:ring-0 transition-all outline-none resize-none"
+                    className="mt-2 block w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-[#020617] focus:border-[#C1121F] focus:bg-white focus:ring-2 focus:ring-[#C1121F]/20 transition-all outline-none relative z-30 cursor-text"
                     placeholder="How can we help you?"
                     required
                   />

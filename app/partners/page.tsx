@@ -59,7 +59,7 @@ export default function AboutPage() {
     <div className="overflow-hidden bg-white">
       
       {/* 1. HERO SECTION */}
-      <section className="relative flex flex-col items-center justify-center px-6 py-24 text-center lg:py-32 overflow-hidden bg-[#020617] text-white">
+      <section className="relative flex flex-col items-center justify-center px-6 pt-44 pb-20 text-center overflow-hidden bg-[#020617] text-white">
         {/* Abstract Background Blobs - Simple CSS animation */}
         <div className="absolute -top-[20%] -left-[10%] h-[500px] w-[500px] rounded-full bg-[#C1121F] blur-[100px] pointer-events-none opacity-20" />
         <div className="absolute top-[10%] -right-[10%] h-[400px] w-[400px] rounded-full bg-[#0A2A66] blur-[100px] pointer-events-none opacity-30" />

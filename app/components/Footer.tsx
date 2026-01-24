@@ -1,4 +1,5 @@
 import { client } from "@/sanity/lib/client";
+import Newsletter from "./Newsletter";
 
 interface FooterData {
   companyName: string;
@@ -70,10 +71,15 @@ export async function Footer() {
       <div className="absolute inset-0 opacity-10 bg-[url('/grid-pattern.svg')]"></div>
       
       {/* Decorative Brand Blurs */}
-      <div className="absolute top-0 right-0 -mt-20 -mr-20 h-[500px] w-[500px] rounded-full bg-[#C1121F]/5 blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-[500px] w-[500px] rounded-full bg-slate-800/20 blur-3xl"></div>
+      <div className="absolute top-0 right-0 -mt-20 -mr-20 h-125 w-125 rounded-full bg-[#C1121F]/5 blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-125 w-125 rounded-full bg-slate-800/20 blur-3xl"></div>
 
       <div className="relative mx-auto max-w-7xl px-6">
+        {/* Newsletter Section - High Prominence */}
+        <div className="pt-16 pb-8">
+          <Newsletter />
+        </div>
+
         {/* Main Footer Content */}
         <div className="grid gap-x-8 gap-y-12 py-16 grid-cols-2 lg:grid-cols-4">
           
@@ -157,30 +163,17 @@ export async function Footer() {
             </div>
           </div>
 
-          {/* Connect & Newsletter */}
+          {/* Connect & Socials */}
           <div className="col-span-2 md:col-span-1 space-y-6">
             <h4 className="text-lg font-bold text-white relative inline-block">
-              Stay Connected
+              Connect With Us
               <span className="absolute -bottom-2 left-0 w-12 h-1 bg-[#C1121F] rounded-full"></span>
             </h4>
 
-            {/* Contact Methods */}
-            <div className="space-y-6">
-              
-              {/* Newsletter */}
-              <div className="space-y-3 bg-slate-800/30 p-4 rounded-2xl border border-slate-700/50">
-                <p className="text-xs font-semibold text-white uppercase tracking-wider">Subscribe to Newsletter</p>
-                <div className="flex flex-col space-y-2">
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    className="w-full rounded-lg border border-slate-600 bg-slate-900/50 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#C1121F] focus:ring-1 focus:ring-[#C1121F] focus:outline-none transition-all"
-                  />
-                  <button className="w-full rounded-lg bg-[#C1121F] px-3 py-2 text-sm font-bold text-white transition-all hover:bg-[#A30F19] hover:shadow-[0_0_20px_rgba(193,18,31,0.3)]">
-                    Subscribe
-                  </button>
-                </div>
-              </div>
+            <div className="space-y-4">
+              <p className="text-sm text-slate-400 leading-relaxed">
+                Follow us on social media for daily updates and student spotlights.
+              </p>
             </div>
           </div>
         </div>

@@ -15,7 +15,8 @@ import { gallery } from './gallery'
 import { footer } from './footer'
 import { contact } from './contact'
 import { contactForm } from './contactForm'
+import subscriber from './subscriber'
 
 export const schema = {
-  types: [teamMember, partner, testimonial, course, recognition, post, service, mentor, stat, heroSlide, school, feature, gallery, footer, contact, contactForm],
+  types: [teamMember, partner, testimonial, course, recognition, post, service, mentor, stat, heroSlide, school, feature, gallery, footer, contact, contactForm, subscriber],
 }

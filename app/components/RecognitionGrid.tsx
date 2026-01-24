@@ -5,8 +5,6 @@ import Image from "next/image";
 
 const recognitionData = [
   { name: "ICT Startup Award", logo: "/recognition/ICT.png" },
-  { name: "IIT Madras", logo: "/recognition/iit_madras-removebg-preview.png" },
-  { name: "IITM Pravartak", logo: "/recognition/IITM_pravatak-removebg-preview.png" },
   { name: "Government of Nepal", logo: "/recognition/NepalGov.png" },
   { name: "Kathmandu University", logo: "/recognition/KU.png" },
   { name: "Indian Embassy", logo: "/recognition/embassy_of_india-removebg-preview.png" },

@@ -13,9 +13,8 @@ import { RecognitionGrid } from "./components/RecognitionGrid";
 import { PartnersGrid } from "./components/PartnersGrid";
 
 export const metadata: Metadata = {
-  title: "IoT, Robotics & STEM Education in Nepal",
-  description:
-    "Nepatronix is the best IoT and Robotics training institute in Nepal. Nepatronix offers expert-led workshops for schools covering Arduino, PCB Design, and Electronics.",
+  title: "Certified IoT, Robotics & STEM Education in Nepal",
+  description: "Nepatronix is the best IoT and Robotics training institute in Nepal. Join our expert-led workshops for schools covering Arduino, PCB Design, and Electronics.",
 };
 
 export default function Home() {
@@ -36,22 +35,15 @@ export default function Home() {
           description="Driving innovation through education and technology."
           align="center"
         />
-        <div className="mx-auto max-w-4xl text-center">
+        <div className="mx-auto max-w-4xl text-center space-y-2">
           <p className="text-xl leading-relaxed text-[#6B7280]">
-            <span className="font-semibold text-[#020617]">NepaTronix</span> is a
-            leading Nepal-based IOT, STEM EdTech and software company dedicated
-            to bridging the persistent gap between theoretical knowledge and
-            real-world innovation. Founded in{" "}
-            <span className="font-semibold text-[#2563EB]">2021</span>, the
-            company is driven by the core belief that education should inspire
-            creativity, cultivate practical skills, and lead to meaningful
-            invention. As a multidisciplinary technology enterprise, NepaTronix
-            operates across the intersections of{" "}
-            <span className="text-[#020617]">engineering</span>,{" "}
-            <span className="text-[#020617]">education</span>, and{" "}
-            <span className="text-[#020617]">social impact</span>—delivering
-            smart technology solutions and engaging educational programs that
-            empower learners of all backgrounds.
+            Founded in <span className="font-semibold text-[#2563EB]">2021</span>, <span className="font-semibold text-[#020617]">NepaTronix</span> is a leading Nepal-based IoT, STEM EdTech, and software company committed to closing the gap between education and innovation.
+          </p>
+          <p className="text-xl leading-relaxed text-[#6B7280]">
+            Built on the belief that education should inspire creativity, cultivate practical skills, and lead to meaningful invention, <span className="font-semibold text-[#020617]">NepaTronix</span> operates at the intersection of engineering, education, and social impact. Through smart technology solutions and engaging, hands-on learning programs, we empower students, teachers, and institutions to create real-world change.
+          </p>
+          <p className="text-xl font-bold text-[#020617] mt-2">
+            NepaTronix - Excellence Through Innovation.
           </p>
         </div>
         <div className="grid gap-8 md:grid-cols-2">
@@ -103,13 +95,13 @@ export default function Home() {
         <SectionHeading
           eyebrow="Certification"
           title="Certified and Accreditation"
-          description="Our STEAM with IoT and Robotic course is being accredited and certified by Kathmandu University, IIT Madras and IITM Pravartak"
+          description="Our STEAM with IoT and Robotic course is being accredited and certified by Kathmandu University"
           align="center"
         />
 
         {/* Certification Partners */}
         <div className="mt-16">
-          <div className="grid gap-8 md:grid-cols-3">
+          <div className="flex justify-center">
             {[
               {
                 name: "Kathmandu University",
@@ -135,7 +127,7 @@ export default function Home() {
             ].map((partner) => (
               <div
                 key={partner.name}
-                className="flex flex-col items-center rounded-2xl border border-[#e3f2fd] bg-white p-8 shadow-sm transition-all duration-300 hover:shadow-lg"
+                className="flex flex-col items-center max-w-sm rounded-2xl border border-[#e3f2fd] bg-white p-8 shadow-sm transition-all duration-300 hover:shadow-lg"
               >
                 <div className="mb-6 flex h-24 w-full items-center justify-center">
                   <Image

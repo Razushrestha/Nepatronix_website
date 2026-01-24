@@ -84,7 +84,7 @@ export default function TeamPage() {
     <div className="min-h-screen bg-[#F8FAFC]">
       
       {/* Hero Section */}
-      <div className="relative bg-[#020617] px-6 py-20 lg:py-28 text-center overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="relative bg-[#020617] px-6 pt-44 pb-20 text-center overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div className="absolute inset-0 opacity-10 bg-[url('/grid-pattern.svg')]"></div>
         <div className="relative z-10 max-w-4xl mx-auto">
           <span className="inline-flex items-center justify-center rounded-full bg-[#C1121F]/10 px-4 py-1.5 text-sm font-bold text-[#C1121F] ring-1 ring-[#C1121F]/20 mb-8 shadow-sm tracking-wide uppercase">

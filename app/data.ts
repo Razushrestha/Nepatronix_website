@@ -72,8 +72,8 @@ export type TeamMember = {
 };
 
 export const aboutUsData = {
-  about: "Nepatronix is a premier technology and education provider in Nepal, dedicated to bridging the gap between academia and industry. We specialize in reducing the dependency on imported electronics by fostering local innovation and manufacturing capability.",
-  mission: "To revolutionize the technological landscape of Nepal by empowering youth with industry-relevant skills and promoting indigenous product development.",
+  about: "Founded in 2021, NepaTronix is a leading Nepal-based IoT, STEM EdTech, and software company committed to closing the gap between education and innovation. Built on the belief that education should inspire creativity, cultivate practical skills, and lead to meaningful invention, NepaTronix operates at the intersection of engineering, education, and social impact.",
+  mission: "To revolutionizing the technological landscape of Nepal by empowering youth with industry-relevant skills and promoting indigenous product development.",
   vision: "To be the leading catalyst in Nepal's journey towards technological self-sufficiency and innovation.",
   ceo: {
     name: "Razu Shrestha",
@@ -81,7 +81,7 @@ export const aboutUsData = {
     message: "At Nepatronix, we are committed to building a future where innovation, education, and engineering come together to create real-world impact. Our focus is on empowering students, educators, and industries through practical STEM education, advanced technology solutions, and globally aligned engineering services while staying rooted in Nepal’s needs and values. We believe in long-term thinking, ethical innovation, and meaningful collaboration as we grow from a national leader to a global technology partner. Our mission is simple: to transform ideas into impactful solutions that shape the future.",
     image: "/Raju%20Shrestha.jpg",
     socials: {
-      facebook: "https://www.facebook.com/razu.shrestha.226563",
+      facebook: "https://www.facebook.com/NepaTronixx",
       whatsapp: "https://wa.me/9779803661701",
       linkedin: "https://www.linkedin.com/in/razu-shrestha-1a732024b/"
     }
@@ -451,12 +451,10 @@ export const servicesPageData = {
         description: "We design and deliver globally aligned STEM education, product engineering, and lab infrastructure solutions that empower institutions, educators, and learners to thrive in a technology-driven world."
     },
     recognizedBy: [
-        "IIT Madras",
-        "IIT Madras Pravartak",
         "Kathmandu University"
     ],
     whyChooseUs: [
-        "Only STEM education provider in Nepal recognized by IIT Madras, IIT Madras Pravartak, and Kathmandu University",
+        "Only STEM education provider in Nepal recognized by Kathmandu University",
         "Integrated ecosystem: Education + Engineering + Infrastructure",
         "In-house R&D and product design",
         "Certified programs for teachers and students",

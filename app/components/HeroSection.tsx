@@ -87,7 +87,7 @@ export function HeroSection() {
 
           {/* Headline */}
           <h1 className="text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
-            IoT, Robotics & STEM <br className="hidden sm:block" />
+            Certified IoT, Robotics & STEM <br className="hidden sm:block" />
             <span className="bg-gradient-to-r from-[#C1121F] to-red-500 bg-clip-text text-transparent">
               Education in Nepal
             </span>

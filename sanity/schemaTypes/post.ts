@@ -42,7 +42,20 @@ export const post = defineType({
       name: 'categories',
       title: 'Categories',
       type: 'array',
-      of: [{ type: 'string' }], // keeping it simple for now matching data.ts strings
+      of: [
+        {
+          type: 'string',
+          options: {
+            list: [
+              { title: 'Latest', value: 'Latest' },
+              { title: 'News', value: 'News' },
+              { title: 'Author Favourite', value: 'Author Favourite' },
+              { title: 'Editor Picks', value: 'Editor Picks' },
+              { title: 'Trending', value: 'Trending' },
+            ]
+          }
+        }
+      ],
     }),
     defineField({
       name: 'publishedAt',

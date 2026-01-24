@@ -18,27 +18,32 @@ export const gallery = defineType({
       rows: 3,
     }),
     defineField({
-      name: 'image',
-      title: 'Image',
-      type: 'image',
+      name: 'images',
+      title: 'Images',
+      type: 'array',
+      of: [
+        {
+          type: 'image',
+          options: {
+            hotspot: true,
+          },
+          fields: [
+            {
+              name: 'caption',
+              type: 'string',
+              title: 'Caption',
+            },
+            {
+              name: 'alt',
+              type: 'string',
+              title: 'Alt Text',
+            }
+          ]
+        }
+      ],
       options: {
-        hotspot: true,
-      },
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'category',
-      title: 'Category',
-      type: 'string', // E.g., "Office", "Events", "Culture"
-      options: {
-        list: [
-          { title: 'Office', value: 'Office' },
-          { title: 'Events', value: 'Events' },
-          { title: 'Culture', value: 'Culture' },
-          { title: 'Community', value: 'Community' },
-        ],
-      },
-      validation: (Rule) => Rule.required(),
+        layout: 'grid'
+      }
     }),
     defineField({
       name: 'publishedAt',
