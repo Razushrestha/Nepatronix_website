@@ -222,7 +222,7 @@ export default function MahabirChat() {
         {isOpen && (
           <div 
             ref={chatRef}
-            className="fixed inset-0 sm:absolute sm:bottom-20 sm:right-0 sm:w-[340px] sm:md:w-[400px] sm:h-[600px] w-full h-full bg-white rounded-none sm:rounded-[2.5rem] shadow-[0_25px_70px_rgba(0,0,0,0.25)] border border-slate-100 flex flex-col overflow-hidden animate-in slide-in-from-bottom-12 fade-in duration-500 z-[200]"
+            className="fixed inset-0 sm:inset-auto sm:absolute sm:bottom-20 sm:right-0 w-full h-full sm:w-[90vw] sm:max-w-md sm:h-[80vh] md:w-[420px] md:h-[600px] lg:w-[400px] lg:h-[600px] bg-white rounded-none sm:rounded-[2.5rem] shadow-[0_25px_70px_rgba(0,0,0,0.25)] border border-slate-100 flex flex-col overflow-hidden animate-in slide-in-from-bottom-12 fade-in duration-500 z-[200]"
           >
             {/* Header */}
             <div className="p-5 sm:p-7 bg-[#020617] text-white relative">
