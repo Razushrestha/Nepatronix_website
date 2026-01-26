@@ -74,6 +74,7 @@ export function HeroSection() {
       {/* Glowing orb */}
       <div className="pointer-events-none absolute left-1/2 top-1/3 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#C1121F]/10 blur-3xl" />
 
+
       {/* Content */}
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 pt-24 text-center">
         <div className="mx-auto max-w-4xl space-y-8">

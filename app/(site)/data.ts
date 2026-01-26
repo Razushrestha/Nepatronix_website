@@ -368,11 +368,37 @@ export const blogPosts: BlogPost[] = [
 export const ourServices = [
   {
     id: "stem-education",
-    title: "STEM Education Solutions",
+    title: "Certified STEM Education Solution",
     tagline: "Certified. Experiential. Future-Ready.",
     description: "A globally aligned STEM education framework designed for students and teachers, rooted in hands-on learning, real-world problem solving, and measurable outcomes.",
     overview: "A globally aligned STEM education framework designed for students and teachers, rooted in hands-on learning, real-world problem solving, and measurable outcomes.",
     icon: "microscope",
+    programGoal: "To equip aspiring and practicing tutors with essential technical, pedagogical, professional, and business skills to deliver high-quality, hands-on STEM, IoT, and Robotics education in schools. while building structured, accountable, and financially sustainable tutoring programs that integrate Science experiments and Math applications effectively.",
+    keyObjectives: [
+      "Understand and Advocate for STEM Education",
+      "Master Technical Fundamentals in Hardware and Programming",
+      "Develop Hands-On Project Implementation Skills",
+      "Apply Effective Pedagogical and Classroom Management Techniques",
+      "Ensure Professionalism, Ethics, and Institutional Alignment",
+      "Build Financial and Operational Sustainability Knowledge",
+      "Acquire Skills for School Engagement and Business Development",
+      "Integrate Science and Math Seamlessly into STEM Delivery",
+      "Achieve Certification and Continuous Improvement"
+    ],
+    targetAudiance: [
+      "School Teachers",
+      "Engineering Students",
+      "Education Entrepreneurs",
+      "STEM Enthusiasts",
+      "Academic Coordinators"
+    ],
+    certifications: [
+      { name: "STEM Based Teacher Training Program", hrs: "61", delivery: "Online/Offline", exam: "Online/Offline" },
+      { name: "10 Days STEM Based Workshop Program", hrs: "35", delivery: "Offline", exam: "Online/Offline" },
+      { name: "7 Days STEM Based Workshop Program", hrs: "35", delivery: "Offline", exam: "Online/Offline" },
+      { name: "STEM Based In-House Training Program (45 days)", hrs: "45", delivery: "Offline", exam: "Online" },
+      { name: "STEM based In-House Training program (60 days)", hrs: "60", delivery: "Offline", exam: "Online" }
+    ],
     scopeOfServices: [
       "Certified STEM programs for students",
       "Certified STEM Teacher Training Programs", 
@@ -391,7 +417,7 @@ export const ourServices = [
     tagline: "Research-Driven. In-House. Cost-Optimized.",
     description: "End-to-end product engineering services combining in-house STEM kit development with customized engineering solutions for schools and institutions.",
     overview: "End-to-end product engineering services combining in-house STEM kit development with customized engineering solutions for schools and institutions.",
-    icon: "chip",
+    icon: "wrench",
     scopeOfServices: [
       "In-house engineered STEM kits",
       "Research and prototype development",
@@ -409,8 +435,28 @@ export const ourServices = [
     title: "STEM Lab Setup",
     tagline: "Where Learning Becomes Experience.",
     description: "A complete STEM lab design and implementation service that transforms classrooms into interactive, future-ready learning environments.",
-    overview: "A complete STEM lab design and implementation service that transforms classrooms into interactive, future-ready learning environments.",
+    overview: "We provide end-to-end STEM lab establishment solutions, from conceptual design and physical infrastructure to the deployment of advanced hardware and pedagogical tools. Our setups are engineered to be modular, scalable, and fully aligned with both local and international academic standards.",
     icon: "lab", 
+    labTiers: [
+      {
+        name: "Normal Lab Setup",
+        focus: "Foundational STEM & Electronics",
+        description: "Essential tools and workbench setups for basic electronics, circuit building, and introductory robotics.",
+        features: ["Basic STEM Kits", "Soldering Stations", "Analog Circuit Boards", "Standard Workbench Setup"]
+      },
+      {
+        name: "Medium Lab Setup",
+        focus: "Intermediate Robotics & IoT",
+        description: "Advanced workstations including microcontroller development hubs, 3D printing stations, and IoT sensor arrays.",
+        features: ["Advanced Robotics Kits", "FDM 3D Printers", "IoT Hub Integration", "Modular Storage Systems"]
+      },
+      {
+        name: "High-End Lab Setup",
+        focus: "Industrial AI & Prototyping",
+        description: "Comprehensive innovation hubs featuring industrial-grade 3D printers, AI processing clusters, and advanced PCB milling.",
+        features: ["Industrial 3D Printers", "AI/ML Workstations", "PCB Milling Machines", "VR/AR Simulation Zones"]
+      }
+    ],
     scopeOfServices: [
       "Customizable STEM labs based on grade and curriculum",
       "Affordable and scalable lab infrastructure",

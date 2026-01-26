@@ -41,7 +41,7 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "EducationalOrganization",
   "name": "Nepatronix Engineering Solution Pvt. Ltd.",
-  "url": "https://nepatronix.com",
+  "url": "https://nepatronix.org",
   "sameAs": [
     "https://www.facebook.com/NepaTronixx",
     "https://linkedin.com/company/nepatronix"

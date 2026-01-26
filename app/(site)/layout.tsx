@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import Breadcrumb from "./components/Breadcrumb";
+import MahabirChat from "./components/MahabirChat";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://nepatronix.com'),
@@ -35,6 +36,7 @@ export default function SiteLayout({
       <Header />
       <Breadcrumb />
       <main>{children}</main>
+      <MahabirChat />
       <Footer />
     </>
   );

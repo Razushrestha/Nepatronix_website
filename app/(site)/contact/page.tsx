@@ -172,9 +172,9 @@ export default function ContactPage() {
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             )
           }].map((item) => (
-            <div key={item.label} className="rounded-2xl border border-slate-100 bg-white px-6 py-6 shadow-xl shadow-slate-200/50 flex flex-col items-center text-center sm:items-start sm:text-left gap-4 hover:-translate-y-1 transition-transform duration-300">
-               <div className="p-3 bg-blue-50 text-[#020617] rounded-xl group-hover:bg-[#C1121F] group-hover:text-white transition-colors">
-                   {item.icon}
+            <div key={item.label} className="rounded-2xl border border-slate-100 bg-white px-6 py-6 shadow-xl shadow-slate-200/50 flex flex-col items-center text-center gap-4 hover:-translate-y-1 transition-transform duration-300">
+               <div className="flex justify-center items-center p-3 bg-blue-50 text-[#020617] rounded-xl group-hover:bg-[#C1121F] group-hover:text-white transition-colors">
+                 {item.icon}
                </div>
               <div>
                 <p className="text-xs uppercase tracking-widest font-bold text-slate-500 mb-1">{item.label}</p>

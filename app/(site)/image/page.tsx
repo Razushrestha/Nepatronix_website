@@ -68,15 +68,21 @@ export default function GalleryPage() {
       
       {/* Header Section */}
       <div className="relative bg-[#020617] px-6 pt-44 pb-16 text-center overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[url('/grid-pattern.svg')]"></div>
+        <div className="absolute inset-0 opacity-10 bg-[url('/grid-pattern.svg')]\"></div>
         <div className="relative z-10 max-w-4xl mx-auto">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-6xl mb-6">
+          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-6xl mb-4">
             Our Gallery
           </h1>
-          <p className="max-w-2xl mx-auto text-lg text-gray-300 leading-relaxed mb-10">
+          <p className="max-w-2xl mx-auto text-lg text-gray-300 leading-relaxed mb-2">
             A visual showcase of our journey, student innovations, and community events.
           </p>
-          
+          <div className="mb-6">
+            <span className="inline-block text-sm text-[#C1121F] font-bold bg-white/5 rounded-full px-4 py-1">
+              {searchQuery
+                ? `${filteredItems.length} result${filteredItems.length === 1 ? '' : 's'} for "${searchQuery}"`
+                : `${items.length} moment${items.length === 1 ? '' : 's'} in total`}
+            </span>
+          </div>
           <div className="flex w-full max-w-lg mx-auto items-center gap-2">
             <div className="relative flex-1 group">
               <input 

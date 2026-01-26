@@ -31,6 +31,33 @@ export const post = defineType({
       type: 'string', // Could be reference to teamMember later
     }),
     defineField({
+      name: 'seoTitle',
+      title: 'SEO Title',
+      type: 'string',
+      description: 'Custom title for search engines (defaults to Post Title)',
+    }),
+    defineField({
+      name: 'seoDescription',
+      title: 'SEO Description',
+      type: 'text',
+      rows: 2,
+      description: 'Custom description for search engines (defaults to Excerpt)',
+    }),
+    defineField({
+      name: 'keywords',
+      title: 'Keywords',
+      type: 'array',
+      of: [{ type: 'string' }],
+      description: 'Keywords for SEO',
+    }),
+    defineField({
+      name: 'tags',
+      title: 'Tags/Topics',
+      type: 'array',
+      of: [{ type: 'string' }],
+      description: 'Specific topics or tags for this post (better for SEO)',
+    }),
+    defineField({
       name: 'mainImage',
       title: 'Main image',
       type: 'image',
