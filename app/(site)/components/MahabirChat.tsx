@@ -207,7 +207,7 @@ export default function MahabirChat() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[100] font-sans flex flex-col items-end gap-3 pointer-events-none">
+    <div className="fixed bottom-6 right-6 z-[100] font-sans flex flex-col items-end gap-3 pointer-events-none sm:bottom-6 sm:right-6 bottom-0 right-0 w-full">
       {/* Messenger / AI Chat System */}
       <div className="relative pointer-events-auto">
         <button
@@ -222,14 +222,14 @@ export default function MahabirChat() {
         {isOpen && (
           <div 
             ref={chatRef}
-            className="absolute bottom-20 right-0 w-[340px] md:w-[400px] h-[600px] bg-white rounded-[2.5rem] shadow-[0_25px_70px_rgba(0,0,0,0.25)] border border-slate-100 flex flex-col overflow-hidden animate-in slide-in-from-bottom-12 fade-in duration-500"
+            className="fixed inset-0 sm:absolute sm:bottom-20 sm:right-0 sm:w-[340px] sm:md:w-[400px] sm:h-[600px] w-full h-full bg-white rounded-none sm:rounded-[2.5rem] shadow-[0_25px_70px_rgba(0,0,0,0.25)] border border-slate-100 flex flex-col overflow-hidden animate-in slide-in-from-bottom-12 fade-in duration-500 z-[200]"
           >
             {/* Header */}
-            <div className="p-7 bg-[#020617] text-white relative">
+            <div className="p-5 sm:p-7 bg-[#020617] text-white relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-[#C1121F]/10 blur-3xl -translate-y-1/2 translate-x-1/2 rounded-full"></div>
               <div className="flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C1121F] to-red-600 flex items-center justify-center border border-white/10 shadow-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-[#C1121F] to-red-600 flex items-center justify-center border border-white/10 shadow-lg">
                     <BotIcon className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -242,7 +242,8 @@ export default function MahabirChat() {
                 </div>
                 <button 
                   onClick={() => setIsOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all text-white"
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all text-white absolute right-2 top-2 sm:static"
+                  style={{ zIndex: 10 }}
                 >
                   <XIcon className="w-4 h-4" />
                 </button>
@@ -250,7 +251,7 @@ export default function MahabirChat() {
             </div>
 
             {step === "form" ? (
-              <div className="flex-1 overflow-y-auto p-8 space-y-6 bg-slate-50/50">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 bg-slate-50/50">
                 <div className="text-center space-y-2 mb-4">
                   <h4 className="text-xl font-bold text-slate-800">Let's Get Started!</h4>
                   <p className="text-xs text-slate-500 font-medium">Please enter your details to start chatting with Mahabir.</p>
@@ -263,7 +264,7 @@ export default function MahabirChat() {
                       type="text"
                       value={userData.name}
                       onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-                      className={`w-full bg-white border ${errors.name ? 'border-red-400' : 'border-slate-100'} rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-900 shadow-sm focus:ring-2 focus:ring-[#C1121F]/10 transition-all outline-none`}
+                      className={`w-full bg-white border ${errors.name ? 'border-red-400' : 'border-slate-100'} rounded-2xl px-4 py-3 text-base sm:px-5 sm:py-3.5 font-bold text-slate-900 shadow-sm focus:ring-2 focus:ring-[#C1121F]/10 transition-all outline-none`}
                       placeholder="John Doe"
                     />
                     {errors.name && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.name}</p>}
@@ -275,7 +276,7 @@ export default function MahabirChat() {
                       type="email"
                       value={userData.email}
                       onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                      className={`w-full bg-white border ${errors.email ? 'border-red-400' : 'border-slate-100'} rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-900 shadow-sm focus:ring-2 focus:ring-[#C1121F]/10 transition-all outline-none`}
+                      className={`w-full bg-white border ${errors.email ? 'border-red-400' : 'border-slate-100'} rounded-2xl px-4 py-3 text-base sm:px-5 sm:py-3.5 font-bold text-slate-900 shadow-sm focus:ring-2 focus:ring-[#C1121F]/10 transition-all outline-none`}
                       placeholder="john@example.com"
                     />
                     {errors.email && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.email}</p>}
@@ -287,7 +288,7 @@ export default function MahabirChat() {
                       type="tel"
                       value={userData.contact}
                       onChange={(e) => setUserData({ ...userData, contact: e.target.value })}
-                      className={`w-full bg-white border ${errors.contact ? 'border-red-400' : 'border-slate-100'} rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-900 shadow-sm focus:ring-2 focus:ring-[#C1121F]/10 transition-all outline-none`}
+                      className={`w-full bg-white border ${errors.contact ? 'border-red-400' : 'border-slate-100'} rounded-2xl px-4 py-3 text-base sm:px-5 sm:py-3.5 font-bold text-slate-900 shadow-sm focus:ring-2 focus:ring-[#C1121F]/10 transition-all outline-none`}
                       placeholder="+977 98XXXXXXXX"
                     />
                     {errors.contact && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.contact}</p>}
@@ -296,6 +297,7 @@ export default function MahabirChat() {
                   <button
                     type="submit"
                     className="w-full bg-[#C1121F] text-white rounded-2xl py-4 text-xs font-black uppercase tracking-widest shadow-lg shadow-red-500/20 hover:bg-red-700 hover:scale-[1.02] active:scale-95 transition-all mt-4"
+                    style={{ fontSize: '1rem' }}
                   >
                     Start Conversation
                   </button>
@@ -303,7 +305,7 @@ export default function MahabirChat() {
               </div>
             ) : (
               <>
-                <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50">
+                <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-6 bg-slate-50/50">
                   {messages.map((m, i) => (
                     <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-[88%] flex gap-3 ${m.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
@@ -332,8 +334,8 @@ export default function MahabirChat() {
                   )}
                 </div>
 
-                <div className="p-4 bg-white border-t border-slate-50">
-                  <div className="flex flex-wrap gap-2 mb-4 px-2">
+                <div className="p-2 sm:p-4 bg-white border-t border-slate-50">
+                  <div className="flex flex-wrap gap-2 mb-4 px-1 sm:px-2">
                     {["Our Services", "STEM Training", "Lab Setup", "Contact Details"].map((chip) => (
                       <button 
                         key={chip} 
@@ -351,7 +353,7 @@ export default function MahabirChat() {
                       placeholder="Message Mahabir AI..."
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
-                      className="w-full bg-slate-100 border-none rounded-2xl py-4.5 pl-6 pr-14 text-[13px] font-bold placeholder:text-slate-400 focus:ring-2 focus:ring-[#C1121F]/10 focus:bg-white transition-all text-slate-900"
+                      className="w-full bg-slate-100 border-none rounded-2xl py-4 pl-4 pr-12 text-base font-bold placeholder:text-slate-400 focus:ring-2 focus:ring-[#C1121F]/10 focus:bg-white transition-all text-slate-900"
                     />
                     <button
                       type="submit"
@@ -372,7 +374,7 @@ export default function MahabirChat() {
         href="https://wa.me/9779803661701" 
         target="_blank" 
         rel="noopener noreferrer"
-        className="w-14 h-14 rounded-full bg-[#25D366] flex items-center justify-center shadow-[0_8px_30px_rgba(37,211,102,0.3)] hover:scale-110 active:scale-95 transition-all pointer-events-auto border-2 border-white/50"
+        className="w-14 h-14 rounded-full bg-[#25D366] flex items-center justify-center shadow-[0_8px_30px_rgba(37,211,102,0.3)] hover:scale-110 active:scale-95 transition-all pointer-events-auto border-2 border-white/50 sm:fixed sm:bottom-6 sm:right-24 fixed bottom-6 left-6 z-[101]"
         title="Chat on WhatsApp"
       >
         <WhatsAppIcon className="text-white w-8 h-8" />
