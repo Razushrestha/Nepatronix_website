@@ -82,7 +82,7 @@ export const aboutUsData = {
     image: "/Raju%20Shrestha.jpg",
     socials: {
       facebook: "https://www.facebook.com/NepaTronixx",
-      whatsapp: "https://wa.me/9779803661701",
+      whatsapp: "https://wa.me/9779803661701?text=Hello%20Nepatronix!%20I%20am%20interested%20in%20learning%20more%20about%20your%20IoT%20and%20Robotics%20training%20programs.%20Please%20share%20more%20details.",
       linkedin: "https://www.linkedin.com/in/razu-shrestha-1a732024b/"
     }
   },

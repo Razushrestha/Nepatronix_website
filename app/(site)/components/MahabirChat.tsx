@@ -371,7 +371,7 @@ export default function MahabirChat() {
 
       {/* WhatsApp Button */}
       <a 
-        href="https://wa.me/9779803661701" 
+        href="https://wa.me/9779803661701?text=Hello%20Nepatronix!%20I%20am%20interested%20in%20learning%20more%20about%20your%20IoT%20and%20Robotics%20training%20programs.%20Please%20share%20more%20details." 
         target="_blank" 
         rel="noopener noreferrer"
         className="w-14 h-14 rounded-full bg-[#25D366] flex items-center justify-center shadow-[0_8px_30px_rgba(37,211,102,0.3)] hover:scale-110 active:scale-95 transition-all pointer-events-auto border-2 border-white/50 sm:fixed sm:bottom-6 sm:right-24 fixed bottom-6 left-6 z-[101]"
