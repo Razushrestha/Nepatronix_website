@@ -23,8 +23,11 @@ export const metadata: Metadata = {
     "Nepatronix provides hands-on IoT, Robotics, Arduino & PCB training in Nepal with real-world projects and expert mentors.",
   keywords: ["IoT training in Nepal", "Robotics training in Nepal", "Arduino training Nepal", "STEM education Nepal", "PCB design training Nepal"],
   icons: {
-    icon: '/title.png',
-    shortcut: '/title.png',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/title.png', type: 'image/png', sizes: '32x32' },
+    ],
+    shortcut: '/favicon.ico',
     apple: '/title.png',
   },
   openGraph: {

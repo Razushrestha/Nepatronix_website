@@ -29,7 +29,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto mt-24 max-w-6xl space-y-12 px-6" id="about">
+      <section className="mx-auto mt-8 max-w-6xl space-y-12 px-6" id="about">
         <SectionHeading
           eyebrow="About Us"
           title="Our Mission & Vision"
@@ -85,7 +85,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto mt-24 max-w-6xl px-6" id="recognition">
+      <section className="mx-auto mt-8 max-w-6xl px-6" id="recognition">
         <div className="text-center">
           <SectionHeading
             eyebrow="Recognition"
@@ -99,7 +99,7 @@ export default function Home() {
       </section>
 
       <section
-        className="mx-auto mt-24 max-w-6xl space-y-12 px-6"
+        className="mx-auto mt-8 max-w-6xl space-y-12 px-6"
         id="programs"
       >
         <SectionHeading
@@ -134,7 +134,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto mt-24 max-w-6xl space-y-12 px-6" id="mentors">
+      <section className="mx-auto mt-8 max-w-6xl space-y-12 px-6" id="mentors">
         <SectionHeading
           eyebrow="Our Services"
           title="Comprehensive STEM Solutions"
@@ -232,7 +232,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto mt-24 max-w-6xl space-y-12 px-6" id="stories">
+      <section className="mx-auto mt-8 max-w-6xl space-y-12 px-6" id="stories">
         <SectionHeading
           eyebrow="Partnership Organizations"
           title="Trusted Partners & Collaborators"
@@ -244,7 +244,7 @@ export default function Home() {
       </section>
 
       <section
-        className="mx-auto mt-24 max-w-6xl space-y-12 px-6"
+        className="mx-auto mt-8 max-w-6xl space-y-12 px-6"
         id="portfolio"
       >
         <SectionHeading
@@ -321,7 +321,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto mt-24 max-w-6xl space-y-12 px-6" id="schools">
+      <section className="mx-auto mt-8 max-w-6xl space-y-12 px-6" id="schools">
         <SectionHeading
           eyebrow="Educational Partners"
           title="School & College Collaborations"
@@ -333,7 +333,7 @@ export default function Home() {
       </section>
 
       <section
-        className="mx-auto mt-24 mb-24 max-w-6xl space-y-12 px-6"
+        className="mx-auto mt-8 mb-24 max-w-6xl space-y-12 px-6"
         id="testimonials"
       >
         <SectionHeading

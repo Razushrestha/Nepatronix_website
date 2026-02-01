@@ -90,7 +90,7 @@ export default function BlogContent({ initialPosts }: BlogContentProps) {
               <span className="text-[#C1121F] font-black uppercase tracking-[0.4em] text-[10px]">Our Journal</span>
               <span className="h-[2px] w-12 bg-[#C1121F]"></span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
               Exploring the <span className="text-[#C1121F]">Future</span> <br className="hidden md:block" /> of Technology.
             </h1>
             <p className="text-xl text-slate-400 leading-relaxed max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-1000 font-medium">
@@ -104,43 +104,43 @@ export default function BlogContent({ initialPosts }: BlogContentProps) {
         <div>
           <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 mb-12">
             {/* Featured Bento Card */}
-            <Link href={`/blog/${featuredPost.slug.current}`} className="lg:col-span-8 group relative block h-[450px] lg:h-[600px] rounded-[3rem] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.4)] transition-all duration-700 hover:-translate-y-2">
+            <Link href={`/blog/${featuredPost.slug.current}`} className="lg:col-span-8 group relative block h-[450px] lg:h-[550px] rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_30px_60px_rgba(0,0,0,0.3)]">
               <Image
                 src={urlFor(featuredPost.mainImage).width(1600).url()}
                 alt={featuredPost.title}
                 fill
-                className="object-cover transition-transform duration-[3s] group-hover:scale-110"
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
                 priority
               />
               
-              {/* High-end Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/20 to-transparent opacity-90 group-hover:opacity-100 transition-opacity" />
+              {/* Subtle Gradient Overlay - Only at bottom */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
               
-              <div className="absolute inset-x-0 bottom-0 p-8 md:p-16">
-                <div className="max-w-3xl space-y-6">
-                  <div className="flex items-center gap-4">
-                    <span className="flex items-center gap-3 bg-[#C1121F] text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] shadow-2xl shadow-red-900/40 border border-white/20">
+              <div className="absolute inset-x-0 bottom-0 p-6 md:p-10">
+                <div className="max-w-2xl space-y-4">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="flex items-center gap-2 bg-[#C1121F] text-white px-4 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider shadow-lg">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                       Featured Story
                     </span>
-                    <span className="text-white/60 text-[11px] font-black uppercase tracking-[0.4em]">{formatDate(featuredPost.publishedAt)}</span>
+                    <span className="text-white/70 text-[11px] font-semibold uppercase tracking-wider">{formatDate(featuredPost.publishedAt)}</span>
                   </div>
                   
-                  <h2 className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tight group-hover:text-red-400 transition-colors duration-500 italic">
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-snug tracking-tight group-hover:text-red-400 transition-colors duration-300">
                     {featuredPost.title}
                   </h2>
                   
-                  <p className="text-slate-300 text-base md:text-lg line-clamp-2 font-medium leading-relaxed opacity-80 max-w-2xl">
+                  <p className="text-white/70 text-sm md:text-base line-clamp-2 leading-relaxed max-w-xl hidden md:block">
                     {featuredPost.excerpt}
                   </p>
                   
-                  <div className="flex items-center gap-4 pt-4">
-                    <div className="w-12 h-12 rounded-2xl bg-[#C1121F] flex items-center justify-center text-sm font-black text-white shadow-2xl rotate-3 border border-white/10">
-                      {featuredPost.author?.charAt(0)}
+                  <div className="flex items-center gap-3 pt-2">
+                    <div className="w-10 h-10 rounded-xl bg-[#C1121F] flex items-center justify-center text-sm font-bold text-white shadow-lg">
+                      {featuredPost.author?.charAt(0) || "N"}
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[10px] font-black text-[#C1121F] uppercase tracking-widest leading-none mb-1">Lead Curator</span>
-                      <span className="text-base font-bold text-white tracking-tight">{featuredPost.author}</span>
+                      <span className="text-[9px] font-semibold text-[#C1121F] uppercase tracking-wider leading-none mb-0.5">Lead Curator</span>
+                      <span className="text-sm font-semibold text-white">{featuredPost.author || "Nepatronix"}</span>
                     </div>
                   </div>
                 </div>
