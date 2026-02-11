@@ -178,22 +178,22 @@ const ApplyForCertificationPage = () => {
       <div className="container mx-auto max-w-2xl">
         {/* Step Indicator */}
         {formData.courseType === 'paid' && (
-          <div className="mb-6 max-w-2xl mx-auto">
-            <div className="flex items-center justify-center">
+          <div className="mb-6 max-w-2xl mx-auto px-4">
+            <div className="flex items-center justify-center flex-wrap gap-2 sm:gap-0">
               {/* Step 1 */}
               <div className="flex items-center">
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm ${
+                <div className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full font-bold text-sm ${
                   step === 1 
                     ? 'bg-[#C1121F] text-white ring-4 ring-[#C1121F]/20' 
                     : 'bg-green-500 text-white'
                 }`}>
                   {step > 1 ? (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   ) : '1'}
                 </div>
-                <span className={`ml-2 font-semibold text-sm ${
+                <span className={`ml-2 font-semibold text-xs sm:text-sm md:text-base whitespace-nowrap ${
                   step === 1 ? 'text-gray-800' : 'text-green-600'
                 }`}>
                   Application Details
@@ -201,20 +201,20 @@ const ApplyForCertificationPage = () => {
               </div>
 
               {/* Connector Line */}
-              <div className={`w-16 md:w-24 h-1 mx-3 rounded ${
+              <div className={`w-12 sm:w-16 md:w-24 lg:w-32 h-1 mx-2 sm:mx-3 md:mx-4 rounded flex-shrink-0 ${
                 step === 2 ? 'bg-[#C1121F]' : 'bg-gray-300'
               }`}></div>
 
               {/* Step 2 */}
               <div className="flex items-center">
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm ${
+                <div className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full font-bold text-sm ${
                   step === 2 
                     ? 'bg-[#C1121F] text-white ring-4 ring-[#C1121F]/20' 
                     : 'bg-gray-300 text-gray-600'
                 }`}>
                   2
                 </div>
-                <span className={`ml-2 font-semibold text-sm ${
+                <span className={`ml-2 font-semibold text-xs sm:text-sm md:text-base whitespace-nowrap ${
                   step === 2 ? 'text-gray-800' : 'text-gray-500'
                 }`}>
                   Payment
