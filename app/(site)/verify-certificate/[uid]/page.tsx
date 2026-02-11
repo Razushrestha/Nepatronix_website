@@ -21,27 +21,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function VerifyCertificatePage({ params }: Props) {
   const { uid } = await params;
 
-  const certificate = await client.fetch(
-    `*[_type == "certificate" && certificateNumber == $uid][0]{
-      certificateNumber,
-      recipientName,
+  const application = await client.fetch(
+    `*[_type == "certificationApplication" && certificateDetails.certificateUID == $uid][0]{
+      "certificateNumber": certificateDetails.certificateUID,
+      "recipientName": applicantName,
       courseName,
-      courseHours,
-      courseDays,
-      issueDate,
-      organizationName,
-      recipientImage,
-      "certificatePdfUrl": certificateFile.asset->url
+      "courseHours": trainingHours,
+      "courseDays": trainingDays,
+      "issueDate": certificateDetails.issueDate,
+      "organizationName": "Nepatronix",
+      "recipientImage": profileImage,
+      certificateDetails
     }`,
     { uid }
   );
 
-  if (!certificate) {
+  if (!application) {
     notFound();
   }
 
-  const imageUrl = certificate.recipientImage 
-    ? builder.image(certificate.recipientImage).width(200).height(200).url()
+  const imageUrl = application.recipientImage 
+    ? builder.image(application.recipientImage).width(200).height(200).url()
     : null;
 
   return (
@@ -68,33 +68,33 @@ export default async function VerifyCertificatePage({ params }: Props) {
             {imageUrl && (
               <img
                 src={imageUrl}
-                alt={certificate.recipientName}
+                alt={application.recipientName}
                 className="w-24 h-24 rounded-full object-cover border-4 border-[#C1121F]"
               />
             )}
             <div className="flex-1">
               <h2 className="text-3xl font-bold text-slate-900 mb-2">
-                {certificate.recipientName}
+                {application.recipientName}
               </h2>
-              <p className="text-slate-600">Certificate ID: <span className="font-mono font-semibold text-[#C1121F]">{certificate.certificateNumber}</span></p>
+              <p className="text-slate-600">Certificate ID: <span className="font-mono font-semibold text-[#C1121F]">{application.certificateNumber}</span></p>
             </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 mb-8">
             <div className="bg-slate-50 rounded-lg p-4">
               <p className="text-sm text-slate-600 mb-1">Course Name</p>
-              <p className="font-semibold text-slate-900">{certificate.courseName}</p>
+              <p className="font-semibold text-slate-900">{application.courseName}</p>
             </div>
             <div className="bg-slate-50 rounded-lg p-4">
               <p className="text-sm text-slate-600 mb-1">Duration</p>
               <p className="font-semibold text-slate-900">
-                {certificate.courseHours} hours / {certificate.courseDays} days
+                {application.courseHours} hours / {application.courseDays} days
               </p>
             </div>
             <div className="bg-slate-50 rounded-lg p-4">
               <p className="text-sm text-slate-600 mb-1">Issue Date</p>
               <p className="font-semibold text-slate-900">
-                {new Date(certificate.issueDate).toLocaleDateString('en-US', {
+                {new Date(application.issueDate).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric'
@@ -103,28 +103,18 @@ export default async function VerifyCertificatePage({ params }: Props) {
             </div>
             <div className="bg-slate-50 rounded-lg p-4">
               <p className="text-sm text-slate-600 mb-1">Issued By</p>
-              <p className="font-semibold text-slate-900">{certificate.organizationName}</p>
+              <p className="font-semibold text-slate-900">{application.organizationName}</p>
             </div>
           </div>
 
-          {certificate.certificatePdfUrl && (
-            <div className="flex gap-4">
-              <a
-                href={certificate.certificatePdfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 bg-[#C1121F] text-white py-3 px-6 rounded-lg font-semibold hover:bg-[#9A0E19] transition-colors text-center"
-              >
-                Download Certificate
-              </a>
-              <button
-                onClick={() => window.print()}
-                className="px-6 py-3 border-2 border-slate-300 rounded-lg font-semibold hover:bg-slate-50 transition-colors"
-              >
-                Print
-              </button>
-            </div>
-          )}
+          <div className="flex gap-4">
+            <button
+              onClick={() => window.print()}
+              className="flex-1 bg-[#C1121F] text-white py-3 px-6 rounded-lg font-semibold hover:bg-[#9A0E19] transition-colors text-center"
+            >
+              Print Certificate
+            </button>
+          </div>
         </div>
 
         {/* Security Information */}

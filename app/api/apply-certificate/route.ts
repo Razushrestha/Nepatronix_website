@@ -3,7 +3,7 @@ import { client } from "@/sanity/lib/client";
 
 // Generate unique certificate UID
 function generateCertificateUID(): string {
-  const prefix = "NTX";
+  const prefix = "NT";
   const year = new Date().getFullYear();
   const random = Math.floor(Math.random() * 100000).toString().padStart(5, "0");
   return `${prefix}-${year}-${random}`;
@@ -57,6 +57,27 @@ async function sendEmailNotification(
   }
 }
 
+// Generate certification data
+function generateCertificationData(
+  fullName: string,
+  courseName: string,
+  trainingHours: number,
+  trainingDays: number
+): {
+  certificateUID: string;
+  issueDate: string;
+  qrCodeData: string;
+} {
+  const certificateUID = generateCertificateUID();
+  const issueDate = new Date().toISOString();
+  const qrCodeData = JSON.stringify({
+    applicantName: fullName,
+    courseName: courseName || `${trainingHours} hours / ${trainingDays} days course`,
+    issueDate: issueDate,
+  });
+  return { certificateUID, issueDate, qrCodeData };
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -108,8 +129,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Create application in Sanity
-    const applicationData: any = {
-      _type: "courseApplication",
+    const applicationData: { _type: string; applicantName: string; email: string; phone: string; courseType: string; trainingHours: string; trainingDays: string; courseName: string; status: string; submittedAt: string; profileImage?: { _type: string; asset: { _type: string; _ref: string } }; paymentDetails?: { amount: number | null; paymentMethod: string; paymentDate: string; paymentProof?: { _type: string; asset: { _type: string; _ref: string } } }; certification?: { certificateUID: string; issueDate: string; qrCodeData: string } } = {
+      _type: "certificationApplication",
       applicantName: fullName,
       email,
       phone: contactNumber,
@@ -134,7 +155,6 @@ export async function POST(req: NextRequest) {
 
     // Add payment details
     applicationData.paymentDetails = {
-      transactionId: "PENDING",
       amount: courseType === 'free' ? 0 : null,
       paymentMethod: "Pending",
       paymentDate: new Date().toISOString(),
@@ -150,6 +170,17 @@ export async function POST(req: NextRequest) {
         },
       };
     }
+
+    // Generate certification data
+    const certificationData = generateCertificationData(
+      fullName,
+      courseName,
+      trainingHours,
+      trainingDays
+    );
+
+    // Add certification data to application
+    applicationData.certification = certificationData;
 
     const application = await client.create(applicationData);
 

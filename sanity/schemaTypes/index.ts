@@ -13,9 +13,7 @@ import { contact } from './contact'
 import subscriber from './subscriber'
 import { enrollment } from './enrollment'
 import { course } from './course'
-import { certificationApplication } from './certificationApplication'
-import { courseApplication } from './courseApplication'
-import { certificate } from './certificate'
+import { certificationApplication } from './courseApplication'
 
 export const schema = {
   types: [
@@ -34,7 +32,5 @@ export const schema = {
     enrollment,
     course,
     certificationApplication,
-    courseApplication,
-    certificate,
   ],
 }

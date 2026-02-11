@@ -33,11 +33,11 @@ async function sendStatusEmail(
 
 export async function POST(req: NextRequest) {
   try {
-    const { applicationId, status, adminNotes } = await req.json();
+    const { applicationId, status, rejectionReason } = await req.json();
 
     // Fetch application
     const application = await client.fetch(
-      `*[_type == "courseApplication" && _id == $applicationId][0]{
+      `*[_type == "certificationApplication" && _id == $applicationId][0]{
         _id,
         applicantName,
         email,
@@ -56,10 +56,7 @@ export async function POST(req: NextRequest) {
     // Update status
     await client
       .patch(applicationId)
-      .set({
-        status,
-        ...(adminNotes && { adminNotes }),
-      })
+      .set({ status })
       .commit();
 
     // Send status change email
@@ -68,19 +65,28 @@ export async function POST(req: NextRequest) {
       application.applicantName,
       status,
       application.courseName,
-      adminNotes
+      rejectionReason
     );
 
     // Auto-trigger certificate generation on approval
     if (status === "approved") {
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/generate-certificate`, {
+        console.log(`🎓 Triggering certificate generation for application ${applicationId}`);
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const response = await fetch(`${baseUrl}/api/generate-certificate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ applicationId }),
         });
+        
+        const result = await response.json();
+        if (result.success) {
+          console.log(`✅ Certificate generated successfully: ${result.certificateUID}`);
+        } else {
+          console.error(`❌ Certificate generation failed:`, result.error);
+        }
       } catch (error) {
-        console.error("Error triggering certificate generation:", error);
+        console.error("❌ Error triggering certificate generation:", error);
       }
     }
 

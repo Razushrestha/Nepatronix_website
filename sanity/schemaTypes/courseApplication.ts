@@ -1,8 +1,8 @@
 import { defineType, defineField } from 'sanity'
 
-export const courseApplication = defineType({
-  name: 'courseApplication',
-  title: 'Course Applications',
+export const certificationApplication = defineType({
+  name: 'certificationApplication',
+  title: 'Certification Applications',
   type: 'document',
   fields: [
     defineField({
@@ -66,11 +66,11 @@ export const courseApplication = defineType({
       type: 'string',
       options: {
         list: [
-          { title: '⏳ Pending Payment', value: 'pending' },
-          { title: '✅ Payment Verified', value: 'payment_verified' },
-          { title: '🎓 Approved', value: 'approved' },
-          { title: '📜 Certificate Generated', value: 'certificate_generated' },
-          { title: '❌ Rejected', value: 'rejected' },
+          { title: 'Pending Payment', value: 'pending' },
+          { title: 'Payment Verified', value: 'payment_verified' },
+          { title: 'Approved', value: 'approved' },
+          { title: 'Certificate Generated', value: 'certificate_generated' },
+          { title: 'Rejected', value: 'rejected' },
         ],
         layout: 'radio',
       },
@@ -81,7 +81,6 @@ export const courseApplication = defineType({
       title: 'Payment Information',
       type: 'object',
       fields: [
-        { name: 'transactionId', type: 'string', title: 'Transaction ID' },
         { name: 'amount', type: 'number', title: 'Amount (NPR)' },
         { name: 'paymentMethod', type: 'string', title: 'Payment Method',
           options: { list: ['eSewa', 'Khalti', 'Bank Transfer', 'Cash'] }
@@ -94,18 +93,42 @@ export const courseApplication = defineType({
       name: 'certificateDetails',
       title: 'Certificate Information',
       type: 'object',
+      description: '🔒 Auto-generated when status changes to "Approved". Do not edit manually.',
       fields: [
-        { name: 'certificateUID', type: 'string', title: 'Certificate UID', readOnly: true },
-        { name: 'issueDate', type: 'date', title: 'Issue Date' },
-        { name: 'certificateUrl', type: 'url', title: 'Certificate PDF URL' },
-        { name: 'qrCodeData', type: 'text', title: 'QR Code Data' },
+        { 
+          name: 'certificateUID', 
+          type: 'string', 
+          title: 'Certificate UID', 
+          description: '🤖 Auto-generated: NT-YYYY-XXXXX format',
+          readOnly: true,
+          placeholder: 'Will be generated on approval'
+        },
+        { 
+          name: 'issueDate', 
+          type: 'date', 
+          title: 'Issue Date',
+          description: '🤖 Auto-generated on certificate creation',
+          readOnly: true,
+          placeholder: 'Will be set on approval'
+        },
+        { 
+          name: 'certificateUrl', 
+          type: 'url', 
+          title: 'Certificate Verification URL',
+          description: '🔗 Public verification link',
+          readOnly: true,
+          placeholder: 'Will be generated on approval'
+        },
+        { 
+          name: 'qrCodeData', 
+          type: 'text', 
+          title: 'QR Code Data',
+          description: '🤖 Auto-generated JSON with student & course details (name, email, phone, course, hours, days, issue date)',
+          readOnly: true,
+          placeholder: 'Will be populated automatically when certificate is generated',
+          rows: 8
+        },
       ],
-    }),
-    defineField({
-      name: 'adminNotes',
-      title: 'Admin Notes',
-      type: 'text',
-      rows: 3,
     }),
     defineField({
       name: 'submittedAt',
@@ -122,16 +145,16 @@ export const courseApplication = defineType({
       media: 'profileImage',
     },
     prepare({ title, subtitle, status, media }) {
-      const statusEmoji = {
-        pending: '⏳', 
-        payment_verified: '✅', 
-        approved: '🎓',
-        certificate_generated: '📜', 
-        rejected: '❌'
-      }[status as string] || '📝';
+      const statusLabel = {
+        pending: '[Pending]', 
+        payment_verified: '[Verified]', 
+        approved: '[Approved]',
+        certificate_generated: '[Certificate Ready]', 
+        rejected: '[Rejected]'
+      }[status as string] || '[New]';
       
       return {
-        title: `${statusEmoji} ${title}`,
+        title: `${statusLabel} ${title}`,
         subtitle: `${subtitle} • ${status}`,
         media,
       };

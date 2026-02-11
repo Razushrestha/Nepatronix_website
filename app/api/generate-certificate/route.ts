@@ -4,7 +4,7 @@ import QRCode from "qrcode";
 
 // Generate unique certificate UID
 function generateCertificateUID(): string {
-  const prefix = "NTX";
+  const prefix = "NT";
   const year = new Date().getFullYear();
   const random = Math.floor(Math.random() * 100000).toString().padStart(5, "0");
   return `${prefix}-${year}-${random}`;
@@ -133,6 +133,8 @@ export async function POST(req: NextRequest) {
   try {
     const { applicationId } = await req.json();
 
+    console.log(`📜 Certificate generation requested for application: ${applicationId}`);
+
     if (!applicationId) {
       return NextResponse.json(
         { error: "Application ID is required" },
@@ -141,8 +143,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Fetch application details
+    console.log(`🔍 Fetching application details from Sanity...`);
     const application = await client.fetch(
-      `*[_type == "courseApplication" && _id == $applicationId][0]{
+      `*[_type == "certificationApplication" && _id == $applicationId][0]{
         _id,
         applicantName,
         email,
@@ -157,13 +160,19 @@ export async function POST(req: NextRequest) {
     );
 
     if (!application) {
+      console.error(`❌ Application not found: ${applicationId}`);
       return NextResponse.json(
         { error: "Application not found" },
         { status: 404 }
       );
     }
 
+    console.log(`✅ Application found: ${application.applicantName}`);
+    console.log(`   - Status: ${application.status}`);
+    console.log(`   - Course: ${application.courseName}`);
+
     if (application.status !== "approved") {
+      console.warn(`⚠️ Application not approved yet. Current status: ${application.status}`);
       return NextResponse.json(
         { error: "Application must be approved before generating certificate" },
         { status: 400 }
@@ -171,17 +180,25 @@ export async function POST(req: NextRequest) {
     }
 
     // Generate certificate details
+    console.log(`🎨 Generating certificate details...`);
     const certificateUID = generateCertificateUID();
     const issueDate = new Date().toISOString().split("T")[0];
     const verificationUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://nepatronix.com'}/verify-certificate/${certificateUID}`;
 
-    // Generate QR code with verification data
+    // Generate QR code with comprehensive verification data
+    // Automatically captures all student-entered information
     const qrData = JSON.stringify({
-      uid: certificateUID,
-      name: application.applicantName,
-      course: application.courseName,
-      date: issueDate,
-      verify: verificationUrl,
+      certificateUID: certificateUID,
+      fullName: application.applicantName,
+      email: application.email,
+      phone: application.phone,
+      courseName: application.courseName,
+      trainingHours: application.trainingHours,
+      trainingDays: application.trainingDays,
+      issueDate: issueDate,
+      verificationUrl: verificationUrl,
+      organization: "Nepatronix",
+      issuedBy: "Nepatronix IoT & Robotics Training Center",
     });
     const qrCodeDataUrl = await generateQRCode(qrData);
 
@@ -203,27 +220,8 @@ export async function POST(req: NextRequest) {
     // For now, store the HTML. In production, convert to PDF using Puppeteer
     // You can add PDF generation later with: npm install puppeteer
 
-    // Create certificate document in Sanity
-    const certificate = await client.create({
-      _type: "certificate",
-      certificateNumber: certificateUID,
-      application: {
-        _type: "reference",
-        _ref: applicationId,
-      },
-      recipientName: application.applicantName,
-      courseName: application.courseName,
-      courseHours: application.trainingHours,
-      courseDays: application.trainingDays,
-      issueDate,
-      qrCodeData: qrData,
-      verificationUrl,
-      organizationName: "Nepatronix",
-      signatoryName: process.env.SIGNATORY_NAME || "Director Name",
-      signatoryTitle: process.env.SIGNATORY_TITLE || "Director, Nepatronix",
-    });
-
     // Update application with certificate details
+    console.log(`💾 Saving certificate details to Sanity for UID: ${certificateUID}`);
     await client
       .patch(applicationId)
       .set({
@@ -237,11 +235,16 @@ export async function POST(req: NextRequest) {
       })
       .commit();
 
+    console.log(`✅ Certificate generated successfully!`);
+    console.log(`   - UID: ${certificateUID}`);
+    console.log(`   - Verification URL: ${verificationUrl}`);
+    console.log(`   - QR Data Length: ${qrData.length} characters`);
+
     return NextResponse.json({
       success: true,
-      certificate,
       certificateUID,
       verificationUrl,
+      qrCodeData: qrData,
       message: "Certificate generated successfully!",
     });
   } catch (error) {
