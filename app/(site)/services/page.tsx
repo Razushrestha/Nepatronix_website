@@ -159,6 +159,26 @@ export default function ServicesPage() {
         </div>
       </section>
 
+      {/* Apply for Certification Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-6 text-center">
+          <FadeIn>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+              Ready to Get Certified?
+            </h2>
+            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+              Apply for your official Nepatronix certification to validate your skills and enhance your career prospects.
+            </p>
+            <Link
+              href="/services/apply-certificate"
+              className="rounded-full bg-[#C1121F] px-8 py-4 text-sm md:text-base font-bold text-white shadow-lg hover:bg-[#A00F1A] hover:shadow-[#C1121F]/25 transition-all transform hover:-translate-y-0.5"
+            >
+              Apply for Certification
+            </Link>
+          </FadeIn>
+        </div>
+      </section>
+
       {/* 2. CORE SERVICES SECTION (One Shot Look Grid) */}
       <section className="py-24 px-6 md:px-12 bg-slate-50 relative">
         <div className="max-w-7xl mx-auto mb-20 text-center">

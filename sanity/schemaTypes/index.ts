@@ -11,7 +11,26 @@ import { gallery } from './gallery'
 import { footer } from './footer'
 import { contact } from './contact'
 import subscriber from './subscriber'
+import { enrollment } from './enrollment'
+import { course } from './course'
+import { certificationApplication } from './certificationApplication'
 
 export const schema = {
-  types: [teamMember, partner, testimonial, recognition, post, service, mentor, school, gallery, footer, contact, subscriber],
+  types: [
+    teamMember,
+    partner,
+    testimonial,
+    recognition,
+    post,
+    service,
+    mentor,
+    school,
+    gallery,
+    footer,
+    contact,
+    subscriber,
+    enrollment,
+    course,
+    certificationApplication,
+  ],
 }

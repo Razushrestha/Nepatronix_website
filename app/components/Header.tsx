@@ -83,7 +83,7 @@ export function Header() {
             href="/contact"
             className="hidden shrink-0 rounded-full bg-[#C1121F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#A30F19] md:inline-flex shadow-sm hover:shadow-md hover:shadow-red-900/20"
           >
-            info@nepatronix.com
+            info@nepatronix.org
           </Link>
           
           {/* Mobile toggle */}
@@ -125,7 +125,7 @@ export function Header() {
                 className="mt-2 block w-full rounded-full bg-[#020617] px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#C1121F]"
                 onClick={() => setIsOpen(false)}
               >
-                info@nepatronix.com
+                info@nepatronix.org
               </Link>
             </li>
           </ul>
