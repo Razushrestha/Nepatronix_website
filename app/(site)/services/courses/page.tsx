@@ -63,117 +63,50 @@ const objectives = [
   "Create sustainable tutoring business models",
 ];
 
-export default function CoursesPage() {
+export default async function CoursesPage() {
+  // Fetch courses from Sanity with no-cache
+  const sanityCourses = await client.fetch<SanityCourse[]>(
+    coursesQuery,
+    {},
+    { cache: 'no-store' }
+  );
+  const courses = transformCourses(sanityCourses);
+
+  // If no courses from Sanity, show fallback message
+  if (courses.length === 0) {
+    console.log("No courses found from Sanity");
+  }
+
   return (
-    <main className="max-w-2xl mx-auto px-4 py-10 text-base leading-relaxed">
-      <h1 className="text-3xl font-bold mb-4">What courses does Nepatronix offer?</h1>
-      <p className="mb-6">Nepatronix offers hands-on STEM, robotics, and IoT courses for students and educators in Nepal. Our programs are designed to make learning technology fun, practical, and accessible for all ages and skill levels.</p>
-
-      <h2 className="text-2xl font-semibold mt-8 mb-3">What is a Nepatronix course?</h2>
-      <p className="mb-4">A Nepatronix course is an interactive learning program focused on science, technology, engineering, and math (STEM). Courses include robotics, coding, electronics, and IoT, taught by expert mentors using real-world projects.</p>
-
-      <h2 className="text-2xl font-semibold mt-8 mb-3">How do Nepatronix courses work?</h2>
-      <ol className="list-decimal list-inside mb-4 space-y-1">
-        <li>Choose a course that matches your interest or skill level.</li>
-        <li>Register online or through your school.</li>
-        <li>Attend hands-on classes led by experienced mentors.</li>
-        <li>Work on practical projects and group activities.</li>
-        <li>Receive feedback, support, and a certificate upon completion.</li>
-      </ol>
-
-      <h2 className="text-2xl font-semibold mt-8 mb-3">Why are Nepatronix courses important?</h2>
-      <ul className="list-disc list-inside mb-4 space-y-1">
-        <li>Builds real-world problem-solving skills.</li>
-        <li>Prepares students for future tech careers.</li>
-        <li>Encourages creativity and teamwork.</li>
-        <li>Makes STEM learning accessible and fun.</li>
-      </ul>
-
-      <h2 className="text-2xl font-semibold mt-8 mb-3">Best practices for choosing a course</h2>
-      <ul className="list-disc list-inside mb-4 space-y-1">
-        <li>Pick a course that matches your current knowledge.</li>
-        <li>Check the course schedule and location.</li>
-        <li>Ask about hands-on activities and project work.</li>
-        <li>Look for courses with experienced mentors.</li>
-        <li>Read reviews or ask for recommendations.</li>
-      </ul>
-
-      <h2 className="text-xl font-bold mt-10 mb-4">Frequently Asked Questions</h2>
-      <div className="space-y-4">
-        <div>
-          <h3 className="font-semibold">Who can join Nepatronix courses?</h3>
-          <p>Anyone interested in STEM, robotics, or IoT—students, teachers, and hobbyists of all ages—can join.</p>
+    <div className="bg-white min-h-screen">
+      {/* Hero Section */}
+      <div className="relative bg-[#020617] pt-32 pb-20 overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#C1121F]/10 blur-[100px] rounded-full translate-x-1/2 -translate-y-1/2"></div>
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/10 blur-[100px] rounded-full -translate-x-1/2 translate-y-1/2"></div>
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(white 0.5px, transparent 0.5px)", backgroundSize: "30px 30px" }}></div>
         </div>
-        <div>
-          <h3 className="font-semibold">Do I need prior experience?</h3>
-          <p>No prior experience is needed. Courses are available for beginners and advanced learners.</p>
-        </div>
-        <div>
-          <h3 className="font-semibold">Are certificates provided?</h3>
-          <p>Yes, you receive a certificate after successfully completing a course.</p>
-        </div>
-        <div>
-          <h3 className="font-semibold">Where are the classes held?</h3>
-          <p>Classes are held at Nepatronix labs, partner schools, and online. Check the course details for locations.</p>
-        </div>
-        <div>
-          <h3 className="font-semibold">How do I enroll?</h3>
-          <p>You can enroll online through our website or contact us for group registrations.</p>
+
+        <div className="relative z-10">
+          <div className="max-w-4xl mx-auto px-6 text-center mt-8">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <span className="h-[2px] w-10 bg-[#C1121F]"></span>
+              <span className="text-[#C1121F] font-semibold uppercase tracking-[0.3em] text-[10px]">Our Programs</span>
+              <span className="h-[2px] w-10 bg-[#C1121F]"></span>
+            </div>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
+              STEM, IoT & Robotics <span className="text-[#C1121F]">Courses</span>
+            </h1>
+            <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
+              Comprehensive training programs designed to equip educators and students with essential technical, pedagogical, and professional skills.
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* FAQ Schema Markup for SEO & AEO */}
-      <script type="application/ld+json" suppressHydrationWarning>
-        {`
-        {
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          "mainEntity": [
-            {
-              "@type": "Question",
-              "name": "Who can join Nepatronix courses?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Anyone interested in STEM, robotics, or IoT—students, teachers, and hobbyists of all ages—can join."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Do I need prior experience?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "No prior experience is needed. Courses are available for beginners and advanced learners."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Are certificates provided?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Yes, you receive a certificate after successfully completing a course."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Where are the classes held?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Classes are held at Nepatronix labs, partner schools, and online. Check the course details for locations."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "How do I enroll?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "You can enroll online through our website or contact us for group registrations."
-              }
-            }
-          ]
-        }
-        `}
-      </script>
-    </main>
+      {/* Client Component with interactive features */}
+      <CoursesClient courses={courses} objectives={objectives} />
+    </div>
   );
 }
 
