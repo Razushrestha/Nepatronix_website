@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { client } from "@/sanity/lib/client";
-import emailjs from "@emailjs/browser";
-
-// Initialize EmailJS
-if (typeof window !== 'undefined') {
-  emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "");
-}
 
 // Generate unique certificate UID
 function generateCertificateUID(): string {
@@ -74,8 +68,8 @@ export async function POST(req: NextRequest) {
       trainingHours,
       trainingDays,
       courseName,
-      profileImageAsset,
-      paymentScreenshotAsset,
+      profileImage,
+      paymentScreenshot,
     } = body;
 
     // Validate required fields
@@ -84,6 +78,33 @@ export async function POST(req: NextRequest) {
         { error: "Missing required fields" },
         { status: 400 }
       );
+    }
+
+    // Convert base64 to buffer and upload to Sanity
+    let profileImageAsset = null;
+    if (profileImage) {
+      try {
+        const base64Data = profileImage.split(',')[1]; // Remove data:image/...;base64, prefix
+        const buffer = Buffer.from(base64Data, 'base64');
+        profileImageAsset = await client.assets.upload('image', buffer, {
+          filename: `profile-${Date.now()}.jpg`
+        });
+      } catch (imgError) {
+        console.error("Profile image upload error:", imgError);
+      }
+    }
+
+    let paymentScreenshotAsset = null;
+    if (paymentScreenshot) {
+      try {
+        const base64Data = paymentScreenshot.split(',')[1];
+        const buffer = Buffer.from(base64Data, 'base64');
+        paymentScreenshotAsset = await client.assets.upload('image', buffer, {
+          filename: `payment-${Date.now()}.jpg`
+        });
+      } catch (imgError) {
+        console.error("Payment screenshot upload error:", imgError);
+      }
     }
 
     // Create application in Sanity
@@ -100,13 +121,13 @@ export async function POST(req: NextRequest) {
       submittedAt: new Date().toISOString(),
     };
 
-    // Add profile image if provided
+    // Add profile image if uploaded
     if (profileImageAsset) {
       applicationData.profileImage = {
         _type: "image",
         asset: {
           _type: "reference",
-          _ref: profileImageAsset,
+          _ref: profileImageAsset._id,
         },
       };
     }
@@ -119,13 +140,13 @@ export async function POST(req: NextRequest) {
       paymentDate: new Date().toISOString(),
     };
 
-    // Add payment screenshot if provided
+    // Add payment screenshot if uploaded
     if (paymentScreenshotAsset) {
       applicationData.paymentDetails.paymentProof = {
         _type: "image",
         asset: {
           _type: "reference",
-          _ref: paymentScreenshotAsset,
+          _ref: paymentScreenshotAsset._id,
         },
       };
     }

@@ -1,7 +1,6 @@
 "use client";
 import { useState, ChangeEvent, FormEvent } from 'react';
 import Image from 'next/image';
-import { client } from '@/sanity/lib/client';
 
 const ApplyForCertificationPage = () => {
   const [step, setStep] = useState(1);
@@ -65,15 +64,23 @@ const ApplyForCertificationPage = () => {
     setSubmitMessage('');
 
     try {
-      // Upload images to Sanity first
-      const imageAsset = await client.assets.upload('image', studentImage);
+      // Convert images to base64
+      const toBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = error => reject(error);
+        });
+      };
 
-      let screenshotAsset;
+      const profileImageBase64 = await toBase64(studentImage);
+      let paymentScreenshotBase64 = null;
       if (paymentScreenshot) {
-        screenshotAsset = await client.assets.upload('image', paymentScreenshot);
+        paymentScreenshotBase64 = await toBase64(paymentScreenshot);
       }
 
-      // Submit to API endpoint
+      // Submit to API endpoint with base64 images
       const response = await fetch('/api/apply-certificate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -85,15 +92,15 @@ const ApplyForCertificationPage = () => {
           trainingHours: formData.trainingHours,
           trainingDays: formData.trainingDays,
           courseName: `${formData.trainingHours} hours / ${formData.trainingDays} days Professional Course`,
-          profileImageAsset: imageAsset._id,
-          paymentScreenshotAsset: screenshotAsset?._id,
+          profileImage: profileImageBase64,
+          paymentScreenshot: paymentScreenshotBase64,
         }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        setSubmitMessage('Application submitted successfully! Check your email for confirmation.');
+        setSubmitMessage('✅ Application submitted successfully! Check your email for confirmation.');
         setStep(1);
         setFormData({
           fullName: '',
@@ -106,11 +113,11 @@ const ApplyForCertificationPage = () => {
         setStudentImage(null);
         setPaymentScreenshot(null);
       } else {
-        setSubmitMessage(`Error: ${data.error || 'Failed to submit application'}`);
+        setSubmitMessage(`❌ Error: ${data.error || 'Failed to submit application'}`);
       }
     } catch (error) {
       console.error('Submission error:', error);
-      setSubmitMessage('An error occurred. Please try again.');
+      setSubmitMessage('❌ An error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
