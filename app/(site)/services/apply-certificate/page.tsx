@@ -65,6 +65,7 @@ const ApplyForCertificationPage = () => {
     setSubmitMessage('');
 
     try {
+      // Upload images to Sanity first
       const imageAsset = await client.assets.upload('image', studentImage);
 
       let screenshotAsset;
@@ -72,48 +73,41 @@ const ApplyForCertificationPage = () => {
         screenshotAsset = await client.assets.upload('image', paymentScreenshot);
       }
 
-      const application: any = {
-        _type: 'certificationApplication',
-        fullName: formData.fullName,
-        trainingHours: formData.trainingHours,
-        trainingDays: formData.trainingDays,
-        email: formData.email,
-        contactNumber: formData.contactNumber,
-        courseType: formData.courseType,
-        studentImage: {
-          _type: 'image',
-          asset: {
-            _type: 'reference',
-            _ref: imageAsset._id,
-          },
-        },
-        approved: false,
-      };
-
-      if (screenshotAsset) {
-        application.paymentScreenshot = {
-          _type: 'image',
-          asset: {
-            _type: 'reference',
-            _ref: screenshotAsset._id,
-          },
-        };
-      }
-
-      await client.create(application);
-
-      setSubmitMessage('Application submitted successfully!');
-      setStep(1);
-      setFormData({
-        fullName: '',
-        trainingHours: '1.5',
-        trainingDays: '1',
-        email: '',
-        contactNumber: '',
-        courseType: 'paid',
+      // Submit to API endpoint
+      const response = await fetch('/api/apply-certificate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          contactNumber: formData.contactNumber,
+          courseType: formData.courseType,
+          trainingHours: formData.trainingHours,
+          trainingDays: formData.trainingDays,
+          courseName: `${formData.trainingHours} hours / ${formData.trainingDays} days Professional Course`,
+          profileImageAsset: imageAsset._id,
+          paymentScreenshotAsset: screenshotAsset?._id,
+        }),
       });
-      setStudentImage(null);
-      setPaymentScreenshot(null);
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSubmitMessage('Application submitted successfully! Check your email for confirmation.');
+        setStep(1);
+        setFormData({
+          fullName: '',
+          trainingHours: '1.5',
+          trainingDays: '1',
+          email: '',
+          contactNumber: '',
+          courseType: 'paid',
+        });
+        setStudentImage(null);
+        setPaymentScreenshot(null);
+      } else {
+        setSubmitMessage(`Error: ${data.error || 'Failed to submit application'}`);
+      }
     } catch (error) {
       console.error('Submission error:', error);
       setSubmitMessage('An error occurred. Please try again.');
