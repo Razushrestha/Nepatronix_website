@@ -163,7 +163,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       images: buildImageObjects(staticImages),
     },
     {
-      url: `${baseUrl}/about`,
+      url: `${baseUrl}/partners`,
       lastModified: new Date(),
       changeFrequency: 'hourly' as const,
       priority: 0.7,
@@ -204,6 +204,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'hourly' as const,
       priority: 0.5,
     },
+    {
+      url: `${baseUrl}/services/courses`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/services/upcoming-sessions`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/services/apply-certificate`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    },
   ];
 
   return [
@@ -217,6 +235,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...coursePdfUrls,
     ...courseVideoUrls,
     ...upcomingSessionUrls,
-    ...certificateUrls,
+    // Note: certificateUrls excluded — verify-certificate pages are set to noindex
   ];
 }

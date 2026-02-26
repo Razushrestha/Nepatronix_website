@@ -11,10 +11,30 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { uid } = await params;
-  
+
   return {
     title: `Verify Certificate ${uid} | Nepatronix`,
-    description: "Verify the authenticity of Nepatronix course completion certificate",
+    description: `Verify the authenticity of Nepatronix certificate ID: ${uid}. Confirm your IoT, Robotics or STEM course completion certificate issued in Nepal.`,
+    alternates: {
+      canonical: `https://nepatronix.com/verify-certificate/${uid}`,
+    },
+    openGraph: {
+      title: `Verify Certificate ${uid} | Nepatronix Nepal`,
+      description: `Confirm the authenticity of Nepatronix certificate ID: ${uid}. Official IoT, Robotics & STEM training certification in Nepal.`,
+      url: `https://nepatronix.com/verify-certificate/${uid}`,
+      type: "website",
+      images: [{ url: "https://nepatronix.com/og-banner.png", width: 1200, height: 630, alt: "Nepatronix Certificate Verification" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `Verify Certificate ${uid} | Nepatronix`,
+      description: `Verify the authenticity of Nepatronix certificate ID: ${uid}.`,
+      images: ["https://nepatronix.com/og-banner.png"],
+    },
+    robots: {
+      index: false, // certificate pages should not be indexed
+      follow: false,
+    },
   };
 }
 

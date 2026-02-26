@@ -113,7 +113,7 @@ export function CertificateTemplate({
                 margin: '20px 0',
               }}
             >
-              "{courseName}"
+              &ldquo;{courseName}&rdquo;
             </p>
 
             <p style={{ marginBottom: '30px' }}>
