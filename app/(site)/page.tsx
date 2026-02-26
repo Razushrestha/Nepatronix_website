@@ -15,11 +15,43 @@ import { PartnersGrid } from "./components/PartnersGrid";
 
 export const metadata: Metadata = {
   title: "Certified IoT, Robotics & STEM Education in Nepal",
-  description: "Nepatronix is the best IoT and Robotics training institute in Nepal. Join our expert-led workshops for schools covering Arduino, PCB Design, and Electronics.",
+  description: "Nepatronix is Nepal's #1 IoT and Robotics training institute. Expert-led workshops for schools covering Arduino, PCB Design, and Electronics. 25,000+ students trained.",
+  keywords: [
+    "IoT training Nepal", "Robotics institute Nepal", "STEM education Kathmandu",
+    "Arduino workshop Nepal", "PCB design Nepal", "electronics training Nepal",
+    "Nepatronix", "STEM lab setup Nepal", "robotics for schools Nepal"
+  ],
+  authors: [{ name: "Nepatronix Engineering Solutions", url: "https://nepatronix.com" }],
+  alternates: {
+    canonical: "https://nepatronix.com",
+  },
+  openGraph: {
+    title: "Nepatronix | Certified IoT, Robotics & STEM Education in Nepal",
+    description: "Nepal's #1 IoT and Robotics training institute. Arduino, PCB Design & STEM workshops for schools. 25,000+ students trained.",
+    url: "https://nepatronix.com",
+    type: "website",
+    images: [{ url: "https://nepatronix.com/og-banner.png", width: 1200, height: 630, alt: "Nepatronix – IoT, Robotics & STEM Education in Nepal" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nepatronix | IoT, Robotics & STEM Education in Nepal",
+    description: "Nepal's #1 IoT and Robotics training institute. 25,000+ students trained across 50+ schools.",
+    images: ["https://nepatronix.com/og-banner.png"],
+  },
 };
 
 export default function Home() {
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://nepatronix.com" }
+    ]
+  };
+
   return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
     <div className="relative overflow-hidden">
       <HeroSection />
 
@@ -474,5 +506,6 @@ export default function Home() {
         </div>
       </section>
     </div>
+    </>
   );
 }

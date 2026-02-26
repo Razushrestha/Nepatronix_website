@@ -10,12 +10,20 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://nepatronix.com/blog",
   },
+  authors: [{ name: "Nepatronix Engineering Solutions", url: "https://nepatronix.com" }],
   openGraph: {
     title: "Nepatronix Blog | Technology & Education Insights",
     description: "Stay updated with the latest trends in engineering, robotics, and hands-on learning in Nepal.",
     url: "https://nepatronix.com/blog",
     type: "website",
-  }
+    images: [{ url: "https://nepatronix.com/og-banner.png", width: 1200, height: 630, alt: "Nepatronix Blog" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nepatronix Blog | Technology & Education Insights",
+    description: "Latest news and insights on IoT, Robotics and STEM education in Nepal.",
+    images: ["https://nepatronix.com/og-banner.png"],
+  },
 };
 
 // Revalidate every hour

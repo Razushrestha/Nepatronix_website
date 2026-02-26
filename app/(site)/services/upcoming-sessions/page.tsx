@@ -4,8 +4,27 @@ import UpcomingSessionsClient, { UpcomingSession } from "./UpcomingSessionsClien
 
 export const metadata: Metadata = {
   title: "Upcoming Sessions | STEM, IoT & Robotics Training",
-  description: "View our upcoming training sessions for STEM, IoT, and Robotics courses. Enroll now to secure your spot in our hands-on programs.",
-  keywords: ["upcoming courses", "STEM training Nepal", "IoT sessions", "Robotics workshop", "enroll now"],
+  description: "View upcoming STEM, IoT, and Robotics training sessions by Nepatronix in Nepal. Limited seats — enroll now to secure your spot in hands-on programs.",
+  keywords: [
+    "upcoming STEM courses Nepal", "IoT training sessions Kathmandu", "Robotics workshop Nepal",
+    "enroll robotics course", "upcoming engineering training Nepal"
+  ],
+  alternates: {
+    canonical: "https://nepatronix.com/services/upcoming-sessions",
+  },
+  openGraph: {
+    title: "Upcoming Training Sessions | Nepatronix Nepal",
+    description: "Upcoming STEM, IoT and Robotics sessions in Nepal. Limited seats — register now!",
+    url: "https://nepatronix.com/services/upcoming-sessions",
+    type: "website",
+    images: [{ url: "https://nepatronix.com/og-banner.png", width: 1200, height: 630, alt: "Upcoming Sessions – Nepatronix" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Upcoming Sessions | Nepatronix Nepal",
+    description: "STEM, IoT and Robotics upcoming sessions in Nepal. Limited seats — enroll now.",
+    images: ["https://nepatronix.com/og-banner.png"],
+  },
 };
 
 export const revalidate = 0;

@@ -14,9 +14,25 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     };
   }
  
+  const canonicalUrl = `https://nepatronix.com/services/${id}`;
   return {
-    title: `${service.title} | Nepatronix`,
+    title: service.title,
     description: service.description,
+    keywords: [service.title, "Nepatronix", "STEM education Nepal", "IoT services Nepal", "Robotics Nepal"],
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      title: `${service.title} | Nepatronix`,
+      description: service.description,
+      url: canonicalUrl,
+      type: "website",
+      images: [{ url: "https://nepatronix.com/og-banner.png", width: 1200, height: 630, alt: service.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${service.title} | Nepatronix`,
+      description: service.description,
+      images: ["https://nepatronix.com/og-banner.png"],
+    },
   };
 }
 

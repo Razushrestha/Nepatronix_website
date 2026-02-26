@@ -4,8 +4,28 @@ import { client } from "@/sanity/lib/client";
 
 export const metadata: Metadata = {
   title: "Courses | STEM, IoT & Robotics Training Programs",
-  description: "Explore our comprehensive STEM-based IoT and Robotics courses designed for teachers, students, and schools. Get certified with hands-on training programs.",
-  keywords: ["STEM courses Nepal", "IoT training", "Robotics courses", "Teacher training", "STEM education"],
+  description: "Explore Nepatronix's comprehensive STEM-based IoT and Robotics courses for teachers, students, and schools in Nepal. Get certified with hands-on training programs.",
+  keywords: [
+    "STEM courses Nepal", "IoT training Nepal", "Robotics courses Nepal",
+    "teacher training STEM", "certified robotics program", "Arduino course Nepal",
+    "engineering course Kathmandu"
+  ],
+  alternates: {
+    canonical: "https://nepatronix.com/services/courses",
+  },
+  openGraph: {
+    title: "Nepatronix Courses | STEM, IoT & Robotics Training",
+    description: "Hands-on IoT, Robotics and STEM courses for teachers and students in Nepal. Get certified today.",
+    url: "https://nepatronix.com/services/courses",
+    type: "website",
+    images: [{ url: "https://nepatronix.com/og-banner.png", width: 1200, height: 630, alt: "Nepatronix Courses" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nepatronix Courses | STEM, IoT & Robotics Training",
+    description: "Hands-on IoT, Robotics and STEM courses for teachers and students in Nepal.",
+    images: ["https://nepatronix.com/og-banner.png"],
+  },
 };
 
 export const revalidate = 0; // Disable caching - always fetch fresh data
@@ -77,7 +97,52 @@ export default async function CoursesPage() {
     console.log("No courses found from Sanity");
   }
 
+  const coursesJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Nepatronix STEM & IoT Training Courses",
+    "url": "https://nepatronix.com/services/courses",
+    "itemListElement": courses.map((course, i) => ({
+      "@type": "ListItem",
+      "position": i + 1,
+      "item": {
+        "@type": "Course",
+        "name": course.name,
+        "description": `Hands-on ${course.name} training by Nepatronix in Nepal`,
+        "provider": {
+          "@type": "Organization",
+          "name": "Nepatronix Engineering Solutions",
+          "url": "https://nepatronix.com"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": course.isFree ? "0" : String(course.price).replace(/[^0-9]/g,""),
+          "priceCurrency": "NPR",
+          "availability": "https://schema.org/InStock"
+        },
+        "courseMode": course.deliveryMode.toLowerCase(),
+        "hasCourseInstance": {
+          "@type": "CourseInstance",
+          "courseMode": course.deliveryMode.toLowerCase()
+        }
+      }
+    }))
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://nepatronix.com" },
+      { "@type": "ListItem", "position": 2, "name": "Services", "item": "https://nepatronix.com/services" },
+      { "@type": "ListItem", "position": 3, "name": "Courses", "item": "https://nepatronix.com/services/courses" }
+    ]
+  };
+
   return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(coursesJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
       <div className="relative bg-[#020617] pt-32 pb-20 overflow-hidden">
@@ -107,6 +172,7 @@ export default async function CoursesPage() {
       {/* Client Component with interactive features */}
       <CoursesClient courses={courses} objectives={objectives} />
     </div>
+    </>
   );
 }
 

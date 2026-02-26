@@ -31,7 +31,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     keywords,
     "categories": categories[],
     "tags": tags[],
-    mainImage
+    mainImage,
+    publishedAt,
+    author
   }`;
   
   const post = await client.fetch(query, { slug });
@@ -56,6 +58,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: post.seoTitle || post.title,
     description: post.seoDescription || post.excerpt || "Read our latest blog post on Nepatronix.",
     keywords: allKeywords.length > 0 ? allKeywords : ["Robotics", "IoT", "Engineering", "Nepal"],
+    authors: [{ name: post.author || "Nepatronix Team", url: "https://nepatronix.com" }],
     alternates: {
       canonical: canonicalUrl,
     },
@@ -63,8 +66,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title: post.seoTitle || post.title,
       description: post.seoDescription || post.excerpt,
       url: canonicalUrl,
-      images: imageUrl ? [{ url: imageUrl }] : [],
+      images: imageUrl ? [{ url: imageUrl, width: 1200, height: 630, alt: post.title }] : [],
       type: "article",
+      publishedTime: post.publishedAt,
+      authors: [post.author || "Nepatronix Team"],
+      tags: allKeywords,
     },
     twitter: {
       card: "summary_large_image",

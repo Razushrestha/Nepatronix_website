@@ -4,25 +4,25 @@ import { Footer } from "./components/Footer";
 import Breadcrumb from "./components/Breadcrumb";
 import MahabirChat from "./components/MahabirChat";
 
+// Minimal metadata here — root layout (app/layout.tsx) holds the full global metadata.
+// Individual pages override title, description, OG, twitter as needed.
 export const metadata: Metadata = {
-  metadataBase: new URL('https://nepatronix.com'),
-  title: {
-    default: "Nepatronix | IoT, Robotics & STEM Education in Nepal",
-    template: "%s | Nepatronix"
-  },
-  description:
-    "Nepatronix provides hands-on IoT, Robotics, Arduino & PCB training in Nepal with real-world projects and expert mentors.",
-  keywords: ["IoT training in Nepal", "Robotics training in Nepal", "Arduino training Nepal", "STEM education Nepal", "PCB design training Nepal"],
-  icons: {
-    icon: '/title.png',
-  },
   openGraph: {
-    title: "Nepatronix | IoT & Robotics Training in Nepal",
-    description: "Hands-on engineering training and STEM education in Kathmandu.",
-    url: 'https://nepatronix.com',
     siteName: 'Nepatronix',
     locale: 'en_US',
-    type: 'website',
+    images: [
+      {
+        url: 'https://nepatronix.com/og-banner.png',
+        width: 1200,
+        height: 630,
+        alt: 'Nepatronix – IoT, Robotics & STEM Education in Nepal',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@nepatronix',
+    images: ['https://nepatronix.com/og-banner.png'],
   },
 };
 
