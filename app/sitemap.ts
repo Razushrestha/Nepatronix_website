@@ -3,7 +3,7 @@ import { MetadataRoute } from 'next';
 import { client } from '@/sanity/lib/client';
 import { blogPosts, ourServices, galleryItems, mentors, teamMembers, aboutUsData, partnerLogos } from './(site)/data';
 
-const baseUrl = 'https://nepatronix.com';
+const baseUrl = 'https://nepatronix.org';
 
 // Helper to build <image:image> entries for sitemap (Next.js expects array of { url, caption? })
 function buildImageObjects(imageUrls: string[], caption?: string) {

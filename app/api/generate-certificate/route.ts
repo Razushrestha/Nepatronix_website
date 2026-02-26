@@ -56,7 +56,7 @@ async function generateCertificateHTML(data: {
   <div style="width: 1123px; height: 794px; padding: 60px; position: relative; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 12px solid #C1121F;">
     <!-- Top: Nepatronix Logo -->
     <div style="text-align: center; margin-bottom: 30px;">
-      <img src="https://nepatronix.com/logo.png" alt="Nepatronix" style="height: 80px; object-fit: contain;" />
+      <img src="https://nepatronix.org/logo.png" alt="Nepatronix" style="height: 80px; object-fit: contain;" />
     </div>
 
     <!-- Main Content Container -->
@@ -183,7 +183,7 @@ export async function POST(req: NextRequest) {
     console.log(`🎨 Generating certificate details...`);
     const certificateUID = generateCertificateUID();
     const issueDate = new Date().toISOString().split("T")[0];
-    const verificationUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://nepatronix.com'}/verify-certificate/${certificateUID}`;
+    const verificationUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://nepatronix.org'}/verify-certificate/${certificateUID}`;
 
     // Generate QR code with comprehensive verification data
     // Automatically captures all student-entered information

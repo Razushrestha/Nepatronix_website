@@ -9,19 +9,19 @@ export const metadata: Metadata = {
     "STEM course certificate", "Arduino training certificate", "Nepatronix certification",
     "engineering certificate Nepal", "online certificate application Nepal"
   ],
-  authors: [{ name: "Nepatronix Engineering Solutions", url: "https://nepatronix.com" }],
+  authors: [{ name: "Nepatronix Engineering Solutions", url: "https://nepatronix.org" }],
   alternates: {
-    canonical: "https://nepatronix.com/services/apply-certificate",
+    canonical: "https://nepatronix.org/services/apply-certificate",
   },
   openGraph: {
     title: "Apply for Certificate | Nepatronix Nepal",
     description:
       "Apply for your official Nepatronix IoT, Robotics and STEM course completion certificate. Recognized by industry partners across Nepal.",
-    url: "https://nepatronix.com/services/apply-certificate",
+    url: "https://nepatronix.org/services/apply-certificate",
     type: "website",
     images: [
       {
-        url: "https://nepatronix.com/og-banner.png",
+        url: "https://nepatronix.org/og-banner.png",
         width: 1200,
         height: 630,
         alt: "Nepatronix Certificate Application",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     title: "Apply for Certificate | Nepatronix Nepal",
     description:
       "Get officially certified in IoT, Robotics and STEM training programs in Nepal.",
-    images: ["https://nepatronix.com/og-banner.png"],
+    images: ["https://nepatronix.org/og-banner.png"],
   },
   robots: {
     index: true,
@@ -46,13 +46,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://nepatronix.com" },
-      { "@type": "ListItem", position: 2, name: "Services", item: "https://nepatronix.com/services" },
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://nepatronix.org" },
+      { "@type": "ListItem", position: 2, name: "Services", item: "https://nepatronix.org/services" },
       {
         "@type": "ListItem",
         position: 3,
         name: "Apply for Certificate",
-        item: "https://nepatronix.com/services/apply-certificate",
+        item: "https://nepatronix.org/services/apply-certificate",
       },
     ],
   };

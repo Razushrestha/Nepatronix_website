@@ -42,10 +42,10 @@ export async function POST(req: Request) {
     // Example with Resend:
     // const resend = new Resend(process.env.RESEND_API_KEY);
     // await resend.emails.send({
-    //   from: 'Nepatronix <updates@nepatronix.com>',
+    //   from: 'Nepatronix <updates@nepatronix.org>',
     //   to: subscribers,
     //   subject: `New Post: ${title}`,
-    //   html: `<p>${excerpt}</p><a href="https://nepatronix.com/blog/${slug}">Read more</a>`
+    //   html: `<p>${excerpt}</p><a href="https://nepatronix.org/blog/${slug}">Read more</a>`
     // });
 
     return NextResponse.json({ 

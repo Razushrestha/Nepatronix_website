@@ -84,7 +84,7 @@ Admin approves → /api/update-application-status
 
 Users can verify certificates at:
 ```
-https://nepatronix.com/verify-certificate/[UID]
+https://nepatronix.org/verify-certificate/[UID]
 ```
 
 QR code on certificate contains:
@@ -170,7 +170,7 @@ NEXT_PUBLIC_EMAILJS_TEMPLATE_ID=your_template_id
 NEXT_PUBLIC_EMAILJS_PUBLIC_KEY=your_public_key
 
 # Certificate Settings
-NEXT_PUBLIC_BASE_URL=https://nepatronix.com
+NEXT_PUBLIC_BASE_URL=https://nepatronix.org
 SIGNATORY_NAME=Director Name
 SIGNATORY_TITLE=Director, Nepatronix
 ```

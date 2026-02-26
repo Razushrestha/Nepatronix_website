@@ -41,7 +41,7 @@ export function CertificateTemplate({
       {/* Top: Nepatronix Logo */}
       <div style={{ textAlign: 'center', marginBottom: '30px' }}>
         <img
-          src="https://nepatronix.com/logo.png"
+          src="https://nepatronix.org/logo.png"
           alt="Nepatronix"
           style={{ height: '80px', objectFit: 'contain' }}
         />

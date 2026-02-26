@@ -183,7 +183,7 @@ export default function MahabirChat() {
       emailjs.init(PUBLIC_KEY);
       await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
         from_name: "Mahabir Chatbot",
-        from_email: userData.email || "no-email@nepatronix.com",
+        from_email: userData.email || "no-email@nepatronix.org",
         user_name: userData.name || "N/A",
         user_email: userData.email || "N/A",
         user_contact: userData.contact || "N/A",

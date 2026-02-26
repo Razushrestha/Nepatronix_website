@@ -21,22 +21,22 @@ export const metadata: Metadata = {
     "Arduino workshop Nepal", "PCB design Nepal", "electronics training Nepal",
     "Nepatronix", "STEM lab setup Nepal", "robotics for schools Nepal"
   ],
-  authors: [{ name: "Nepatronix Engineering Solutions", url: "https://nepatronix.com" }],
+  authors: [{ name: "Nepatronix Engineering Solutions", url: "https://nepatronix.org" }],
   alternates: {
-    canonical: "https://nepatronix.com",
+    canonical: "https://nepatronix.org",
   },
   openGraph: {
     title: "Nepatronix | Certified IoT, Robotics & STEM Education in Nepal",
     description: "Nepal's #1 IoT and Robotics training institute. Arduino, PCB Design & STEM workshops for schools. 25,000+ students trained.",
-    url: "https://nepatronix.com",
+    url: "https://nepatronix.org",
     type: "website",
-    images: [{ url: "https://nepatronix.com/og-banner.png", width: 1200, height: 630, alt: "Nepatronix – IoT, Robotics & STEM Education in Nepal" }],
+    images: [{ url: "https://nepatronix.org/og-banner.png", width: 1200, height: 630, alt: "Nepatronix – IoT, Robotics & STEM Education in Nepal" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Nepatronix | IoT, Robotics & STEM Education in Nepal",
     description: "Nepal's #1 IoT and Robotics training institute. 25,000+ students trained across 50+ schools.",
-    images: ["https://nepatronix.com/og-banner.png"],
+    images: ["https://nepatronix.org/og-banner.png"],
   },
 };
 
@@ -45,7 +45,7 @@ export default function Home() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://nepatronix.com" }
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://nepatronix.org" }
     ]
   };
 

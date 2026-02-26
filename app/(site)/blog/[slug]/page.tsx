@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const imageUrl = post.mainImage ? urlFor(post.mainImage).width(1200).height(630).url() : "";
-  const canonicalUrl = `https://nepatronix.com/blog/${slug}`;
+  const canonicalUrl = `https://nepatronix.org/blog/${slug}`;
   
   // Combine custom keywords with categories and tags for better SEO
   const allKeywords = [
@@ -58,7 +58,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: post.seoTitle || post.title,
     description: post.seoDescription || post.excerpt || "Read our latest blog post on Nepatronix.",
     keywords: allKeywords.length > 0 ? allKeywords : ["Robotics", "IoT", "Engineering", "Nepal"],
-    authors: [{ name: post.author || "Nepatronix Team", url: "https://nepatronix.com" }],
+    authors: [{ name: post.author || "Nepatronix Team", url: "https://nepatronix.org" }],
     alternates: {
       canonical: canonicalUrl,
     },
@@ -145,16 +145,16 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
     "publisher": {
       "@type": "Organization",
       "name": "Nepatronix",
-      "url": "https://nepatronix.com",
+      "url": "https://nepatronix.org",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://nepatronix.com/logo.png" 
+        "url": "https://nepatronix.org/logo.png" 
       }
     },
     "description": post.excerpt,
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": `https://nepatronix.com/blog/${slug}`
+      "@id": `https://nepatronix.org/blog/${slug}`
     }
   };
 
@@ -166,19 +166,19 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
         "@type": "ListItem",
         "position": 1,
         "name": "Home",
-        "item": "https://nepatronix.com"
+        "item": "https://nepatronix.org"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Blog",
-        "item": "https://nepatronix.com/blog"
+        "item": "https://nepatronix.org/blog"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": post.title,
-        "item": `https://nepatronix.com/blog/${slug}`
+        "item": `https://nepatronix.org/blog/${slug}`
       }
     ]
   };

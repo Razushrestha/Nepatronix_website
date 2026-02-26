@@ -8,20 +8,20 @@ export const metadata: Metadata = {
     "robotics workshop booking Nepal", "Nepatronix Kathmandu contact"
   ],
   alternates: {
-    canonical: "https://nepatronix.com/contact",
+    canonical: "https://nepatronix.org/contact",
   },
   openGraph: {
     title: "Contact Nepatronix – IoT & Robotics Training in Nepal",
     description: "Reach out to Nepatronix for STEM lab setup, robotics workshops, IoT training, and engineering collaborations in Nepal.",
-    url: "https://nepatronix.com/contact",
+    url: "https://nepatronix.org/contact",
     type: "website",
-    images: [{ url: "https://nepatronix.com/og-banner.png", width: 1200, height: 630, alt: "Contact Nepatronix" }],
+    images: [{ url: "https://nepatronix.org/og-banner.png", width: 1200, height: 630, alt: "Contact Nepatronix" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Contact Nepatronix – IoT & STEM in Nepal",
     description: "Reach out for STEM lab setup, robotics workshops and IoT training in Nepal.",
-    images: ["https://nepatronix.com/og-banner.png"],
+    images: ["https://nepatronix.org/og-banner.png"],
   },
 };
 
@@ -30,8 +30,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://nepatronix.com" },
-      { "@type": "ListItem", "position": 2, "name": "Contact", "item": "https://nepatronix.com/contact" }
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://nepatronix.org" },
+      { "@type": "ListItem", "position": 2, "name": "Contact", "item": "https://nepatronix.org/contact" }
     ]
   };
   return (

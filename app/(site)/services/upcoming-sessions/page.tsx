@@ -10,20 +10,20 @@ export const metadata: Metadata = {
     "enroll robotics course", "upcoming engineering training Nepal"
   ],
   alternates: {
-    canonical: "https://nepatronix.com/services/upcoming-sessions",
+    canonical: "https://nepatronix.org/services/upcoming-sessions",
   },
   openGraph: {
     title: "Upcoming Training Sessions | Nepatronix Nepal",
     description: "Upcoming STEM, IoT and Robotics sessions in Nepal. Limited seats — register now!",
-    url: "https://nepatronix.com/services/upcoming-sessions",
+    url: "https://nepatronix.org/services/upcoming-sessions",
     type: "website",
-    images: [{ url: "https://nepatronix.com/og-banner.png", width: 1200, height: 630, alt: "Upcoming Sessions – Nepatronix" }],
+    images: [{ url: "https://nepatronix.org/og-banner.png", width: 1200, height: 630, alt: "Upcoming Sessions – Nepatronix" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Upcoming Sessions | Nepatronix Nepal",
     description: "STEM, IoT and Robotics upcoming sessions in Nepal. Limited seats — enroll now.",
-    images: ["https://nepatronix.com/og-banner.png"],
+    images: ["https://nepatronix.org/og-banner.png"],
   },
 };
 

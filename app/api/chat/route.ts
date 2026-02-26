@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
     else if (query.includes("where") || query.includes("location") || query.includes("address") || query.includes("office")) {
       response = "We are located at the heart of Kathmandu in **Tinkune**. 📍 You're always welcome to visit our lab and see the innovation in action! Would you like a Google Maps link?";
     } else if (query.includes("contact") || query.includes("phone") || query.includes("email") || query.includes("reach")) {
-      response = "You can reach us at **info@nepatronix.com** or call us at **+977 9803661701**. 📞 We're also very active on WhatsApp for quick inquiries!";
+      response = "You can reach us at **info@nepatronix.org** or call us at **+977 9803661701**. 📞 We're also very active on WhatsApp for quick inquiries!";
     }
 
     // 5. General AI fallback (Intelligence beyond the website)

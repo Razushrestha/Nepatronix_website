@@ -8,21 +8,21 @@ export const metadata: Metadata = {
   description: "Explore the latest news, expert insights, and success stories in IoT, Robotics, and STEM education from Nepatronix Nepal.",
   keywords: ["Robotics blog Nepal", "IoT insights Nepal", "STEM education articles", "Nepatronix news", "Technology trends Nepal"],
   alternates: {
-    canonical: "https://nepatronix.com/blog",
+    canonical: "https://nepatronix.org/blog",
   },
-  authors: [{ name: "Nepatronix Engineering Solutions", url: "https://nepatronix.com" }],
+  authors: [{ name: "Nepatronix Engineering Solutions", url: "https://nepatronix.org" }],
   openGraph: {
     title: "Nepatronix Blog | Technology & Education Insights",
     description: "Stay updated with the latest trends in engineering, robotics, and hands-on learning in Nepal.",
-    url: "https://nepatronix.com/blog",
+    url: "https://nepatronix.org/blog",
     type: "website",
-    images: [{ url: "https://nepatronix.com/og-banner.png", width: 1200, height: 630, alt: "Nepatronix Blog" }],
+    images: [{ url: "https://nepatronix.org/og-banner.png", width: 1200, height: 630, alt: "Nepatronix Blog" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Nepatronix Blog | Technology & Education Insights",
     description: "Latest news and insights on IoT, Robotics and STEM education in Nepal.",
-    images: ["https://nepatronix.com/og-banner.png"],
+    images: ["https://nepatronix.org/og-banner.png"],
   },
 };
 
@@ -49,11 +49,11 @@ export default async function BlogPage() {
     "@type": "Blog",
     "name": "Nepatronix Blog",
     "description": "Insights & Updates on IoT, Robotics, and STEM education in Nepal.",
-    "url": "https://nepatronix.com/blog",
+    "url": "https://nepatronix.org/blog",
     "blogPost": posts.map((post: any) => ({
       "@type": "BlogPosting",
       "headline": post.title,
-      "url": `https://nepatronix.com/blog/${post.slug.current}`,
+      "url": `https://nepatronix.org/blog/${post.slug.current}`,
       "datePublished": post.publishedAt,
     }))
   };
@@ -66,13 +66,13 @@ export default async function BlogPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Home",
-        "item": "https://nepatronix.com"
+        "item": "https://nepatronix.org"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Blog",
-        "item": "https://nepatronix.com/blog"
+        "item": "https://nepatronix.org/blog"
       }
     ]
   };

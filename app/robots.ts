@@ -14,7 +14,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: 'https://nepatronix.com/sitemap.xml',
-    host: 'https://nepatronix.com',
+    sitemap: 'https://nepatronix.org/sitemap.xml',
+    host: 'https://nepatronix.org',
   }
 }

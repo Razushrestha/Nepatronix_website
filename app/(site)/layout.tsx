@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     locale: 'en_US',
     images: [
       {
-        url: 'https://nepatronix.com/og-banner.png',
+        url: 'https://nepatronix.org/og-banner.png',
         width: 1200,
         height: 630,
         alt: 'Nepatronix – IoT, Robotics & STEM Education in Nepal',
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     site: '@nepatronix',
-    images: ['https://nepatronix.com/og-banner.png'],
+    images: ['https://nepatronix.org/og-banner.png'],
   },
 };
 

@@ -11,20 +11,20 @@ export const metadata: Metadata = {
     "engineering course Kathmandu"
   ],
   alternates: {
-    canonical: "https://nepatronix.com/services/courses",
+    canonical: "https://nepatronix.org/services/courses",
   },
   openGraph: {
     title: "Nepatronix Courses | STEM, IoT & Robotics Training",
     description: "Hands-on IoT, Robotics and STEM courses for teachers and students in Nepal. Get certified today.",
-    url: "https://nepatronix.com/services/courses",
+    url: "https://nepatronix.org/services/courses",
     type: "website",
-    images: [{ url: "https://nepatronix.com/og-banner.png", width: 1200, height: 630, alt: "Nepatronix Courses" }],
+    images: [{ url: "https://nepatronix.org/og-banner.png", width: 1200, height: 630, alt: "Nepatronix Courses" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Nepatronix Courses | STEM, IoT & Robotics Training",
     description: "Hands-on IoT, Robotics and STEM courses for teachers and students in Nepal.",
-    images: ["https://nepatronix.com/og-banner.png"],
+    images: ["https://nepatronix.org/og-banner.png"],
   },
 };
 
@@ -101,7 +101,7 @@ export default async function CoursesPage() {
     "@context": "https://schema.org",
     "@type": "ItemList",
     "name": "Nepatronix STEM & IoT Training Courses",
-    "url": "https://nepatronix.com/services/courses",
+    "url": "https://nepatronix.org/services/courses",
     "itemListElement": courses.map((course, i) => ({
       "@type": "ListItem",
       "position": i + 1,
@@ -112,7 +112,7 @@ export default async function CoursesPage() {
         "provider": {
           "@type": "Organization",
           "name": "Nepatronix Engineering Solutions",
-          "url": "https://nepatronix.com"
+          "url": "https://nepatronix.org"
         },
         "offers": {
           "@type": "Offer",
@@ -133,9 +133,9 @@ export default async function CoursesPage() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://nepatronix.com" },
-      { "@type": "ListItem", "position": 2, "name": "Services", "item": "https://nepatronix.com/services" },
-      { "@type": "ListItem", "position": 3, "name": "Courses", "item": "https://nepatronix.com/services/courses" }
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://nepatronix.org" },
+      { "@type": "ListItem", "position": 2, "name": "Services", "item": "https://nepatronix.org/services" },
+      { "@type": "ListItem", "position": 3, "name": "Courses", "item": "https://nepatronix.org/services/courses" }
     ]
   };
 

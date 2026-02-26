@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://nepatronix.com'),
+  metadataBase: new URL('https://nepatronix.org'),
   title: {
     default: "Nepatronix | IoT, Robotics & STEM Education in Nepal",
     template: "%s | Nepatronix"
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     "robotics workshop Kathmandu", "IoT certification Nepal", "Nepatronix",
     "engineering training Nepal", "electronics course Nepal"
   ],
-  authors: [{ name: "Nepatronix Engineering Solutions", url: "https://nepatronix.com" }],
+  authors: [{ name: "Nepatronix Engineering Solutions", url: "https://nepatronix.org" }],
   creator: "Nepatronix Engineering Solutions",
   publisher: "Nepatronix Engineering Solutions",
   category: "Education",
@@ -42,13 +42,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Nepatronix | IoT & Robotics Training in Nepal",
     description: "Hands-on engineering training and STEM education in Kathmandu. 25,000+ students trained across 50+ schools in Nepal.",
-    url: 'https://nepatronix.com',
+    url: 'https://nepatronix.org',
     siteName: 'Nepatronix',
     locale: 'en_US',
     type: 'website',
     images: [
       {
-        url: 'https://nepatronix.com/og-banner.png',
+        url: 'https://nepatronix.org/og-banner.png',
         width: 1200,
         height: 630,
         alt: 'Nepatronix – IoT, Robotics & STEM Education in Nepal',
@@ -61,12 +61,12 @@ export const metadata: Metadata = {
     creator: '@nepatronix',
     title: 'Nepatronix | IoT & Robotics Training in Nepal',
     description: 'Hands-on engineering training and STEM education in Kathmandu. 25,000+ students trained.',
-    images: ['https://nepatronix.com/og-banner.png'],
+    images: ['https://nepatronix.org/og-banner.png'],
   },
   alternates: {
-    canonical: 'https://nepatronix.com',
+    canonical: 'https://nepatronix.org',
     languages: {
-      'en-US': 'https://nepatronix.com',
+      'en-US': 'https://nepatronix.org',
     },
   },
   robots: {
@@ -90,20 +90,20 @@ const jsonLd = {
   "@graph": [
     {
       "@type": ["EducationalOrganization", "LocalBusiness"],
-      "@id": "https://nepatronix.com/#organization",
+      "@id": "https://nepatronix.org/#organization",
       "name": "Nepatronix Engineering Solutions",
       "legalName": "Nepatronix Engineering Solution Pvt. Ltd.",
-      "url": "https://nepatronix.com",
+      "url": "https://nepatronix.org",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://nepatronix.com/logo.png",
+        "url": "https://nepatronix.org/logo.png",
         "width": 200,
         "height": 60
       },
-      "image": "https://nepatronix.com/og-banner.png",
+      "image": "https://nepatronix.org/og-banner.png",
       "description": "Nepal's leading IoT, Robotics and STEM EdTech company. We train students and teachers with hands-on engineering education.",
       "telephone": "+977-9803661701",
-      "email": "info@nepatronix.com",
+      "email": "info@nepatronix.org",
       "foundingDate": "2021",
       "numberOfEmployees": { "@type": "QuantitativeValue", "value": 20 },
       "priceRange": "NPR 5,000 - 50,000",
@@ -151,14 +151,14 @@ const jsonLd = {
     },
     {
       "@type": "WebSite",
-      "@id": "https://nepatronix.com/#website",
-      "url": "https://nepatronix.com",
+      "@id": "https://nepatronix.org/#website",
+      "url": "https://nepatronix.org",
       "name": "Nepatronix",
       "description": "Nepal's leading IoT, Robotics and STEM education platform",
-      "publisher": { "@id": "https://nepatronix.com/#organization" },
+      "publisher": { "@id": "https://nepatronix.org/#organization" },
       "potentialAction": {
         "@type": "SearchAction",
-        "target": { "@type": "EntryPoint", "urlTemplate": "https://nepatronix.com/blog?q={search_term_string}" },
+        "target": { "@type": "EntryPoint", "urlTemplate": "https://nepatronix.org/blog?q={search_term_string}" },
         "query-input": "required name=search_term_string"
       }
     }

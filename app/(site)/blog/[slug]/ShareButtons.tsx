@@ -10,7 +10,7 @@ interface ShareButtonsProps {
 export default function ShareButtons({ title, slug }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
   
-  const baseUrl = "https://nepatronix.com";
+  const baseUrl = "https://nepatronix.org";
   const shareUrl = `${baseUrl}/blog/${slug}`;
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedTitle = encodeURIComponent(title);

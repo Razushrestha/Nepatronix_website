@@ -20,4 +20,4 @@ Allow: /school_College/
 # Do not block any important public pages
 
 # Sitemap location
-Sitemap: https://nepatronix.com/sitemap.xml
+Sitemap: https://nepatronix.org/sitemap.xml

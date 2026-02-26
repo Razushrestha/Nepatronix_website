@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     };
   }
  
-  const canonicalUrl = `https://nepatronix.com/services/${id}`;
+  const canonicalUrl = `https://nepatronix.org/services/${id}`;
   return {
     title: service.title,
     description: service.description,
@@ -25,13 +25,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       description: service.description,
       url: canonicalUrl,
       type: "website",
-      images: [{ url: "https://nepatronix.com/og-banner.png", width: 1200, height: 630, alt: service.title }],
+      images: [{ url: "https://nepatronix.org/og-banner.png", width: 1200, height: 630, alt: service.title }],
     },
     twitter: {
       card: "summary_large_image",
       title: `${service.title} | Nepatronix`,
       description: service.description,
-      images: ["https://nepatronix.com/og-banner.png"],
+      images: ["https://nepatronix.org/og-banner.png"],
     },
   };
 }
@@ -196,7 +196,7 @@ export default async function ServiceDetail({ params }: { params: Promise<{ id: 
     "provider": {
       "@type": "Organization",
       "name": "Nepatronix",
-      "url": "https://nepatronix.com"
+      "url": "https://nepatronix.org"
     },
     "areaServed": "Nepal",
     "category": "Technology & Education"
@@ -210,19 +210,19 @@ export default async function ServiceDetail({ params }: { params: Promise<{ id: 
         "@type": "ListItem",
         "position": 1,
         "name": "Home",
-        "item": "https://nepatronix.com"
+        "item": "https://nepatronix.org"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Services",
-        "item": "https://nepatronix.com/services"
+        "item": "https://nepatronix.org/services"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": service.title,
-        "item": `https://nepatronix.com/services/${id}`
+        "item": `https://nepatronix.org/services/${id}`
       }
     ]
   };

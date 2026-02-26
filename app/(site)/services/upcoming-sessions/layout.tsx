@@ -3,13 +3,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://nepatronix.com" },
-      { "@type": "ListItem", position: 2, name: "Services", item: "https://nepatronix.com/services" },
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://nepatronix.org" },
+      { "@type": "ListItem", position: 2, name: "Services", item: "https://nepatronix.org/services" },
       {
         "@type": "ListItem",
         position: 3,
         name: "Upcoming Sessions",
-        item: "https://nepatronix.com/services/upcoming-sessions",
+        item: "https://nepatronix.org/services/upcoming-sessions",
       },
     ],
   };

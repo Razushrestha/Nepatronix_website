@@ -8,19 +8,19 @@ export const metadata: Metadata = {
     "Nepatronix team", "IoT engineers Nepal", "STEM educators Nepal",
     "robotics experts Nepal", "Nepatronix founders", "engineering team Kathmandu"
   ],
-  authors: [{ name: "Nepatronix Engineering Solutions", url: "https://nepatronix.com" }],
+  authors: [{ name: "Nepatronix Engineering Solutions", url: "https://nepatronix.org" }],
   alternates: {
-    canonical: "https://nepatronix.com/teams",
+    canonical: "https://nepatronix.org/teams",
   },
   openGraph: {
     title: "Our Team | Nepatronix – Engineers & Educators in Nepal",
     description:
       "Meet Nepatronix's passionate team of engineers and educators driving IoT and STEM education across Nepal.",
-    url: "https://nepatronix.com/teams",
+    url: "https://nepatronix.org/teams",
     type: "website",
     images: [
       {
-        url: "https://nepatronix.com/og-banner.png",
+        url: "https://nepatronix.org/og-banner.png",
         width: 1200,
         height: 630,
         alt: "Nepatronix Team",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     title: "Our Team | Nepatronix Engineers & Educators",
     description:
       "Meet the team behind Nepal's leading IoT and STEM education company.",
-    images: ["https://nepatronix.com/og-banner.png"],
+    images: ["https://nepatronix.org/og-banner.png"],
   },
 };
 
@@ -41,8 +41,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://nepatronix.com" },
-      { "@type": "ListItem", "position": 2, "name": "Our Team", "item": "https://nepatronix.com/teams" }
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://nepatronix.org" },
+      { "@type": "ListItem", "position": 2, "name": "Our Team", "item": "https://nepatronix.org/teams" }
     ]
   };
   return (
