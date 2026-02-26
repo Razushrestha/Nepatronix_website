@@ -32,6 +32,7 @@ const upcomingSessionsQuery = `*[_type == "course" && isUpcoming == true] | orde
   sessionVenue,
   batchName,
   meetingUrl,
+  registrationLink,
   "pdfUrl": coursePdf.pdfFile.asset->url
 }`;
 

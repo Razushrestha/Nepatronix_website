@@ -204,6 +204,14 @@ export const course = defineType({
       hidden: ({ document }) => !document?.isUpcoming || (document?.deliveryMode !== 'Online' && document?.deliveryMode !== 'Blended'),
       validation: (Rule) => Rule.uri({ scheme: ['http', 'https'] }),
     }),
+    defineField({
+      name: 'registrationLink',
+      title: 'Registration Link',
+      type: 'url',
+      description: 'External registration form URL (e.g. Google Forms, Typeform). When set, the "Enroll Now" button will redirect here instead of showing the built-in form.',
+      hidden: ({ document }) => !document?.isUpcoming,
+      validation: (Rule) => Rule.uri({ scheme: ['http', 'https'] }),
+    }),
   ],
   preview: {
     select: {
