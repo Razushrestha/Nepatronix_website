@@ -5,12 +5,11 @@ import { blogPosts, ourServices, galleryItems, mentors, teamMembers, aboutUsData
 
 const baseUrl = 'https://nepatronix.org';
 
-// Helper to build <image:image> entries for sitemap (Next.js expects array of { url, caption? })
-function buildImageObjects(imageUrls: string[], caption?: string) {
-  return imageUrls.map((url) => ({
-    url: url.startsWith('http') ? url : `${baseUrl}${url}`,
-    ...(caption ? { caption } : {})
-  }));
+// Helper to build image URL strings for sitemap (Next.js expects string[])
+function buildImageUrls(imageUrls: string[]): string[] {
+  return imageUrls
+    .filter((url) => typeof url === 'string' && url.trim() !== '')
+    .map((url) => url.startsWith('http') ? url : `${baseUrl}${url}`);
 }
 
 // Collect all images for Home, About Us, Teams, and public folders
@@ -70,7 +69,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(),
     changeFrequency: 'hourly' as const,
     priority: 0.5,
-    images: post.image ? buildImageObjects([post.image], post.title) : [],
+    images: post.image ? buildImageUrls([post.image]) : [],
   }));
 
   // Static and local data services
@@ -79,7 +78,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(),
     changeFrequency: 'hourly' as const,
     priority: 0.7,
-    images: service.icon ? buildImageObjects([`${baseUrl}/icons/${service.icon}.svg`], service.title) : [],
   }));
 
   // Sanity blog posts
@@ -88,7 +86,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: post._updatedAt ? new Date(post._updatedAt) : new Date(),
     changeFrequency: 'hourly' as const,
     priority: 0.6,
-    images: post.mainImage?.asset?._ref ? buildImageObjects([`https://cdn.sanity.io/images/${post.mainImage.asset._ref.replace('-','/').replace('-','.')}`]) : [],
   }));
 
   // Sanity services
@@ -97,7 +94,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: service._updatedAt ? new Date(service._updatedAt) : new Date(),
     changeFrequency: 'hourly' as const,
     priority: 0.7,
-    images: service.icon ? buildImageObjects([`${baseUrl}/icons/${service.icon}.svg`]) : [],
   }));
 
   // Sanity courses (main course pages)
@@ -115,7 +111,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(),
     changeFrequency: 'hourly' as const,
     priority: 0.5,
-    images: pdf.thumbnail?.asset?.url ? buildImageObjects([pdf.thumbnail.asset.url], pdf.title) : [],
+    images: pdf.thumbnail?.asset?.url ? buildImageUrls([pdf.thumbnail.asset.url]) : [],
   }));
 
   // Course video watch pages
@@ -124,7 +120,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(),
     changeFrequency: 'hourly' as const,
     priority: 0.5,
-    images: video.thumbnail?.asset?.url ? buildImageObjects([video.thumbnail.asset.url], video.title) : [],
+    images: video.thumbnail?.asset?.url ? buildImageUrls([video.thumbnail.asset.url]) : [],
   }));
 
   // Upcoming session pages
@@ -160,21 +156,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       // 'never'   - Never changes
       changeFrequency: 'hourly' as const,
       priority: 1,
-      images: buildImageObjects(staticImages),
+      images: buildImageUrls(staticImages as string[]),
     },
     {
       url: `${baseUrl}/partners`,
       lastModified: new Date(),
       changeFrequency: 'hourly' as const,
       priority: 0.7,
-      images: buildImageObjects(staticImages),
     },
     {
       url: `${baseUrl}/teams`,
       lastModified: new Date(),
       changeFrequency: 'hourly' as const,
       priority: 0.5,
-      images: buildImageObjects(staticImages),
     },
   ];
 
