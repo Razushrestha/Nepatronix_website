@@ -202,40 +202,11 @@ export default async function ServiceDetail({ params }: { params: Promise<{ id: 
     "category": "Technology & Education"
   };
 
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "https://nepatronix.org"
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Services",
-        "item": "https://nepatronix.org/services"
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": service.title,
-        "item": `https://nepatronix.org/services/${id}`
-      }
-    ]
-  };
-
   return (
     <main className="min-h-screen bg-white font-sans">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <Breadcrumb />
       {/* 1. HERO SECTION (Pristine White Theme) */}

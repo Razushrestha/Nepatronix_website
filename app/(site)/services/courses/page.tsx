@@ -129,20 +129,9 @@ export default async function CoursesPage() {
     }))
   };
 
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://nepatronix.org" },
-      { "@type": "ListItem", "position": 2, "name": "Services", "item": "https://nepatronix.org/services" },
-      { "@type": "ListItem", "position": 3, "name": "Courses", "item": "https://nepatronix.org/services/courses" }
-    ]
-  };
-
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(coursesJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
       <div className="relative bg-[#020617] pt-32 pb-20 overflow-hidden">
