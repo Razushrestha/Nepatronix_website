@@ -54,10 +54,10 @@ const ApplyForCertificationPage = () => {
       setSubmitMessage('Please upload your student image.');
       return;
     }
-    if (formData.courseType === 'paid') {
+    if (formData.courseType === 'free') {
       setStep(2);
     } else {
-      // If course is free, submit directly
+      // If course is paid, submit directly
       handleSubmit(e);
     }
   };
@@ -69,7 +69,7 @@ const ApplyForCertificationPage = () => {
       setSubmitMessage('Please upload a student image.');
       return;
     }
-    if (formData.courseType === 'paid' && !paymentScreenshot) {
+    if (formData.courseType === 'free' && !paymentScreenshot) {
       setSubmitMessage('Please upload a payment screenshot.');
       return;
     }
@@ -191,7 +191,7 @@ const ApplyForCertificationPage = () => {
       <section className="py-12 px-4 bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="container mx-auto max-w-2xl">
         {/* Step Indicator */}
-        {formData.courseType === 'paid' && (
+        {formData.courseType === 'free' && (
           <div className="mb-6 max-w-2xl mx-auto px-4">
             <div className="flex items-center justify-center flex-wrap gap-2 sm:gap-0">
               {/* Step 1 */}
@@ -369,13 +369,13 @@ const ApplyForCertificationPage = () => {
                 className="w-full md:w-auto bg-blue-600 text-white font-bold py-3 px-10 text-sm rounded-lg hover:bg-blue-700 disabled:bg-gray-400 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
                 disabled={isSubmitting}
               >
-                {formData.courseType === 'paid' ? 'Proceed to Payment →' : 'Submit Application'}
+                {formData.courseType === 'free' ? 'Proceed to Payment →' : 'Submit Application'}
               </button>
             </div>
           </form>
         )}
 
-        {step === 2 && formData.courseType === 'paid' && (
+        {step === 2 && formData.courseType === 'free' && (
           <div>
             <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Payment Details</h2>
             
