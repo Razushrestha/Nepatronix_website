@@ -36,21 +36,35 @@ const ApplyForCertificationPage = () => {
 
   const handleNextStep = (e: FormEvent) => {
     e.preventDefault();
+    setSubmitMessage(''); // Clear any previous messages
     // Simple validation before proceeding
-    if (formData.fullName && formData.email && formData.contactNumber && studentImage) {
-      if (formData.courseType === 'paid') {
-        setStep(2);
-      } else {
-        // If course is free, submit directly
-        handleSubmit(e);
-      }
+    if (!formData.fullName) {
+      setSubmitMessage('Please enter your full name.');
+      return;
+    }
+    if (!formData.email) {
+      setSubmitMessage('Please enter your email address.');
+      return;
+    }
+    if (!formData.contactNumber) {
+      setSubmitMessage('Please enter your contact number.');
+      return;
+    }
+    if (!studentImage) {
+      setSubmitMessage('Please upload your student image.');
+      return;
+    }
+    if (formData.courseType === 'paid') {
+      setStep(2);
     } else {
-      setSubmitMessage('Please fill all required fields and upload your image.');
+      // If course is free, submit directly
+      handleSubmit(e);
     }
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setSubmitMessage(''); // Clear any previous messages
     if (!studentImage) {
       setSubmitMessage('Please upload a student image.');
       return;
@@ -61,7 +75,6 @@ const ApplyForCertificationPage = () => {
     }
 
     setIsSubmitting(true);
-    setSubmitMessage('');
 
     try {
       // Convert images to base64
@@ -102,6 +115,7 @@ const ApplyForCertificationPage = () => {
       if (data.success) {
         setSubmitMessage('✅ Application submitted successfully! Check your email for confirmation.');
         setStep(1);
+        // Reset is handled below
         setFormData({
           fullName: '',
           trainingHours: '1.5',
@@ -117,7 +131,7 @@ const ApplyForCertificationPage = () => {
       }
     } catch (error) {
       console.error('Submission error:', error);
-      setSubmitMessage('❌ An error occurred. Please try again.');
+      setSubmitMessage('❌ An error occurred. Please try again. Check your internet connection.');
     } finally {
       setIsSubmitting(false);
     }
@@ -320,7 +334,6 @@ const ApplyForCertificationPage = () => {
                   accept="image/*"
                   onChange={handleImageChange}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  required
                 />
               </div>
             </div>
@@ -454,7 +467,6 @@ const ApplyForCertificationPage = () => {
                     accept="image/*"
                     onChange={handleScreenshotChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    required
                   />
                 </div>
               </div>

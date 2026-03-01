@@ -230,7 +230,99 @@ export default function AboutPage() {
       </section>
 
 
-      {/* 5. WHY CHOOSE US */}
+      {/* 5. ACHIEVEMENTS STRIP */}
+      <section className="py-20 bg-[#F8FAFC] border-y border-slate-100 overflow-hidden">
+        <div className="mx-auto max-w-6xl px-6">
+
+          {/* Section Heading */}
+          <FadeIn>
+            <div className="flex items-center gap-2 mb-12 justify-center">
+              <span className="h-px w-8 bg-[#C1121F]"></span>
+              <span className="text-[#C1121F] font-bold tracking-[0.2em] text-xs uppercase">Our Credentials & Achievements</span>
+              <span className="h-px w-8 bg-[#C1121F]"></span>
+            </div>
+          </FadeIn>
+
+          {/* Two-column layout: Image LEFT, Description RIGHT */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+
+            {/* LEFT — Certificate Image */}
+            <FadeIn direction="left">
+              <div className="group relative rounded-2xl overflow-hidden shadow-xl border border-slate-200 hover:shadow-2xl transition-all duration-500">
+                <Image
+                  src="/certificate-iitm.jpg"
+                  alt="IIT Madras SWAYAM Plus Course Completion Certificate – Raju Shrestha"
+                  width={800}
+                  height={566}
+                  className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-700"
+                />
+                {/* Subtle overlay badge */}
+                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1.5 shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span className="text-[10px] font-black tracking-widest uppercase text-slate-700">Verified Certificate</span>
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* RIGHT — Description */}
+            <FadeIn direction="right" delay={150}>
+              <div className="flex flex-col justify-center gap-6">
+
+                {/* Label */}
+                <div className="inline-flex items-center gap-2">
+                  <span className="h-px w-6 bg-[#C1121F]"></span>
+                  <span className="text-[#C1121F] font-bold tracking-[0.2em] text-[11px] uppercase">Course Completion</span>
+                </div>
+
+                {/* Title */}
+                <h2 className="text-3xl font-extrabold text-[#020617] leading-tight">
+                  Comprehensive Electronics <br className="hidden sm:block" />
+                  <span className="text-[#2563EB]">&amp; Embedded Systems</span>
+                </h2>
+
+                {/* Description */}
+                <p className="text-slate-500 text-base leading-relaxed">
+                  Raju Shrestha, Founder &amp; CEO of Nepatronix, successfully completed a rigorous <strong className="text-slate-700">5-day (40-hour)</strong> intensive program provided by <strong className="text-slate-700">IIT Madras</strong> through IITM Pravartak on SWAYAM Plus — aligned to <strong className="text-slate-700">NCrF Level 4.5</strong>.
+                </p>
+
+                {/* Meta details */}
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { label: 'Duration', value: '40 Hours' },
+                    { label: 'Level', value: 'NCrF 4.5' },
+                    { label: 'Period', value: 'Dec 2025 – Jan 2026' },
+                    { label: 'Provider', value: 'IIT Madras' },
+                  ].map((item) => (
+                    <div key={item.label} className="bg-white rounded-xl border border-slate-100 px-4 py-3 shadow-sm">
+                      <p className="text-[10px] font-black tracking-[0.15em] uppercase text-slate-400 mb-0.5">{item.label}</p>
+                      <p className="text-sm font-bold text-[#020617]">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Issuer tags */}
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {[
+                    { label: 'IIT Madras', color: 'bg-[#C1121F]' },
+                    { label: 'SWAYAM Plus', color: 'bg-orange-500' },
+                    { label: 'IITM Pravartak', color: 'bg-emerald-500' },
+                  ].map((tag) => (
+                    <span key={tag.label} className="inline-flex items-center gap-1.5 bg-white border border-slate-200 rounded-full px-3 py-1 text-[11px] font-semibold text-slate-600 shadow-sm">
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${tag.color}`}></span>
+                      {tag.label}
+                    </span>
+                  ))}
+                </div>
+
+              </div>
+            </FadeIn>
+
+          </div>
+        </div>
+      </section>
+
+
+      {/* 6. WHY CHOOSE US */}
       <section className="py-24 bg-white">
         <div className="mx-auto max-w-6xl px-6">
            <FadeIn>
