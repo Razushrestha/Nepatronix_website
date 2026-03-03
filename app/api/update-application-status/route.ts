@@ -69,6 +69,7 @@ export async function POST(req: NextRequest) {
     );
 
     // Auto-trigger certificate generation on approval
+    let certificateUID: string | undefined
     if (status === "approved") {
       try {
         console.log(`🎓 Triggering certificate generation for application ${applicationId}`);
@@ -81,7 +82,8 @@ export async function POST(req: NextRequest) {
         
         const result = await response.json();
         if (result.success) {
-          console.log(`✅ Certificate generated successfully: ${result.certificateUID}`);
+          certificateUID = result.certificateUID;
+          console.log(`✅ Certificate generated successfully: ${certificateUID}`);
         } else {
           console.error(`❌ Certificate generation failed:`, result.error);
         }
@@ -93,6 +95,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: `Application ${status} successfully`,
+      ...(certificateUID ? { certificateUID } : {}),
     });
   } catch (error) {
     console.error("Error updating status:", error);

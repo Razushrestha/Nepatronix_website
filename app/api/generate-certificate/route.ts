@@ -2,12 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { client } from "@/sanity/lib/client";
 import QRCode from "qrcode";
 
-// Generate unique certificate UID
-function generateCertificateUID(): string {
+// Generate unique certificate UID: NT-YYYYMMDD-00000009 format
+async function generateCertificateUID(): Promise<string> {
   const prefix = "NT";
-  const year = new Date().getFullYear();
-  const random = Math.floor(Math.random() * 100000).toString().padStart(5, "0");
-  return `${prefix}-${year}-${random}`;
+  const now = new Date();
+  const date = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+  // Count existing certificates to get sequential number
+  const count = await client.fetch<number>(`count(*[_type == "certificationApplication" && defined(certificateDetails.certificateUID)])`);
+  const seq = (count + 1).toString().padStart(2, "0");
+  return `${prefix}-${date}-${seq}`;
 }
 
 // Generate QR code as data URL
@@ -179,28 +182,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Generate certificate details
+    // Reuse existing UID or generate a new one
     console.log(`🎨 Generating certificate details...`);
-    const certificateUID = generateCertificateUID();
+    const existingUID = await client.fetch<string | null>(
+      `*[_type == "certificationApplication" && _id == $applicationId][0].certificateDetails.certificateUID`,
+      { applicationId }
+    );
+    const certificateUID = existingUID || await generateCertificateUID();
     const issueDate = new Date().toISOString().split("T")[0];
     const verificationUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://nepatronix.org'}/verify-certificate/${certificateUID}`;
 
-    // Generate QR code with comprehensive verification data
-    // Automatically captures all student-entered information
-    const qrData = JSON.stringify({
-      certificateUID: certificateUID,
-      fullName: application.applicantName,
-      email: application.email,
-      phone: application.phone,
-      courseName: application.courseName,
-      trainingHours: application.trainingHours,
-      trainingDays: application.trainingDays,
-      issueDate: issueDate,
-      verificationUrl: verificationUrl,
-      organization: "Nepatronix",
-      issuedBy: "Nepatronix IoT & Robotics Training Center",
-    });
-    const qrCodeDataUrl = await generateQRCode(qrData);
+    const COMPANY_NAME = "Nepatronix Engineering Solution Pvt. Ltd.";
+
+    // QR encodes clean human-readable fields — no JSON
+    const qrPayload = [
+      `Certificate UID : ${certificateUID}`,
+      `Full Name       : ${application.applicantName}`,
+      `Issue Date      : ${new Date(issueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`,
+      `Company         : ${COMPANY_NAME}`,
+      `Verify at       : ${verificationUrl}`,
+    ].join('\n');
+    const qrCodeDataUrl = await generateQRCode(qrPayload);
 
     // Generate certificate HTML
     const certificateHTML = await generateCertificateHTML({
@@ -209,7 +211,7 @@ export async function POST(req: NextRequest) {
       courseHours: application.trainingHours,
       courseDays: application.trainingDays,
       certificateUID,
-      organizationName: "Nepatronix",
+      organizationName: COMPANY_NAME,
       issueDate,
       profileImageUrl: application.profileImageUrl,
       qrCodeDataUrl,
@@ -230,7 +232,7 @@ export async function POST(req: NextRequest) {
           certificateUID,
           issueDate,
           certificateUrl: verificationUrl,
-          qrCodeData: qrData,
+          qrCodeData: qrPayload,
         },
       })
       .commit();
@@ -238,13 +240,12 @@ export async function POST(req: NextRequest) {
     console.log(`✅ Certificate generated successfully!`);
     console.log(`   - UID: ${certificateUID}`);
     console.log(`   - Verification URL: ${verificationUrl}`);
-    console.log(`   - QR Data Length: ${qrData.length} characters`);
 
     return NextResponse.json({
       success: true,
       certificateUID,
       verificationUrl,
-      qrCodeData: qrData,
+      qrCodeData: verificationUrl,
       message: "Certificate generated successfully!",
     });
   } catch (error) {

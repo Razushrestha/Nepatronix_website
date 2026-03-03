@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 import { client } from "@/sanity/lib/client";
 import { notFound } from "next/navigation";
-import imageUrlBuilder from "@sanity/image-url";
-
-const builder = imageUrlBuilder(client);
+import QRCode from "qrcode";
+import { CertificateTemplate } from "@/app/(site)/components/CertificateTemplate";
+import PrintButton from "./PrintButton";
 
 interface Props {
   params: Promise<{ uid: string }>;
@@ -43,15 +43,14 @@ export default async function VerifyCertificatePage({ params }: Props) {
 
   const application = await client.fetch(
     `*[_type == "certificationApplication" && certificateDetails.certificateUID == $uid][0]{
-      "certificateNumber": certificateDetails.certificateUID,
-      "recipientName": applicantName,
+      _id,
+      applicantName,
       courseName,
-      "courseHours": trainingHours,
-      "courseDays": trainingDays,
+      trainingHours,
+      trainingDays,
       "issueDate": certificateDetails.issueDate,
-      "organizationName": "Nepatronix",
-      "recipientImage": profileImage,
-      certificateDetails
+      "certificateUID": certificateDetails.certificateUID,
+      "profileImage": profileImage.asset->url,
     }`,
     { uid }
   );
@@ -60,92 +59,147 @@ export default async function VerifyCertificatePage({ params }: Props) {
     notFound();
   }
 
-  const imageUrl = application.recipientImage 
-    ? builder.image(application.recipientImage).width(200).height(200).url()
-    : null;
+  const COMPANY_NAME = "Nepatronix Engineering Solution Pvt. Ltd.";
+  const verificationUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://nepatronix.org'}/verify-certificate/${uid}`;
+
+  const formatDate = (d: string | null | undefined) => {
+    if (!d) return 'N/A';
+    const parsed = new Date(d);
+    if (isNaN(parsed.getTime())) return d;
+    return parsed.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  };
+
+  const issueDateLabel = formatDate(application.issueDate);
+
+  // Always regenerate QR from live data — never trust stored qrCodeData
+  const qrPayload = [
+    `Certificate UID : ${application.certificateUID}`,
+    `Full Name       : ${application.applicantName}`,
+    `Issue Date      : ${issueDateLabel}`,
+    `Company         : ${COMPANY_NAME}`,
+    `Verify at       : ${verificationUrl}`,
+  ].join('\n');
+
+  const qrCodeDataUrl = await QRCode.toDataURL(qrPayload, {
+    width: 300,
+    margin: 1,
+    color: { dark: "#000000", light: "#FFFFFF" },
+  });
+
+  const profileImageUrl: string | undefined = application.profileImage ?? undefined;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-20 px-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Verification Success Banner */}
-        <div className="bg-green-50 border-2 border-green-500 rounded-xl p-6 mb-8">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    <>
+      {/* ── Screen view ── */}
+      <div className="print:hidden min-h-screen bg-slate-50 py-10 px-4">
+        <div className="max-w-2xl mx-auto space-y-5">
+
+          {/* ── Verified badge ── */}
+          <div className="flex items-center gap-3 bg-green-50 border border-green-300 rounded-2xl px-5 py-4">
+            <div className="w-9 h-9 bg-green-500 rounded-full flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-green-900">Certificate Verified ✓</h1>
-              <p className="text-green-700">This certificate is authentic and issued by Nepatronix</p>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-green-900 text-base leading-tight">Certificate Verified</p>
+              <p className="text-green-700 text-xs mt-0.5 truncate">Authentic &amp; issued by {COMPANY_NAME}</p>
             </div>
+            <PrintButton />
           </div>
-        </div>
 
-        {/* Certificate Details Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-200">
-          <div className="flex items-start gap-6 mb-6">
-            {imageUrl && (
+          {/* ── Main card ── */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+
+            {/* Red header strip */}
+            <div className="bg-[#C1121F] px-6 py-5 flex items-center gap-4">
+              {profileImageUrl ? (
+                <img
+                  src={profileImageUrl}
+                  alt={application.applicantName}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-white/40 shrink-0"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-white/20 border-2 border-white/40 flex items-center justify-center shrink-0">
+                  <span className="text-white text-2xl font-bold">
+                    {application.applicantName?.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="text-white/70 text-xs uppercase tracking-widest mb-0.5">Certificate of Completion</p>
+                <h1 className="text-white text-xl font-bold leading-tight truncate">{application.applicantName}</h1>
+                <p className="text-white/80 text-sm mt-0.5 truncate">{application.courseName}</p>
+              </div>
+            </div>
+
+            {/* Info rows */}
+            <div className="divide-y divide-slate-100">
+              {[
+                { label: 'Certificate ID', value: application.certificateUID, mono: true },
+                { label: 'Full Name',      value: application.applicantName },
+                { label: 'Course',         value: application.courseName },
+                { label: 'Duration',       value: `${application.trainingHours ?? '—'} hrs / ${application.trainingDays ?? '—'} days` },
+                { label: 'Issue Date',     value: issueDateLabel },
+                { label: 'Issued By',      value: COMPANY_NAME },
+              ].map(({ label, value, mono }) => (
+                <div key={label} className="flex items-start gap-3 px-6 py-3.5">
+                  <span className="text-xs text-slate-400 w-28 shrink-0 pt-0.5">{label}</span>
+                  <span className={`text-sm font-semibold text-slate-900 break-words min-w-0 ${mono ? 'font-mono text-[#C1121F]' : ''}`}>
+                    {value}
+                  </span>
+                </div>
+              ))}
+
+              {/* Verification URL row */}
+              <div className="flex items-start gap-3 px-6 py-3.5">
+                <span className="text-xs text-slate-400 w-28 shrink-0 pt-0.5">Verify at</span>
+                <a
+                  href={verificationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-semibold text-[#C1121F] underline underline-offset-2 break-all hover:text-[#9A0E19] transition-colors"
+                >
+                  {verificationUrl}
+                </a>
+              </div>
+            </div>
+
+            {/* QR code footer */}
+            <div className="border-t border-slate-100 px-6 py-5 flex items-center gap-5 bg-slate-50">
               <img
-                src={imageUrl}
-                alt={application.recipientName}
-                className="w-24 h-24 rounded-full object-cover border-4 border-[#C1121F]"
+                src={qrCodeDataUrl}
+                alt="Verification QR Code"
+                className="w-20 h-20 rounded-lg border border-slate-200 shrink-0"
               />
-            )}
-            <div className="flex-1">
-              <h2 className="text-3xl font-bold text-slate-900 mb-2">
-                {application.recipientName}
-              </h2>
-              <p className="text-slate-600">Certificate ID: <span className="font-mono font-semibold text-[#C1121F]">{application.certificateNumber}</span></p>
+              <div>
+                <p className="text-xs font-semibold text-slate-700 mb-1">Scan to verify</p>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Scan this QR code with any camera app to view this certificate&apos;s verification details.
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-slate-50 rounded-lg p-4">
-              <p className="text-sm text-slate-600 mb-1">Course Name</p>
-              <p className="font-semibold text-slate-900">{application.courseName}</p>
-            </div>
-            <div className="bg-slate-50 rounded-lg p-4">
-              <p className="text-sm text-slate-600 mb-1">Duration</p>
-              <p className="font-semibold text-slate-900">
-                {application.courseHours} hours / {application.courseDays} days
-              </p>
-            </div>
-            <div className="bg-slate-50 rounded-lg p-4">
-              <p className="text-sm text-slate-600 mb-1">Issue Date</p>
-              <p className="font-semibold text-slate-900">
-                {new Date(application.issueDate).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </p>
-            </div>
-            <div className="bg-slate-50 rounded-lg p-4">
-              <p className="text-sm text-slate-600 mb-1">Issued By</p>
-              <p className="font-semibold text-slate-900">{application.organizationName}</p>
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <button
-              onClick={() => window.print()}
-              className="flex-1 bg-[#C1121F] text-white py-3 px-6 rounded-lg font-semibold hover:bg-[#9A0E19] transition-colors text-center"
-            >
-              Print Certificate
-            </button>
-          </div>
-        </div>
-
-        {/* Security Information */}
-        <div className="mt-8 bg-blue-50 rounded-xl p-6 border border-blue-200">
-          <h3 className="font-semibold text-blue-900 mb-2">🔒 Security Information</h3>
-          <p className="text-sm text-blue-700">
-            This certificate can be verified at any time using the unique certificate ID. 
-            Any modifications to the certificate will invalidate the verification.
-          </p>
         </div>
       </div>
-    </div>
+
+      {/* ── Print view — full A4 landscape certificate only ── */}
+      <div className="hidden print:block">
+        <CertificateTemplate
+          recipientName={application.applicantName}
+          courseName={application.courseName}
+          courseHours={application.trainingHours ?? ''}
+          courseDays={application.trainingDays ?? ''}
+          certificateUID={application.certificateUID}
+          organizationName={COMPANY_NAME}
+          issueDate={application.issueDate ?? new Date().toISOString()}
+          profileImageUrl={profileImageUrl}
+          qrCodeDataUrl={qrCodeDataUrl}
+          signatoryName={process.env.SIGNATORY_NAME ?? 'Director'}
+          signatoryTitle={process.env.SIGNATORY_TITLE ?? 'Director, Nepatronix'}
+        />
+      </div>
+    </>
   );
 }
