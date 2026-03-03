@@ -44,92 +44,96 @@ async function generateCertificateHTML(data: {
   qrCodeDataUrl?: string;
   signatoryName: string;
   signatoryTitle: string;
+  logoUrl?: string;
+  signatoryImageUrl?: string;
+  partnerLogo1Url?: string;
+  partnerLogo2Url?: string;
 }): Promise<string> {
+  const stripe = `
+    <div style="line-height:0;">
+      <div style="height:6px;background:#1A2873;"></div>
+      <div style="height:13px;background:#C1121F;"></div>
+    </div>`;
+
+  const logo = data.logoUrl || 'https://nepatronix.org/logo.png';
+
   return `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Great+Vibes&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { margin: 0; padding: 0; font-family: Georgia, serif; }
+    *{margin:0;padding:0;box-sizing:border-box;line-height:normal;}
+    body{margin:0;padding:0;}
   </style>
 </head>
 <body>
-  <div style="width: 1123px; height: 794px; padding: 60px; position: relative; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 12px solid #C1121F;">
-    <!-- Top: Nepatronix Logo -->
-    <div style="text-align: center; margin-bottom: 30px;">
-      <img src="https://nepatronix.org/logo.png" alt="Nepatronix" style="height: 80px; object-fit: contain;" />
+<div style="width:1123px;height:794px;background:#fff;display:flex;flex-direction:column;overflow:hidden;font-family:Georgia,'Times New Roman',serif;">
+
+  ${stripe}
+
+  <!-- Header -->
+  <div style="position:relative;display:flex;justify-content:center;align-items:center;height:108px;padding:0 40px;flex-shrink:0;">
+    <div style="position:absolute;right:36px;top:16px;font-size:14px;font-weight:bold;color:#111;letter-spacing:0.3px;font-family:Georgia,serif;">
+      Certificate code : ${data.certificateUID}
+    </div>
+    <img src="${logo}" alt="Nepatronix" style="height:80px;object-fit:contain;display:block;" />
+  </div>
+
+  ${stripe}
+
+  <!-- Gothic title -->
+  <div style="text-align:center;padding-top:18px;padding-bottom:4px;font-family:'UnifrakturMaguntia',cursive;font-size:64px;color:#111;line-height:1;flex-shrink:0;">
+    Certificate of participation
+  </div>
+
+  <!-- Cursive name -->
+  <div style="text-align:center;font-family:'Great Vibes',cursive;font-size:62px;color:#111;line-height:1.1;padding-top:2px;padding-bottom:4px;flex-shrink:0;">
+    ${data.recipientName}
+  </div>
+
+  <!-- Body -->
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;font-size:15.5px;line-height:1.75;color:#222;padding:4px 100px 0;font-family:Georgia,serif;gap:8px;">
+    <p>This is to certify that <strong>${data.recipientName}</strong> successfully participated in the <strong>${data.courseHours ? data.courseHours + '-minute ' : ''}${data.courseName}</strong>.</p>
+    <p style="font-size:15px;">During the workshop, he demonstrated enthusiasm for learning and a keen interest in <strong>electronics and innovation</strong>. We appreciate his active participation and encourage him to continue exploring technology and innovation to create meaningful <strong>impact in society</strong> and contribute to the nation's development.</p>
+  </div>
+
+  <!-- Bottom row -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:0 44px 12px;flex-shrink:0;min-height:130px;">
+
+    <!-- QR -->
+    <div style="width:130px;flex-shrink:0;">
+      ${data.qrCodeDataUrl
+        ? `<img src="${data.qrCodeDataUrl}" alt="Verify" style="width:128px;height:128px;display:block;" />`
+        : '<div style="width:128px;height:128px;"></div>'}
     </div>
 
-    <!-- Main Content Container -->
-    <div style="display: flex; gap: 40px; align-items: flex-start;">
-      <!-- Left: Circular Profile Image -->
-      <div style="flex: 0 0 180px;">
-        ${data.profileImageUrl ? `<img src="${data.profileImageUrl}" alt="${data.recipientName}" style="width: 180px; height: 180px; border-radius: 50%; object-fit: cover; border: 6px solid #C1121F; box-shadow: 0 4px 12px rgba(193, 18, 31, 0.3);" />` : ''}
-      </div>
-
-      <!-- Center: Certificate Content -->
-      <div style="flex: 1; padding-top: 20px;">
-        <h1 style="font-size: 48px; color: #C1121F; text-align: center; margin-bottom: 20px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">
-          Certificate of Completion
-        </h1>
-
-        <div style="font-size: 16px; line-height: 1.8; color: #333; text-align: center; max-width: 600px; margin: 0 auto;">
-          <p style="margin-bottom: 20px;">
-            This is to certify that 
-            <strong style="font-size: 24px; color: #C1121F;">${data.recipientName}</strong> 
-            has successfully completed the 
-            <strong>${data.courseHours} hours / ${data.courseDays} days</strong> 
-            professional course titled
-          </p>
-
-          <p style="font-size: 22px; font-weight: bold; color: #C1121F; margin: 20px 0;">
-            "${data.courseName}"
-          </p>
-
-          <p style="margin-bottom: 30px;">
-            conducted by <strong>${data.organizationName}</strong>.
-          </p>
-
-          <p style="font-size: 14px; font-style: italic; color: #666;">
-            During the course, the participant demonstrated dedication,
-            commitment, and a clear understanding of the concepts covered,
-            meeting all the prescribed requirements of the program.
-          </p>
-        </div>
-      </div>
-
-      <!-- Right: QR Code + UID -->
-      <div style="flex: 0 0 180px; text-align: center;">
-        ${data.qrCodeDataUrl ? `
-          <img src="${data.qrCodeDataUrl}" alt="Verification QR" style="width: 150px; height: 150px; border: 4px solid #C1121F; padding: 8px; background: white;" />
-          <p style="margin-top: 10px; font-size: 12px; font-weight: bold; color: #C1121F; word-break: break-word;">${data.certificateUID}</p>
-        ` : ''}
+    <!-- Signature -->
+    <div style="text-align:center;flex-shrink:0;">
+      ${data.signatoryImageUrl
+        ? `<img src="${data.signatoryImageUrl}" alt="Signature" style="height:64px;max-width:200px;object-fit:contain;display:block;margin:0 auto 6px;" />`
+        : '<div style="height:70px;"></div>'}
+      <div style="border-top:1.5px solid #222;padding-top:6px;min-width:220px;">
+        <p style="font-size:15px;font-weight:bold;color:#111;margin-bottom:2px;">${data.signatoryName}</p>
+        <p style="font-size:13px;color:#333;margin-bottom:2px;">${data.signatoryTitle}</p>
+        <p style="font-size:12px;color:#555;">${data.organizationName}</p>
       </div>
     </div>
 
-    <!-- Bottom: Signature -->
-    <div style="position: absolute; bottom: 60px; left: 60px; right: 60px; display: flex; justify-content: space-between; align-items: flex-end;">
-      <div style="text-align: left;">
-        <p style="font-size: 12px; color: #666; margin-bottom: 5px;">
-          Issue Date: ${new Date(data.issueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-        </p>
-      </div>
-
-      <div style="text-align: center; border-top: 2px solid #333; padding-top: 10px; min-width: 200px;">
-        <p style="font-size: 16px; font-weight: bold; margin-bottom: 4px;">
-          ${data.signatoryName}
-        </p>
-        <p style="font-size: 12px; color: #666;">
-          ${data.signatoryTitle}
-        </p>
-      </div>
+    <!-- Partner logos -->
+    <div style="display:flex;align-items:flex-end;gap:16px;width:220px;justify-content:flex-end;flex-shrink:0;">
+      ${data.partnerLogo1Url ? `<img src="${data.partnerLogo1Url}" alt="Partner" style="height:70px;object-fit:contain;display:block;" />` : ''}
+      ${data.partnerLogo2Url ? `<img src="${data.partnerLogo2Url}" alt="Partner" style="height:70px;object-fit:contain;display:block;" />` : ''}
     </div>
   </div>
+
+  ${stripe}
+</div>
 </body>
-</html>
-  `;
+</html>`;
 }
 
 export async function POST(req: NextRequest) {
@@ -217,6 +221,10 @@ export async function POST(req: NextRequest) {
       qrCodeDataUrl,
       signatoryName: process.env.SIGNATORY_NAME || "Director Name",
       signatoryTitle: process.env.SIGNATORY_TITLE || "Director, Nepatronix",
+      signatoryImageUrl: process.env.SIGNATORY_IMAGE_URL,
+      logoUrl: process.env.LOGO_URL,
+      partnerLogo1Url: process.env.PARTNER_LOGO_1_URL,
+      partnerLogo2Url: process.env.PARTNER_LOGO_2_URL,
     });
 
     // For now, store the HTML. In production, convert to PDF using Puppeteer
@@ -245,7 +253,8 @@ export async function POST(req: NextRequest) {
       success: true,
       certificateUID,
       verificationUrl,
-      qrCodeData: verificationUrl,
+      qrCodeData: qrPayload,
+      qrCodeDataUrl,
       message: "Certificate generated successfully!",
     });
   } catch (error) {

@@ -167,7 +167,19 @@ export default async function CertificationDetailPage({ params }: { params: Prom
 
         {/* Actions */}
         <div>
-          <CertificationActions id={cert._id} currentStatus={cert.status} />
+          <CertificationActions
+            id={cert._id}
+            currentStatus={cert.status}
+            existingCertUID={cert.certificateDetails?.certificateUID}
+            certData={{
+              applicantName: cert.applicantName,
+              courseName: cert.courseName,
+              trainingHours: cert.trainingHours,
+              trainingDays: cert.trainingDays,
+              issueDate: cert.certificateDetails?.issueDate,
+              qrCodeData: cert.certificateDetails?.qrCodeData,
+            }}
+          />
         </div>
       </div>
     </div>
