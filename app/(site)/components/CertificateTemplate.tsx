@@ -1,3 +1,5 @@
+'use client';
+
 interface CertificateTemplateProps {
   recipientName: string;
   courseName: string;
@@ -184,6 +186,7 @@ export function CertificateTemplate({
             <img
               src={signatoryImageUrl}
               alt="Signature"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               style={{
                 height: '64px',
                 maxWidth: '200px',
@@ -223,6 +226,7 @@ export function CertificateTemplate({
             <img
               src={partnerLogo1Url}
               alt="Partner 1"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               style={{ height: '70px', objectFit: 'contain', display: 'block' }}
             />
           )}
@@ -230,6 +234,7 @@ export function CertificateTemplate({
             <img
               src={partnerLogo2Url}
               alt="Partner 2"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               style={{ height: '70px', objectFit: 'contain', display: 'block' }}
             />
           )}
