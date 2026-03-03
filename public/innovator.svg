@@ -1,34 +1,70 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 230" width="200" height="230">
-  <!-- Lightbulb outer shape -->
-  <path d="M100 20 C65 20, 38 47, 38 82 C38 105, 50 124, 68 135 L68 158 C68 162, 71 165, 75 165 L125 165 C129 165, 132 162, 132 158 L132 135 C150 124, 162 105, 162 82 C162 47, 135 20, 100 20 Z"
-    fill="none" stroke="#F7941D" stroke-width="4"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 380">
+  <defs>
+    <style>
+      .orange { fill: none; stroke: #F7941D; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
 
-  <!-- Screw base lines -->
-  <rect x="72" y="165" width="56" height="8" rx="2" fill="none" stroke="#F7941D" stroke-width="3.5"/>
-  <rect x="74" y="175" width="52" height="8" rx="2" fill="none" stroke="#F7941D" stroke-width="3.5"/>
-  <rect x="78" y="185" width="44" height="8" rx="2" fill="none" stroke="#F7941D" stroke-width="3.5"/>
+  <!-- ── BULB OUTER GLASS ── -->
+  <!-- Main round bulb top, transitioning into narrow neck -->
+  <path class="orange" stroke-width="5"
+    d="M170,28
+       C122,28 83,67 83,115
+       C83,145 98,170 121,184
+       L121,200
+       C121,203 124,206 127,206
+       L213,206
+       C216,206 219,203 219,200
+       L219,184
+       C242,170 257,145 257,115
+       C257,67 218,28 170,28 Z"/>
 
-  <!-- Diamond / gem shape inside bulb -->
-  <polygon points="100,55 120,80 100,105 80,80"
-    fill="none" stroke="#F7941D" stroke-width="3"/>
-  <!-- Diamond facets -->
-  <line x1="80" y1="80" x2="100" y2="55" stroke="#F7941D" stroke-width="2"/>
-  <line x1="120" y1="80" x2="100" y2="55" stroke="#F7941D" stroke-width="2"/>
-  <line x1="80" y1="80" x2="100" y2="105" stroke="#F7941D" stroke-width="2"/>
-  <line x1="120" y1="80" x2="100" y2="105" stroke="#F7941D" stroke-width="2"/>
-  <line x1="80" y1="80" x2="120" y2="80" stroke="#F7941D" stroke-width="2"/>
+  <!-- Inner oval shine arc at top of bulb -->
+  <path class="orange" stroke-width="3.5"
+    d="M138,62 C149,46 191,46 202,62"/>
 
-  <!-- Circular arc lines around bulb top -->
-  <path d="M70 50 Q100 30 130 50" fill="none" stroke="#F7941D" stroke-width="3" stroke-linecap="round"/>
-  <path d="M60 42 Q100 18 140 42" fill="none" stroke="#F7941D" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- ── SCREW BASE (3 ridges) ── -->
+  <rect class="orange" stroke-width="4" rx="3"
+    x="121" y="206" width="98" height="14"/>
+  <rect class="orange" stroke-width="4" rx="3"
+    x="124" y="221" width="92" height="14"/>
+  <rect class="orange" stroke-width="4" rx="3"
+    x="130" y="236" width="80" height="14"/>
 
-  <!-- "innovator" text -->
-  <text x="100" y="220" text-anchor="middle"
-    font-family="Georgia, serif"
-    font-size="26"
+  <!-- ── GEM / DIAMOND INSIDE BULB ── -->
+  <!-- Outer diamond outline (pentagon-like cut gem) -->
+  <!-- Top triangle -->
+  <polyline class="orange" stroke-width="3.5"
+    points="170,72  148,104  170,168  192,104  170,72"/>
+  <!-- Middle horizontal line -->
+  <line class="orange" stroke-width="3.5"
+    x1="148" y1="104" x2="192" y2="104"/>
+  <!-- Left facet lines from top -->
+  <line class="orange" stroke-width="2.5"
+    x1="170" y1="72" x2="155" y2="104"/>
+  <line class="orange" stroke-width="2.5"
+    x1="170" y1="72" x2="185" y2="104"/>
+  <!-- Lower facets from middle to bottom point -->
+  <line class="orange" stroke-width="2.5"
+    x1="155" y1="104" x2="170" y2="168"/>
+  <line class="orange" stroke-width="2.5"
+    x1="185" y1="104" x2="170" y2="168"/>
+  <!-- Inner small triangle top -->
+  <polyline class="orange" stroke-width="2"
+    points="163,88  170,72  177,88"/>
+
+  <!-- ── TEXT "innovator" ── -->
+  <!-- Using individual paths to match the decorative handwritten style -->
+  <text
+    x="170" y="318"
+    text-anchor="middle"
+    font-family="'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif"
+    font-size="42"
+    font-style="italic"
     fill="#F7941D"
-    letter-spacing="1">innovator</text>
+    letter-spacing="2">innovator</text>
 
-  <!-- Dot above first i -->
-  <circle cx="51" cy="204" r="2.5" fill="#F7941D"/>
+  <!-- Dots above both i's (approximate positions) -->
+  <circle cx="102" cy="282" r="4" fill="#F7941D"/>
+  <circle cx="131" cy="282" r="4" fill="#F7941D"/>
 </svg>

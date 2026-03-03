@@ -51,8 +51,9 @@ async function generateCertificateHTML(data: {
 }): Promise<string> {
   const stripe = `
     <div style="line-height:0;">
-      <div style="height:6px;background:#1A2873;"></div>
-      <div style="height:13px;background:#C1121F;"></div>
+      <div style="height:24px;background:#1D3461;"></div>
+      <div style="height:13px;background:#ffffff;"></div>
+      <div style="height:24px;background:#C8102E;"></div>
     </div>`;
 
   const logo = data.logoUrl || 'https://nepatronix.org/logo.png';
@@ -71,62 +72,66 @@ async function generateCertificateHTML(data: {
   </style>
 </head>
 <body>
-<div style="width:1123px;height:794px;background:#fff;display:flex;flex-direction:column;overflow:hidden;font-family:Georgia,'Times New Roman',serif;">
-
-  ${stripe}
+<div style="width:2000px;height:1414px;background:#fff;display:flex;flex-direction:column;overflow:hidden;font-family:Georgia,'Times New Roman',serif;">
 
   <!-- Header -->
-  <div style="position:relative;display:flex;justify-content:center;align-items:center;height:108px;padding:0 40px;flex-shrink:0;">
-    <div style="position:absolute;right:36px;top:16px;font-size:14px;font-weight:bold;color:#111;letter-spacing:0.3px;font-family:Georgia,serif;">
+  <div style="position:relative;display:flex;justify-content:center;align-items:center;height:100px;padding:0 72px;flex-shrink:0;">
+    <div style="position:absolute;right:64px;top:28px;font-size:25px;font-weight:bold;color:#111;letter-spacing:0.3px;font-family:Georgia,serif;">
       Certificate code : ${data.certificateUID}
     </div>
-    <img src="${logo}" alt="Nepatronix" style="height:80px;object-fit:contain;display:block;" />
   </div>
 
-  ${stripe}
+  <!-- Divider: stripes flanking logo -->
+  <div style="display:flex;align-items:center;flex-shrink:0;">
+    <div style="flex:1;line-height:0;"><div style="height:24px;background:#1D3461;"></div><div style="height:13px;background:#ffffff;"></div><div style="height:24px;background:#C8102E;"></div></div>
+    <div style="padding:0 48px;flex-shrink:0;margin-top:-60px;"><img src="${logo}" alt="Nepatronix" style="height:220px;object-fit:contain;display:block;" /></div>
+    <div style="flex:1;line-height:0;"><div style="height:24px;background:#1D3461;"></div><div style="height:13px;background:#ffffff;"></div><div style="height:24px;background:#C8102E;"></div></div>
+  </div>
 
   <!-- Gothic title -->
-  <div style="text-align:center;padding-top:18px;padding-bottom:4px;font-family:'UnifrakturMaguntia',cursive;font-size:64px;color:#111;line-height:1;flex-shrink:0;">
+  <div style="text-align:center;padding-top:32px;padding-bottom:8px;font-family:'UnifrakturMaguntia',cursive;font-size:114px;color:#111;line-height:1;flex-shrink:0;">
     Certificate of participation
   </div>
 
   <!-- Cursive name -->
-  <div style="text-align:center;font-family:'Great Vibes',cursive;font-size:62px;color:#111;line-height:1.1;padding-top:2px;padding-bottom:4px;flex-shrink:0;">
+  <div style="text-align:center;font-family:'Great Vibes',cursive;font-size:110px;color:#111;line-height:1.1;padding-top:4px;padding-bottom:8px;flex-shrink:0;">
     ${data.recipientName}
   </div>
 
   <!-- Body -->
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;font-size:15.5px;line-height:1.75;color:#222;padding:4px 100px 0;font-family:Georgia,serif;gap:8px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;font-size:27px;line-height:1.75;color:#222;padding:7px 178px 0;font-family:Georgia,serif;gap:14px;">
     <p>This is to certify that <strong>${data.recipientName}</strong> successfully participated in the <strong>${data.courseHours ? data.courseHours + '-minute ' : ''}${data.courseName}</strong>.</p>
-    <p style="font-size:15px;">During the workshop, he demonstrated enthusiasm for learning and a keen interest in <strong>electronics and innovation</strong>. We appreciate his active participation and encourage him to continue exploring technology and innovation to create meaningful <strong>impact in society</strong> and contribute to the nation's development.</p>
+    <p style="font-size:26px;">During the workshop, he demonstrated enthusiasm for learning and a keen interest in <strong>electronics and innovation</strong>. We appreciate his active participation and encourage him to continue exploring technology and innovation to create meaningful <strong>impact in society</strong> and contribute to the nation's development.</p>
   </div>
 
   <!-- Bottom row -->
-  <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:0 44px 12px;flex-shrink:0;min-height:130px;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:0 78px 22px;flex-shrink:0;min-height:232px;">
 
     <!-- QR -->
-    <div style="width:130px;flex-shrink:0;">
+    <div style="width:232px;flex-shrink:0;">
       ${data.qrCodeDataUrl
-        ? `<img src="${data.qrCodeDataUrl}" alt="Verify" style="width:128px;height:128px;display:block;" />`
-        : '<div style="width:128px;height:128px;"></div>'}
+        ? `<img src="${data.qrCodeDataUrl}" alt="Verify" style="width:228px;height:228px;display:block;" />`
+        : '<div style="width:228px;height:228px;"></div>'}
     </div>
 
     <!-- Signature -->
-    <div style="text-align:center;flex-shrink:0;">
-      ${data.signatoryImageUrl
-        ? `<img src="${data.signatoryImageUrl}" alt="Signature" style="height:64px;max-width:200px;object-fit:contain;display:block;margin:0 auto 6px;" />`
-        : '<div style="height:70px;"></div>'}
-      <div style="border-top:1.5px solid #222;padding-top:6px;min-width:220px;">
-        <p style="font-size:15px;font-weight:bold;color:#111;margin-bottom:2px;">${data.signatoryName}</p>
-        <p style="font-size:13px;color:#333;margin-bottom:2px;">${data.signatoryTitle}</p>
-        <p style="font-size:12px;color:#555;">${data.organizationName}</p>
+      <div style="text-align:center;flex-shrink:0;position:relative;">
+        <div style="height:160px;"></div>
+        ${data.signatoryImageUrl
+          ? `<img src="${data.signatoryImageUrl}" alt="Signature" style="position:absolute;bottom:108px;left:50%;transform:translateX(-50%);height:180px;max-width:900px;object-fit:contain;mix-blend-mode:multiply;" />`
+          : ''}
+      <div style="border-top:3px solid #222;padding-top:11px;min-width:392px;">
+        <p style="font-size:27px;font-weight:bold;color:#111;margin-bottom:4px;">${data.signatoryName}</p>
+        <p style="font-size:23px;color:#333;margin-bottom:4px;">${data.signatoryTitle}</p>
+        <p style="font-size:21px;color:#555;">${data.organizationName}</p>
       </div>
     </div>
 
     <!-- Partner logos -->
-    <div style="display:flex;align-items:flex-end;gap:16px;width:220px;justify-content:flex-end;flex-shrink:0;">
-      ${data.partnerLogo1Url ? `<img src="${data.partnerLogo1Url}" alt="Partner" style="height:70px;object-fit:contain;display:block;" />` : ''}
-      ${data.partnerLogo2Url ? `<img src="${data.partnerLogo2Url}" alt="Partner" style="height:70px;object-fit:contain;display:block;" />` : ''}
+    <div style="display:flex;align-items:center;gap:43px;width:500px;justify-content:flex-end;flex-shrink:0;">
+      ${data.partnerLogo1Url ? `<img src="${data.partnerLogo1Url}" alt="Partner" style="height:160px;max-width:232px;object-fit:contain;display:block;" />` : ''}
+      ${data.partnerLogo2Url ? `<img src="${data.partnerLogo2Url}" alt="Partner" style="height:190px;max-width:230px;object-fit:contain;display:block;" />` : ''}
+    </div>
     </div>
   </div>
 

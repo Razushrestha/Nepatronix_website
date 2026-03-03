@@ -91,8 +91,8 @@ export default async function VerifyCertificatePage({ params }: Props) {
   return (
     <>
       {/* ── Screen view ── */}
-      <div className="print:hidden min-h-screen bg-slate-50 py-10 px-4">
-        <div className="max-w-2xl mx-auto space-y-5">
+      <div className="print:hidden min-h-screen bg-slate-50 flex items-center justify-center py-10 px-4">
+        <div className="w-full max-w-2xl space-y-5">
 
           {/* ── Verified badge ── */}
           <div className="flex items-center gap-3 bg-green-50 border border-green-300 rounded-2xl px-5 py-4">

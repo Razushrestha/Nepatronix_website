@@ -47,10 +47,10 @@ export default function CertificationActions({
   const [showModal, setShowModal] = useState(false)
   const [scale, setScale] = useState(0.75)
 
-  // Compute scale so 1123×794 fits the viewport
+  // Compute scale so 2000×1414 fits the viewport
   const computeScale = useCallback(() => {
-    const sw = (window.innerWidth  * 0.92) / 1123
-    const sh = (window.innerHeight * 0.88) / 794
+    const sw = (window.innerWidth  * 0.92) / 2000
+    const sh = (window.innerHeight * 0.88) / 1414
     setScale(Math.min(sw, sh, 1))
   }, [])
 
@@ -123,8 +123,8 @@ export default function CertificationActions({
     setSaving(false)
   }
 
-  const certW = Math.round(1123 * scale)
-  const certH = Math.round(794 * scale)
+  const certW = Math.round(2000 * scale)
+  const certH = Math.round(1414 * scale)
   const verifyURL = certUID
     ? `${typeof window !== 'undefined' ? window.location.origin : 'https://nepatronix.org'}/verify-certificate/${certUID}`
     : null
@@ -251,8 +251,8 @@ export default function CertificationActions({
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{
-              width: '1123px',
-              height: '794px',
+              width: '2000px',
+              height: '1414px',
               transformOrigin: 'top left',
               transform: `scale(${scale})`,
             }}>
