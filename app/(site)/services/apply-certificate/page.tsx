@@ -10,7 +10,7 @@ const ApplyForCertificationPage = () => {
     trainingDays: '1',
     email: '',
     contactNumber: '',
-    courseType: 'paid',
+    courseType: 'free',
   });
   const [studentImage, setStudentImage] = useState<File | null>(null);
   const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
@@ -122,7 +122,7 @@ const ApplyForCertificationPage = () => {
           trainingDays: '1',
           email: '',
           contactNumber: '',
-          courseType: 'paid',
+          courseType: 'free',
         });
         setStudentImage(null);
         setPaymentScreenshot(null);
@@ -264,8 +264,8 @@ const ApplyForCertificationPage = () => {
                 onChange={handleInputChange}
                 className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
               >
-                <option value="paid">Paid</option>
                 <option value="free">Free</option>
+                <option value="paid">Paid</option>
               </select>
             </div>
             <div className="mb-4">
