@@ -35,6 +35,7 @@ const coursesQuery = `*[_type == "course"] | order(publishedAt desc) {
   _id,
   title,
   "slug": slug.current,
+  description,
   hours,
   deliveryMode,
   price,
@@ -48,6 +49,7 @@ interface SanityCourse {
   _id: string;
   title: string;
   slug: string;
+  description?: string;
   hours: number;
   deliveryMode: string;
   price: number;
@@ -64,6 +66,7 @@ function transformCourses(sanityCourses: SanityCourse[]) {
     _id: course._id,
     slug: course.slug,
     name: course.title,
+    description: course.description || "",
     hours: course.hours || 0,
     deliveryMode: course.deliveryMode || "Online",
     price: course.isFree ? "Free" : (course.price ? `NPR ${course.price.toLocaleString()}` : "Contact for price"),
@@ -102,28 +105,53 @@ export default async function CoursesPage() {
     "@type": "ItemList",
     "name": "Nepatronix STEM & IoT Training Courses",
     "url": "https://nepatronix.org/services/courses",
+    "numberOfItems": courses.length,
     "itemListElement": courses.map((course, i) => ({
       "@type": "ListItem",
       "position": i + 1,
       "item": {
         "@type": "Course",
         "name": course.name,
-        "description": `Hands-on ${course.name} training by Nepatronix in Nepal`,
+        "url": "https://nepatronix.org/services/courses",
+        "description": course.description || `${course.name} — a hands-on ${course.deliveryMode.toLowerCase()} training program by Nepatronix Engineering Solutions in Nepal. ${course.isFree ? "This course is available for free." : `Enrollment fee: ${course.price} ${course.priceUnit}.`} Duration: ${course.hours} hours. Exam mode: ${course.examMode}.`,
+        "inLanguage": "en",
+        "timeRequired": `PT${course.hours}H`,
+        "courseWorkload": `PT${course.hours}H`,
+        "educationalCredentialAwarded": "Certificate of Completion from Nepatronix",
+        "teaches": [
+          "IoT fundamentals",
+          "Robotics",
+          "STEM education",
+          "Arduino programming",
+          "Engineering problem solving"
+        ],
         "provider": {
-          "@type": "Organization",
+          "@type": "EducationalOrganization",
           "name": "Nepatronix Engineering Solutions",
-          "url": "https://nepatronix.org"
+          "url": "https://nepatronix.org",
+          "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "NP",
+            "addressLocality": "Kathmandu"
+          }
         },
         "offers": {
           "@type": "Offer",
-          "price": course.isFree ? "0" : String(course.price).replace(/[^0-9]/g,""),
+          "price": course.isFree ? "0" : String(course.price).replace(/[^0-9]/g, ""),
           "priceCurrency": "NPR",
-          "availability": "https://schema.org/InStock"
+          "availability": "https://schema.org/InStock",
+          "validFrom": new Date().toISOString().split("T")[0],
+          "category": course.isFree ? "Free" : "Paid"
         },
         "courseMode": course.deliveryMode.toLowerCase(),
         "hasCourseInstance": {
           "@type": "CourseInstance",
-          "courseMode": course.deliveryMode.toLowerCase()
+          "courseMode": course.deliveryMode.toLowerCase(),
+          "inLanguage": "en",
+          "courseSchedule": {
+            "@type": "Schedule",
+            "duration": `PT${course.hours}H`
+          }
         }
       }
     }))

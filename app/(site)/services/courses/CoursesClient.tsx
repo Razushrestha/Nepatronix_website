@@ -9,6 +9,7 @@ interface Course {
   _id?: string;
   slug?: string;
   name: string;
+  description?: string;
   hours: number;
   deliveryMode: string;
   price: string;
