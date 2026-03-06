@@ -6,6 +6,8 @@ import { urlFor } from '@/sanity/lib/image'
 import CertificationActions from '../CertificationActions'
 import QRDisplay from '../../../../components/QRDisplay'
 
+export const dynamic = 'force-dynamic'
+
 const BADGE: Record<string, string> = {
   pending: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
   payment_verified: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
@@ -44,8 +46,15 @@ export default async function CertificationDetailPage({ params }: { params: Prom
     { label: 'Date', value: cert.paymentDetails.paymentDate ? new Date(cert.paymentDetails.paymentDate).toLocaleDateString() : '—' },
   ] : []
 
-  const hasQR = !!cert.certificateDetails?.qrCodeData
-  const hasUID = !!cert.certificateDetails?.certificateUID
+  // Derive all certificate fields — fall back to computed values when not yet stored
+  const certUID     = cert.certificateDetails?.certificateUID ?? null
+  const certUrl     = cert.certificateDetails?.certificateUrl
+                   ?? (certUID ? `https://nepatronix.org/verify-certificate/${certUID}` : null)
+  const qrData      = cert.certificateDetails?.qrCodeData ?? certUrl
+  const certIssueDate = cert.certificateDetails?.issueDate
+                     ?? (cert.submittedAt ? cert.submittedAt.split('T')[0] : null)
+
+  const hasUID = !!certUID
 
   return (
     <div className="p-8 max-w-5xl">
@@ -117,44 +126,42 @@ export default async function CertificationDetailPage({ params }: { params: Prom
           )}
 
           {/* Certificate + QR */}
-          {(hasUID || hasQR) && (
+          {hasUID && (
             <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
               <h3 className="text-white font-semibold mb-4">Certificate Details</h3>
               <div className="flex flex-col sm:flex-row gap-6 items-start">
-                {/* QR Code */}
-                {hasQR && (
+                {/* QR Code — always shown when UID exists */}
+                {qrData && (
                   <div className="flex-shrink-0">
                     <p className="text-gray-400 text-xs mb-2">Verification QR Code</p>
-                    <QRDisplay data={cert.certificateDetails.qrCodeData} />
+                    <QRDisplay data={qrData} />
                   </div>
                 )}
                 {/* UID + URL */}
                 <div className="space-y-4 flex-1">
-                  {hasUID && (
-                    <div>
-                      <dt className="text-gray-400 text-xs mb-1">Certificate UID</dt>
-                      <dd className="text-purple-300 text-sm font-mono bg-gray-800 px-3 py-2 rounded-lg inline-block">
-                        {cert.certificateDetails.certificateUID}
-                      </dd>
-                    </div>
-                  )}
-                  {cert.certificateDetails?.issueDate && (
+                  <div>
+                    <dt className="text-gray-400 text-xs mb-1">Certificate UID</dt>
+                    <dd className="text-purple-300 text-sm font-mono bg-gray-800 px-3 py-2 rounded-lg inline-block">
+                      {certUID}
+                    </dd>
+                  </div>
+                  {certIssueDate && (
                     <div>
                       <dt className="text-gray-400 text-xs mb-1">Issue Date</dt>
-                      <dd className="text-white text-sm font-medium">{cert.certificateDetails.issueDate}</dd>
+                      <dd className="text-white text-sm font-medium">{certIssueDate}</dd>
                     </div>
                   )}
-                  {cert.certificateDetails?.certificateUrl && (
+                  {certUrl && (
                     <div>
                       <dt className="text-gray-400 text-xs mb-1">Verification URL</dt>
                       <dd>
                         <a
-                          href={cert.certificateDetails.certificateUrl}
+                          href={certUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[#C1121F] hover:underline text-sm break-all"
                         >
-                          {cert.certificateDetails.certificateUrl}
+                          {certUrl}
                         </a>
                       </dd>
                     </div>
@@ -176,8 +183,8 @@ export default async function CertificationDetailPage({ params }: { params: Prom
               courseName: cert.courseName,
               trainingHours: cert.trainingHours,
               trainingDays: cert.trainingDays,
-              issueDate: cert.certificateDetails?.issueDate,
-              qrCodeData: cert.certificateDetails?.qrCodeData,
+              issueDate: certIssueDate ?? undefined,
+              qrCodeData: qrData ?? undefined,
             }}
           />
         </div>

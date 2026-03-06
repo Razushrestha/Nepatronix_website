@@ -152,19 +152,19 @@ export function CertificateTemplate({
         justifyContent: 'center',
         textAlign: 'center',
         fontSize: '27px',
-        lineHeight: '1.75',
+        lineHeight: '1.85',
         color: '#222',
-        padding: '7px 178px 0',
+        padding: '0 220px',
         fontFamily: 'Georgia, serif',
-        gap: '14px',
+        gap: '32px',
       }}>
-        <p>
+        <p style={{ fontSize: '28px' }}>
           This is to certify that{' '}
           <strong>{recipientName}</strong>{' '}
           successfully participated in the{' '}
-          <strong>{courseHours ? `${courseHours}-minute ` : ''}{courseName}</strong>.
+          <strong>{courseHours ? `${courseHours} hours ` : ''}{courseName}</strong>.
         </p>
-        <p style={{ fontSize: '26px' }}>
+        <p style={{ fontSize: '28px' }}>
           During the workshop, he demonstrated enthusiasm for learning and a keen interest in{' '}
           <strong>electronics and innovation</strong>. We appreciate his active participation and
           encourage him to continue exploring technology and innovation to create meaningful{' '}

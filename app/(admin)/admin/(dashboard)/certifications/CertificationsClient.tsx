@@ -19,6 +19,21 @@ const STATUS_OPTIONS = [
   { value: 'rejected', label: 'Rejected' },
 ]
 
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
+
+function timeAgo(dateStr?: string): string {
+  if (!dateStr) return '—'
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 7) return `${days}d ago`
+  return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+}
+
 interface Cert {
   _id: string
   applicantName: string
@@ -48,6 +63,7 @@ export default function CertificationsClient({ certs }: { certs: Cert[] }) {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [bulkDeleting, setBulkDeleting] = useState(false)
   const [deletingAllStatus, setDeletingAllStatus] = useState(false)
+  const [cutoff] = useState(() => Date.now() - SEVEN_DAYS_MS)
 
   async function handleDeleteAllByStatus(status: string) {
     const label = STATUS_OPTIONS.find((s) => s.value === status)?.label ?? status
@@ -136,21 +152,30 @@ export default function CertificationsClient({ certs }: { certs: Cert[] }) {
 
   const filtered = useMemo(() => {
     return localCerts.filter((c) => {
-      if (selectedStatus !== 'all' && c.status !== selectedStatus) return false
+      if (selectedStatus === 'recent') {
+        if (!c.submittedAt || new Date(c.submittedAt).getTime() < cutoff) return false
+      } else if (selectedStatus !== 'all' && c.status !== selectedStatus) {
+        return false
+      }
       if (search && !c.applicantName.toLowerCase().includes(search.toLowerCase()) && !c.courseName.toLowerCase().includes(search.toLowerCase())) return false
       if (dateFrom && c.submittedAt && new Date(c.submittedAt) < new Date(dateFrom)) return false
       if (dateTo && c.submittedAt && new Date(c.submittedAt) > new Date(dateTo + 'T23:59:59')) return false
       return true
     })
-  }, [localCerts, selectedStatus, search, dateFrom, dateTo])
+  }, [localCerts, selectedStatus, search, dateFrom, dateTo, cutoff])
 
   const counts = useMemo(() => certs.reduce((acc: Record<string, number>, c) => {
     acc[c.status] = (acc[c.status] || 0) + 1
     return acc
   }, {}), [certs])
 
+  const recentCount = useMemo(() =>
+    localCerts.filter((c) => c.submittedAt && new Date(c.submittedAt).getTime() >= cutoff).length
+  , [localCerts, cutoff])
+
   const STATUS_FILTERS = [
     { value: 'all', label: 'All', count: certs.length },
+    { value: 'recent', label: 'Last 7 Days', count: recentCount },
     { value: 'pending', label: 'Pending', count: counts['pending'] || 0 },
     { value: 'payment_verified', label: 'Payment Verified', count: counts['payment_verified'] || 0 },
     { value: 'approved', label: 'Approved', count: counts['approved'] || 0 },
@@ -234,11 +259,12 @@ export default function CertificationsClient({ certs }: { certs: Cert[] }) {
       )}
 
       {/* ── Status tabs ── */}
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2">
         {STATUS_FILTERS.map((s) => {
           const active = selectedStatus === s.value
           const dotColor: Record<string, string> = {
             all: 'bg-white',
+            recent: 'bg-emerald-400',
             pending: 'bg-yellow-400',
             payment_verified: 'bg-blue-400',
             approved: 'bg-green-400',
@@ -247,6 +273,7 @@ export default function CertificationsClient({ certs }: { certs: Cert[] }) {
           }
           const activeCard: Record<string, string> = {
             all: 'border-white/20 bg-white/8',
+            recent: 'border-emerald-500/30 bg-emerald-500/8',
             pending: 'border-yellow-500/30 bg-yellow-500/8',
             payment_verified: 'border-blue-500/30 bg-blue-500/8',
             approved: 'border-green-500/30 bg-green-500/8',
@@ -255,6 +282,7 @@ export default function CertificationsClient({ certs }: { certs: Cert[] }) {
           }
           const activeCount: Record<string, string> = {
             all: 'text-white',
+            recent: 'text-emerald-300',
             pending: 'text-yellow-300',
             payment_verified: 'text-blue-300',
             approved: 'text-green-300',
@@ -272,7 +300,7 @@ export default function CertificationsClient({ certs }: { certs: Cert[] }) {
               }`}
             >
               <div className="flex items-center gap-1.5 w-full">
-                <span className={`w-1.5 h-1.5 rounded-full ${active ? dotColor[s.value] : 'bg-gray-700'} transition-colors`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${active ? dotColor[s.value] : 'bg-gray-700'} transition-colors ${s.value === 'recent' && active ? 'animate-pulse' : ''}`} />
                 <span className={`text-[11px] font-medium truncate ${active ? 'text-white' : 'text-gray-500'}`}>{s.label}</span>
               </div>
               <span className={`text-lg font-bold leading-none ${active ? activeCount[s.value] : 'text-gray-600'}`}>{s.count}</span>
@@ -448,6 +476,7 @@ export default function CertificationsClient({ certs }: { certs: Cert[] }) {
                     <>
                       <div>{new Date(c.submittedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
                       <div className="text-gray-600">{new Date(c.submittedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</div>
+                      <div className="text-emerald-600/80 text-[10px] mt-0.5">{timeAgo(c.submittedAt)}</div>
                     </>
                   ) : '—'}
                 </td>

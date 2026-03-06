@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create application in Sanity
-    const applicationData: { _type: string; applicantName: string; email: string; phone: string; courseType: string; trainingHours: string; trainingDays: string; courseName: string; status: string; submittedAt: string; profileImage?: { _type: string; asset: { _type: string; _ref: string } }; paymentDetails?: { amount: number | null; paymentMethod: string; paymentDate: string; paymentProof?: { _type: string; asset: { _type: string; _ref: string } } }; certificateDetails?: { certificateUID: string } } = {
+    const applicationData: { _type: string; applicantName: string; email: string; phone: string; courseType: string; trainingHours: string; trainingDays: string; courseName: string; status: string; submittedAt: string; profileImage?: { _type: string; asset: { _type: string; _ref: string } }; paymentDetails?: { amount: number | null; paymentMethod: string; paymentDate: string; paymentProof?: { _type: string; asset: { _type: string; _ref: string } } }; certificateDetails?: { certificateUID: string; issueDate: string; certificateUrl: string; qrCodeData: string } } = {
       _type: "certificationApplication",
       applicantName: fullName,
       email,
@@ -156,10 +156,16 @@ export async function POST(req: NextRequest) {
       };
     }
 
-    // Auto-generate certificate UID at submission time
+    // Auto-generate certificate UID, issue date, and verification URL at submission time
     const certificateUID = await generateCertificateUID();
+    const now = new Date();
+    const issueDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const certificateUrl = `https://nepatronix.org/verify-certificate/${certificateUID}`;
     applicationData.certificateDetails = {
       certificateUID,
+      issueDate,
+      certificateUrl,
+      qrCodeData: certificateUrl,
     };
 
     const application = await client.create(applicationData);
