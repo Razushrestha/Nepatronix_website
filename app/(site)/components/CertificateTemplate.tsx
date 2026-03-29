@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 
 interface CertificateTemplateProps {
   recipientName: string;
@@ -45,21 +46,138 @@ export function CertificateTemplate({
   partnerLogo2Url,
 }: CertificateTemplateProps) {
   const resolvedLogo = logoUrl || '/logo.png';
+  const resolvedSignature = signatoryImageUrl || '/signaturee.png';
+
+  // Ref for certificate div
+  const certRef = React.useRef<HTMLDivElement>(null);
+
+  // Download handler with improved html2canvas settings
+  const handleDownloadPDF = async () => {
+    if (!certRef.current) return;
+    
+    try {
+      // Dynamically import html2pdf
+      const html2pdf = (await import('html2pdf.js')).default;
+      
+      // Wait for fonts to fully load
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const element = certRef.current;
+      const options = {
+        margin: 0,
+        filename: `certificate-${certificateUID}.pdf`,
+        image: { type: 'png', quality: 0.99 },
+        html2canvas: { 
+          scale: 2.5, 
+          useCORS: true, 
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          letterRendering: true,
+          windowHeight: 1500,
+          windowWidth: 2100,
+        },
+        jsPDF: { orientation: 'landscape', unit: 'px', format: [2000, 1414] }
+      };
+      
+      html2pdf().set(options).from(element).save();
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert('Failed to download PDF certificate. Please try again.');
+    }
+  };
+
+  const handleDownloadPNG = async () => {
+    if (!certRef.current) return;
+    
+    try {
+      // Dynamically import html2canvas
+      const html2canvas = (await import('html2canvas')).default;
+      
+      // Wait for fonts to load
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const canvas = await html2canvas(certRef.current, {
+        scale: 2,
+        allowTaint: true,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        imageTimeout: 15000,
+        windowHeight: 1500,
+        windowWidth: 2100,
+      });
+      
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = `certificate-${certificateUID}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading PNG:', error);
+      alert('Failed to download PNG certificate. Please try again.');
+    }
+  };
 
   return (
-    <div
-      style={{
-        width: '2000px',
-        height: '1414px',
-        fontFamily: 'Georgia, "Times New Roman", serif',
-        background: '#ffffff',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        boxSizing: 'border-box',
-        lineHeight: 'normal',
-      }}
-    >
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'flex-start' }}>
+      {/* Download Buttons - Outside certificate div */}
+      <div style={{ display: 'flex', gap: '12px' }}>
+        <button
+          onClick={handleDownloadPDF}
+          style={{
+            padding: '12px 24px',
+            fontSize: '16px',
+            background: '#1D3461',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            transition: 'background 0.2s',
+          }}
+          onMouseOver={(e) => { (e.target as HTMLButtonElement).style.background = '#0f1f3a'; }}
+          onMouseOut={(e) => { (e.target as HTMLButtonElement).style.background = '#1D3461'; }}
+        >
+          📄 Download PDF
+        </button>
+        <button
+          onClick={handleDownloadPNG}
+          style={{
+            padding: '12px 24px',
+            fontSize: '16px',
+            background: '#C8102E',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            transition: 'background 0.2s',
+          }}
+          onMouseOver={(e) => { (e.target as HTMLButtonElement).style.background = '#a00820'; }}
+          onMouseOut={(e) => { (e.target as HTMLButtonElement).style.background = '#C8102E'; }}
+        >
+          🖼️ Download Image
+        </button>
+      </div>
+
+      {/* Certificate - Only this gets captured */}
+      <div
+        ref={certRef}
+        style={{
+          width: '2000px',
+          height: '1414px',
+          fontFamily: 'Georgia, "Times New Roman", serif',
+          background: '#ffffff',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          boxSizing: 'border-box',
+          lineHeight: 'normal',
+        }}
+      >
       {/* Google Fonts */}
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <style dangerouslySetInnerHTML={{ __html: `
@@ -119,8 +237,8 @@ export function CertificateTemplate({
       {/* ── Gothic title ── */}
       <div style={{
         textAlign: 'center',
-        paddingTop: '32px',
-        paddingBottom: '8px',
+        paddingTop: '8px',
+        paddingBottom: '4px',
         fontFamily: '"UnifrakturMaguntia", cursive',
         fontSize: '114px',
         color: '#111',
@@ -136,9 +254,9 @@ export function CertificateTemplate({
         fontFamily: '"Great Vibes", cursive',
         fontSize: '110px',
         color: '#111',
-        lineHeight: '1.1',
-        paddingTop: '4px',
-        paddingBottom: '8px',
+        lineHeight: '0.95',
+        paddingTop: '0px',
+        paddingBottom: '4px',
         flexShrink: 0,
       }}>
         {recipientName}
@@ -195,26 +313,24 @@ export function CertificateTemplate({
 
         {/* Centre: signature image + line + name/title/org */}
         <div style={{ textAlign: 'center', flexShrink: 0, position: 'relative' }}>
-          {/* Invisible spacer so the line sits at correct height */}
-          <div style={{ height: '160px' }} />
-          {/* Signature overlaid above the line */}
-          {signatoryImageUrl && (
-            <img
-              src={signatoryImageUrl}
-              alt="Signature"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-              style={{
-                position: 'absolute',
-                bottom: '108px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                height: '180px',
-                maxWidth: '900px',
-                objectFit: 'contain',
-                mixBlendMode: 'multiply',
-              }}
-            />
-          )}
+          {/* Invisible spacer for layout */}
+          <div style={{ height: '35px' }} />
+          {/* Signature image aligned with the line */}
+          <img
+            src={resolvedSignature}
+            alt="Signature"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            style={{
+              marginBottom: '-100px', // Slight overlap with the line
+              height: '380px', // Even larger
+              maxWidth: '1500px', // Even wider
+              objectFit: 'contain',
+              mixBlendMode: 'multiply',
+              display: 'block',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+            }}
+          />
           <div style={{
             borderTop: '3px solid #222',
             paddingTop: '11px',
@@ -260,6 +376,7 @@ export function CertificateTemplate({
 
       {/* ── Bottom stripes ── */}
       <StripeBar />
+      </div>
     </div>
   );
 }

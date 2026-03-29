@@ -199,7 +199,6 @@ export default async function VerifyCertificatePage({ params }: Props) {
           signatoryName={process.env.SIGNATORY_NAME ?? 'Director'}
           signatoryTitle={process.env.SIGNATORY_TITLE ?? 'Director, Nepatronix'}
           logoUrl={process.env.LOGO_URL}
-          signatoryImageUrl={process.env.SIGNATORY_IMAGE_URL}
           partnerLogo1Url={process.env.PARTNER_LOGO_1_URL}
           partnerLogo2Url={process.env.PARTNER_LOGO_2_URL}
         />

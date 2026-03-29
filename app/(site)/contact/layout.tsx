@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "Contact Us – Get in Touch",
   description: "Contact Nepatronix for IoT training, Robotics workshops, STEM lab setup, and engineering project collaboration in Kathmandu, Nepal.",

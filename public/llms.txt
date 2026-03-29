@@ -1,0 +1,29 @@
+Nepatronix
+
+Official website: https://nepatronix.org
+Primary language: en
+Region: Nepal
+
+About:
+Nepatronix Engineering Solutions is an education and engineering company focused on STEM, IoT, robotics, electronics, and applied innovation programs for students, teachers, schools, and institutions.
+
+Key pages:
+- Home: https://nepatronix.org/
+- Services: https://nepatronix.org/services
+- Courses: https://nepatronix.org/services/courses
+- Upcoming sessions: https://nepatronix.org/services/upcoming-sessions
+- Certificate application: https://nepatronix.org/services/apply-certificate
+- Blog: https://nepatronix.org/blog
+- Partners: https://nepatronix.org/partners
+- Team: https://nepatronix.org/teams
+- Contact: https://nepatronix.org/contact
+
+Machine-readable signals:
+- Sitemap: https://nepatronix.org/sitemap.xml
+- Robots: https://nepatronix.org/robots.txt
+- Full LLM guide: https://nepatronix.org/llms-full.txt
+
+Content policy:
+- Public marketing, educational, and blog pages are intended for indexing.
+- Certificate verification pages are public utility pages but should not be indexed.
+- Admin and CMS pages are not for indexing.

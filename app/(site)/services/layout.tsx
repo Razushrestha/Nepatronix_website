@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+export const revalidate = 1800;
+
 export const metadata: Metadata = {
   title: "Our Services – IoT, Robotics & Engineering Solutions",
   description: "Explore Nepatronix services: IoT product development, Robotics workshops, PCB design, STEM lab setup, and certified training programs for schools in Nepal.",

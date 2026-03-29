@@ -9,9 +9,12 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           '/studio/',          // Sanity CMS Studio
           '/api/',             // API routes
-          '/verify-certificate/', // Certificate verification pages (noindex)
-          '/image/',           // Image utility page
         ],
+      },
+      {
+        userAgent: ['GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'PerplexityBot'],
+        allow: '/',
+        disallow: ['/studio/', '/api/'],
       },
     ],
     sitemap: 'https://nepatronix.org/sitemap.xml',

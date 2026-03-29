@@ -4,6 +4,9 @@ import { Footer } from "./components/Footer";
 import Breadcrumb from "./components/Breadcrumb";
 import MahabirChat from "./components/MahabirChat";
 
+// Default ISR for public SEO pages in the site group.
+export const revalidate = 3600;
+
 // Minimal metadata here — root layout (app/layout.tsx) holds the full global metadata.
 // Individual pages override title, description, OG, twitter as needed.
 export const metadata: Metadata = {

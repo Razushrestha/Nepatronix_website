@@ -28,15 +28,25 @@ export function RecognitionGrid() {
               className={`flex flex-col items-center justify-center p-4 rounded-xl border border-transparent hover:border-[#C1121F]/10 hover:shadow-lg hover:shadow-red-900/5 transition-all duration-300 ${isHiddenOnMobile ? 'hidden md:flex' : 'flex'}`}
             >
               <div className="flex h-24 w-full items-center justify-center">
-                <Image
-                  src={org.logo}
-                  alt={org.name}
-                  width={120}
-                  height={120}
-                  className={`h-auto w-auto max-w-full object-contain ${
-                    org.name === "Indian Embassy" ? "max-h-24" : "max-h-20"
-                  }`}
-                />
+                {org.name === "Indian Embassy" ? (
+                  <div className="rounded-lg bg-white px-3 py-2 shadow-sm">
+                    <Image
+                      src={org.logo}
+                      alt={org.name}
+                      width={220}
+                      height={110}
+                      className="h-auto w-auto max-w-full object-contain max-h-20 contrast-125 brightness-110"
+                    />
+                  </div>
+                ) : (
+                  <Image
+                    src={org.logo}
+                    alt={org.name}
+                    width={120}
+                    height={120}
+                    className="h-auto w-auto max-w-full object-contain max-h-20"
+                  />
+                )}
               </div>
               <p className="mt-3 text-center text-sm font-medium text-slate-600">
                 {org.name}

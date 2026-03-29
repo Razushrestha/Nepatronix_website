@@ -13,6 +13,8 @@ import { HeroSection } from "./components/HeroSection";
 import { RecognitionGrid } from "./components/RecognitionGrid";
 import { PartnersGrid } from "./components/PartnersGrid";
 
+export const revalidate = 1800;
+
 export const metadata: Metadata = {
   title: "Certified IoT, Robotics & STEM Education in Nepal",
   description: "Nepatronix is Nepal's #1 IoT and Robotics training institute. Expert-led workshops for schools covering Arduino, PCB Design, and Electronics. 25,000+ students trained.",
@@ -49,9 +51,41 @@ export default function Home() {
     ]
   };
 
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What does Nepatronix specialize in?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Nepatronix specializes in STEM education, IoT and robotics training, engineering workshops, and lab setup solutions for schools and institutions."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Where is Nepatronix located?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Nepatronix is based in Kathmandu, Nepal and serves students, teachers, schools, and partner institutions."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How can I enroll in courses?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You can explore available programs under the courses section and complete registration through the enrollment or application flow on the website."
+        }
+      }
+    ]
+  };
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
     <div className="relative overflow-hidden">
       <HeroSection />
 
@@ -150,6 +184,8 @@ export default function Home() {
                 alt="Kathmandu University"
                 width={180}
                 height={180}
+                loading="lazy"
+                sizes="(max-width: 768px) 140px, 180px"
                 className="h-auto max-h-24 w-auto max-w-full object-contain"
               />
             </div>

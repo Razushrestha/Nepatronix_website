@@ -5,22 +5,26 @@ import { blogPosts, ourServices } from './(site)/data';
 
 const baseUrl = 'https://nepatronix.org';
 
+type SanityPost = {
+  slug?: { current?: string } | string;
+  _updatedAt?: string;
+};
+
+type SanityCourseAsset = {
+  courseId?: number;
+  _updatedAt?: string;
+};
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  let sanityPosts: any[] = [];
-  let sanityServices: any[] = [];
-  let sanityCourses: any[] = [];
-  let sanityCoursePdfs: any[] = [];
-  let sanityCourseVideos: any[] = [];
-  let sanityUpcomingSessions: any[] = [];
+  let sanityPosts: SanityPost[] = [];
+  let sanityCoursePdfs: SanityCourseAsset[] = [];
+  let sanityCourseVideos: SanityCourseAsset[] = [];
 
   try {
     sanityPosts = await client.fetch(`*[_type == "post" && defined(slug.current)]{ slug, _updatedAt }`);
-    sanityServices = await client.fetch(`*[_type == "service" && defined(_id)]{ _id, _updatedAt }`);
-    sanityCourses = await client.fetch(`*[_type == "course" && defined(slug.current)]{ slug, _id, _updatedAt }`);
-    sanityCoursePdfs = await client.fetch(`*[_type == "coursePdf" && isPublished == true]{ _id, courseId }`);
-    sanityCourseVideos = await client.fetch(`*[_type == "courseVideo" && isPublished == true]{ _id, courseId }`);
-    sanityUpcomingSessions = await client.fetch(`*[_type == "course" && isUpcoming == true && defined(slug.current)]{ slug, _id, _updatedAt }`);
-  } catch (e) {
+    sanityCoursePdfs = await client.fetch(`*[_type == "coursePdf" && isPublished == true]{ _id, courseId, _updatedAt }`);
+    sanityCourseVideos = await client.fetch(`*[_type == "courseVideo" && isPublished == true]{ _id, courseId, _updatedAt }`);
+  } catch {
     // fallback to static only
   }
 
@@ -57,50 +61,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  const sanityServiceUrls: MetadataRoute.Sitemap = (sanityServices || []).map((service) => ({
-    url: `${baseUrl}/services/${service._id}`,
-    lastModified: service._updatedAt ? new Date(service._updatedAt) : new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }));
-
-  const sanityCourseUrls: MetadataRoute.Sitemap = (sanityCourses || []).map((course) => ({
-    url: `${baseUrl}/services/courses/${course.slug?.current ?? course.slug}`,
-    lastModified: course._updatedAt ? new Date(course._updatedAt) : new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }));
-
   const coursePdfUrls: MetadataRoute.Sitemap = (sanityCoursePdfs || []).map((pdf) => ({
     url: `${baseUrl}/services/courses/view/${pdf.courseId}`,
-    lastModified: new Date(),
+    lastModified: pdf._updatedAt ? new Date(pdf._updatedAt) : new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.5,
   }));
 
   const courseVideoUrls: MetadataRoute.Sitemap = (sanityCourseVideos || []).map((video) => ({
     url: `${baseUrl}/services/courses/watch/${video.courseId}`,
-    lastModified: new Date(),
+    lastModified: video._updatedAt ? new Date(video._updatedAt) : new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.5,
   }));
-
-  const upcomingSessionUrls: MetadataRoute.Sitemap = (sanityUpcomingSessions || []).map((session) => ({
-    url: `${baseUrl}/services/upcoming-sessions/${session.slug?.current ?? session.slug}`,
-    lastModified: session._updatedAt ? new Date(session._updatedAt) : new Date(),
-    changeFrequency: 'daily' as const,
-    priority: 0.7,
-  }));
-
-  return [
+  const allEntries: MetadataRoute.Sitemap = [
     ...staticPages,
     ...staticServiceUrls,
     ...staticBlogUrls,
     ...sanityBlogUrls,
-    ...sanityServiceUrls,
-    ...sanityCourseUrls,
     ...coursePdfUrls,
     ...courseVideoUrls,
-    ...upcomingSessionUrls,
   ];
+
+  // Keep sitemap clean and deterministic for crawlers.
+  const deduped = new Map<string, MetadataRoute.Sitemap[number]>();
+  for (const entry of allEntries) {
+    deduped.set(entry.url, entry);
+  }
+
+  return [...deduped.values()];
 }

@@ -15,6 +15,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://nepatronix.org'),
+  applicationName: "Nepatronix",
+  referrer: "origin-when-cross-origin",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   title: {
     default: "Nepatronix | IoT, Robotics & STEM Education in Nepal",
     template: "%s | Nepatronix"
@@ -33,11 +40,12 @@ export const metadata: Metadata = {
   category: "Education",
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/title.png', type: 'image/png', sizes: '32x32' },
+      { url: '/logo.png', type: 'image/png', sizes: '32x32' },
+      { url: '/logo.png', type: 'image/png', sizes: '192x192' },
+      { url: '/logo.png', type: 'image/png', sizes: '512x512' },
     ],
-    shortcut: '/favicon.ico',
-    apple: '/title.png',
+    shortcut: '/logo.png',
+    apple: [{ url: '/logo.png', sizes: '180x180', type: 'image/png' }],
   },
   openGraph: {
     title: "Nepatronix | IoT & Robotics Training in Nepal",
@@ -81,7 +89,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: 'ADD_YOUR_GOOGLE_SEARCH_CONSOLE_TOKEN_HERE',
+    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
   },
 };
 

@@ -54,9 +54,35 @@ function FadeIn({
 
 export default function AboutPage() {
   const [focusedVertical, setFocusedVertical] = useState<number | null>(null);
+  const canonicalUrl = "https://nepatronix.org/partners";
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://nepatronix.org" },
+      { "@type": "ListItem", position: 2, name: "Partners", item: canonicalUrl },
+    ],
+  };
+
+  const aboutPageJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    name: "Partners & About Nepatronix",
+    url: canonicalUrl,
+    about: {
+      "@type": "EducationalOrganization",
+      name: "Nepatronix Engineering Solutions",
+      url: "https://nepatronix.org",
+      description: aboutUsData.about,
+    },
+  };
 
   return (
-    <div className="overflow-hidden bg-white">
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutPageJsonLd) }} />
+      <div className="overflow-hidden bg-white">
       
       {/* 1. HERO SECTION */}
       <section className="relative flex flex-col items-center justify-center px-6 pt-44 pb-20 text-center overflow-hidden bg-[#020617] text-white">
@@ -352,5 +378,6 @@ export default function AboutPage() {
       {/* Spacing for footer */}
       <div className="h-24"></div>
     </div>
+    </>
   );
 }

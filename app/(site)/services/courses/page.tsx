@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 0; // Disable caching - always fetch fresh data
+export const revalidate = 1800;
 
 // GROQ query to fetch courses from Sanity
 const coursesQuery = `*[_type == "course"] | order(publishedAt desc) {
@@ -91,7 +91,7 @@ export default async function CoursesPage() {
   const sanityCourses = await client.fetch<SanityCourse[]>(
     coursesQuery,
     {},
-    { cache: 'no-store' }
+    { next: { revalidate: 1800 } }
   );
   const courses = transformCourses(sanityCourses);
 

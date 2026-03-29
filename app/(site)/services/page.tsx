@@ -99,9 +99,69 @@ export default function ServicesPage() {
 
   // Destructure data for cleaner usage
   const { header, recognizedBy, whyChooseUs } = servicesPageData;
+  const canonicalUrl = "https://nepatronix.org/services";
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://nepatronix.org" },
+      { "@type": "ListItem", position: 2, name: "Services", item: canonicalUrl },
+    ],
+  };
+
+  const serviceItemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Nepatronix Services",
+    url: canonicalUrl,
+    itemListElement: ourServices.map((service, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "Service",
+        name: service.title,
+        description: service.description,
+        serviceType: service.tagline,
+        url: `https://nepatronix.org/services/${service.id}`,
+        provider: {
+          "@type": "Organization",
+          name: "Nepatronix Engineering Solutions",
+          url: "https://nepatronix.org",
+        },
+      },
+    })),
+  };
+
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "What services does Nepatronix provide?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Nepatronix provides STEM education programs, lab setup solutions, training courses, and engineering innovation services.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Do you provide services for schools and institutions?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes. Nepatronix works with schools, colleges, and institutions on STEM labs, training, and implementation support.",
+        },
+      },
+    ],
+  };
 
   return (
-    <div className="overflow-hidden bg-white font-sans">
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceItemListJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <div className="overflow-hidden bg-white font-sans">
       
       {/* 1. HERO SECTION */}
       <section className="relative flex flex-col items-center justify-center px-6 py-24 text-center lg:py-32 overflow-hidden bg-[#020617] text-white">
@@ -397,6 +457,8 @@ export default function ServicesPage() {
                               src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=2070&auto=format&fit=crop"
                               alt="STEM Innovation at Nepatronix"
                               fill
+                              loading="lazy"
+                              sizes="(max-width: 1024px) 100vw, 420px"
                               className="object-cover transition-transform duration-1000 group-hover:scale-105"
                            />
                            {/* Overlay gradient */}
@@ -442,5 +504,6 @@ export default function ServicesPage() {
       </section>
 
     </div>
+    </>
   );
 }

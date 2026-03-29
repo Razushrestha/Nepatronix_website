@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 0;
+export const revalidate = 900;
 
 // Query for courses marked as upcoming - shows all where isUpcoming is true
 // Sessions will be filtered by status (upcoming/completed) on the client side
@@ -59,41 +59,90 @@ export default async function UpcomingSessionsPage() {
   const sessions = await client.fetch<UpcomingSession[]>(
     upcomingSessionsQuery,
     {},
-    { cache: 'no-store' }
+    { next: { revalidate: 900 } }
   );
 
   // Debug: Log what we're getting from Sanity
   console.log("Upcoming sessions from Sanity:", JSON.stringify(sessions, null, 2));
 
-  return (
-    <div className="bg-white min-h-screen">
-      {/* Hero Section */}
-      <div className="relative bg-[#020617] pt-32 pb-20 overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#C1121F]/10 blur-[100px] rounded-full translate-x-1/2 -translate-y-1/2"></div>
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-amber-500/10 blur-[100px] rounded-full -translate-x-1/2 translate-y-1/2"></div>
-          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(white 0.5px, transparent 0.5px)", backgroundSize: "30px 30px" }}></div>
-        </div>
+  const canonicalUrl = "https://nepatronix.org/services/upcoming-sessions";
+  const sessionsJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Upcoming STEM, IoT and Robotics Sessions",
+    "url": canonicalUrl,
+    "itemListElement": sessions.map((session, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "item": {
+        "@type": "Course",
+        "name": session.title,
+        "url": canonicalUrl,
+        "provider": {
+          "@type": "EducationalOrganization",
+          "name": "Nepatronix Engineering Solutions",
+          "url": "https://nepatronix.org"
+        }
+      }
+    }))
+  };
 
-        <div className="relative z-10">
-          <div className="max-w-4xl mx-auto px-6 text-center mt-8">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <span className="h-[2px] w-10 bg-[#C1121F]"></span>
-              <span className="text-[#C1121F] font-semibold uppercase tracking-[0.3em] text-[10px]">Enroll Now</span>
-              <span className="h-[2px] w-10 bg-[#C1121F]"></span>
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How do I register for an upcoming session?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Open the upcoming sessions page, select the session you want, and use the available registration or contact path to enroll."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Are all sessions online?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Session delivery mode depends on each listing and may include online, in-person, or hybrid options."
+        }
+      }
+    ]
+  };
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(sessionsJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <div className="bg-white min-h-screen">
+        {/* Hero Section */}
+        <div className="relative bg-[#020617] pt-32 pb-20 overflow-hidden">
+          <div className="absolute inset-0">
+            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#C1121F]/10 blur-[100px] rounded-full translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-amber-500/10 blur-[100px] rounded-full -translate-x-1/2 translate-y-1/2"></div>
+            <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(white 0.5px, transparent 0.5px)", backgroundSize: "30px 30px" }}></div>
+          </div>
+
+          <div className="relative z-10">
+            <div className="max-w-4xl mx-auto px-6 text-center mt-8">
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <span className="h-[2px] w-10 bg-[#C1121F]"></span>
+                <span className="text-[#C1121F] font-semibold uppercase tracking-[0.3em] text-[10px]">Enroll Now</span>
+                <span className="h-[2px] w-10 bg-[#C1121F]"></span>
+              </div>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
+                Upcoming <span className="text-[#C1121F]">Sessions</span>
+              </h1>
+              <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
+                Secure your spot in our upcoming STEM, IoT, and Robotics training sessions. Limited seats available!
+              </p>
             </div>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
-              Upcoming <span className="text-[#C1121F]">Sessions</span>
-            </h1>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
-              Secure your spot in our upcoming STEM, IoT, and Robotics training sessions. Limited seats available!
-            </p>
           </div>
         </div>
-      </div>
 
-      {/* Sessions Content */}
-      <UpcomingSessionsClient sessions={sessions} />
-    </div>
+        {/* Sessions Content */}
+        <UpcomingSessionsClient sessions={sessions} />
+      </div>
+    </>
   );
 }

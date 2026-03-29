@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+export const revalidate = 43200;
+
 export const metadata: Metadata = {
   title: "Our Team – Engineers, Educators & Innovators",
   description:
