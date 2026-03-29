@@ -66,7 +66,7 @@ export function CertificateTemplate({
       const options = {
         margin: 0,
         filename: `certificate-${certificateUID}.pdf`,
-        image: { type: 'png', quality: 0.99 },
+        image: { type: 'png' as const, quality: 0.99 },
         html2canvas: { 
           scale: 2.5, 
           useCORS: true, 
@@ -76,7 +76,7 @@ export function CertificateTemplate({
           windowHeight: 1500,
           windowWidth: 2100,
         },
-        jsPDF: { orientation: 'landscape', unit: 'px', format: [2000, 1414] }
+        jsPDF: { orientation: 'landscape' as const, unit: 'px' as const, format: [2000, 1414] as [number, number] }
       };
       
       html2pdf().set(options).from(element).save();

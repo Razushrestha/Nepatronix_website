@@ -9,19 +9,22 @@ interface CourseVideo {
   description?: string;
   videoUrl?: string;
   videoFile?: {
-    asset: {
+    asset?: {
       url: string;
     };
+    url?: string;
   };
   thumbnail?: {
-    asset: {
+    asset?: {
       url: string;
     };
+    url?: string;
   };
   overviewPdf?: {
-    asset: {
+    asset?: {
       url: string;
     };
+    url?: string;
   };
   duration?: string;
   order: number;

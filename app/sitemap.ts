@@ -55,7 +55,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const sanityBlogUrls: MetadataRoute.Sitemap = (sanityPosts || []).map((post) => ({
-    url: `${baseUrl}/blog/${post.slug?.current ?? post.slug}`,
+    url: `${baseUrl}/blog/${typeof post.slug === 'string' ? post.slug : post.slug?.current ?? ''}`,
     lastModified: post._updatedAt ? new Date(post._updatedAt) : new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.7,
