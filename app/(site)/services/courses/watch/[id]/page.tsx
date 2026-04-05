@@ -2,22 +2,24 @@ import { Metadata } from "next";
 import { client } from "@/sanity/lib/client";
 import Link from "next/link";
 import CourseVideoPlayer from "./CourseVideoPlayer";
-
-// Course names mapping
-const courseNames: Record<number, string> = {
-  1: "Short Course on STEM-Based IoT and Robotics",
-  2: "Tutor Training Certification on STEM-Based IoT and Robotics",
-  3: "Professional Certificate on STEM-Based IoT and Robotics",
-  4: "Occupational Certificate in Science Laboratory Setup and Operation",
-  5: "Occupational Certificate in Math-Integrated STEM Teaching",
-};
+import { fetchCourseByListId } from "@/lib/course-list-order";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const courseId = parseInt(id);
-  const courseName = courseNames[courseId] || "Course";
+  const resolved = await fetchCourseByListId(courseId);
   const canonicalUrl = `https://nepatronix.org/services/courses/watch/${id}`;
-  
+
+  if (!resolved) {
+    return {
+      title: "Course Not Found | Nepatronix",
+      robots: { index: false, follow: true },
+      alternates: { canonical: canonicalUrl },
+    };
+  }
+
+  const courseName = resolved.title;
+
   return {
     title: `Watch ${courseName} | Nepatronix`,
     description: `Access course videos for ${courseName}. Learn STEM, IoT, and Robotics with expert-led video content.`,
@@ -36,6 +38,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title: `Watch ${courseName} | Nepatronix`,
       description: `Access course videos for ${courseName}.`,
       images: ["https://nepatronix.org/og-banner.png"],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true, "max-image-preview": "large", "max-video-preview": -1 },
     },
   };
 }
@@ -98,9 +105,9 @@ function toIsoDuration(duration?: string): string | undefined {
 export default async function WatchCoursePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const courseId = parseInt(id);
-  const courseName = courseNames[courseId];
+  const resolved = await fetchCourseByListId(courseId);
 
-  if (!courseName) {
+  if (!resolved) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
@@ -112,6 +119,8 @@ export default async function WatchCoursePage({ params }: { params: Promise<{ id
       </div>
     );
   }
+
+  const courseName = resolved.title;
 
   // Fetch videos for this course from Sanity
   const videos: CourseVideo[] = await client.fetch(

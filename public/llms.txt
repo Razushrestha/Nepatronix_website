@@ -13,10 +13,12 @@ Key pages:
 - Courses: https://nepatronix.org/services/courses
 - Upcoming sessions: https://nepatronix.org/services/upcoming-sessions
 - Certificate application: https://nepatronix.org/services/apply-certificate
+- Certificate verification (how it works): https://nepatronix.org/verify-certificate
 - Blog: https://nepatronix.org/blog
 - Partners: https://nepatronix.org/partners
 - Team: https://nepatronix.org/teams
 - Contact: https://nepatronix.org/contact
+- Media gallery: https://nepatronix.org/image
 
 Machine-readable signals:
 - Sitemap: https://nepatronix.org/sitemap.xml
@@ -25,5 +27,5 @@ Machine-readable signals:
 
 Content policy:
 - Public marketing, educational, and blog pages are intended for indexing.
-- Certificate verification pages are public utility pages but should not be indexed.
+- Individual certificate verification URLs (/verify-certificate/{uid}) are not indexed; the hub /verify-certificate explains the process.
 - Admin and CMS pages are not for indexing.

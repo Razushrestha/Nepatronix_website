@@ -41,6 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!post) {
     return {
       title: "Post Not Found",
+      robots: { index: false, follow: false },
     };
   }
 
@@ -77,6 +78,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title: post.seoTitle || post.title,
       description: post.seoDescription || post.excerpt,
       images: imageUrl ? [imageUrl] : [],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
     },
   };
 }

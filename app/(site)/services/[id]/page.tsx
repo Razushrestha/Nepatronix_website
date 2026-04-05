@@ -10,7 +10,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   
   if (!service) {
     return {
-      title: 'Service Not Found',
+      title: "Service Not Found",
+      robots: { index: false, follow: false },
     };
   }
  
@@ -32,6 +33,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title: `${service.title} | Nepatronix`,
       description: service.description,
       images: ["https://nepatronix.org/og-banner.png"],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
     },
   };
 }

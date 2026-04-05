@@ -10,7 +10,7 @@ export const courseVideo = defineType({
       title: 'Course ID',
       type: 'number',
       description: 'Match this with the course ID (1-5)',
-      validation: (Rule) => Rule.required().min(1).max(5),
+      validation: (Rule) => Rule.required().min(1).integer(),
     }),
     defineField({
       name: 'title',

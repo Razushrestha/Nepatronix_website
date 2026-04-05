@@ -2,26 +2,28 @@ import { Metadata } from "next";
 import { client } from "@/sanity/lib/client";
 import Link from "next/link";
 import CoursePdfViewer from "./CoursePdfViewer";
+import { fetchCourseByListId } from "@/lib/course-list-order";
 
 // Force dynamic rendering to always fetch fresh data
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// Course names mapping
-const courseNames: Record<number, string> = {
-  1: "Short Course on STEM-Based IoT and Robotics",
-  2: "Tutor Training Certification on STEM-Based IoT and Robotics",
-  3: "Professional Certificate on STEM-Based IoT and Robotics",
-  4: "Occupational Certificate in Science Laboratory Setup and Operation",
-  5: "Occupational Certificate in Math-Integrated STEM Teaching",
-};
-
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const courseId = parseInt(id);
-  const courseName = courseNames[courseId] || "Course";
+  const resolved = await fetchCourseByListId(courseId);
   const canonicalUrl = `https://nepatronix.org/services/courses/view/${id}`;
-  
+
+  if (!resolved) {
+    return {
+      title: "Course Not Found | Nepatronix",
+      robots: { index: false, follow: true },
+      alternates: { canonical: canonicalUrl },
+    };
+  }
+
+  const courseName = resolved.title;
+
   return {
     title: `${courseName} | Course Overview - Nepatronix`,
     description: `View the course overview and syllabus for ${courseName}. Learn about STEM, IoT, and Robotics curriculum.`,
@@ -41,6 +43,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       description: `View the course overview and syllabus for ${courseName}.`,
       images: ["https://nepatronix.org/og-banner.png"],
     },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true, "max-image-preview": "large" },
+    },
   };
 }
 
@@ -54,10 +61,10 @@ interface CoursePdfData {
 export default async function ViewCoursePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const courseId = parseInt(id);
-  const courseName = courseNames[courseId];
+  const resolved = await fetchCourseByListId(courseId);
   const canonicalUrl = `https://nepatronix.org/services/courses/view/${id}`;
 
-  if (!courseName) {
+  if (!resolved) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
@@ -69,6 +76,8 @@ export default async function ViewCoursePage({ params }: { params: Promise<{ id:
       </div>
     );
   }
+
+  const courseName = resolved.title;
 
   // First, try to fetch course with embedded PDF from the course document itself
   let courseData: CoursePdfData | null = await client.fetch(
