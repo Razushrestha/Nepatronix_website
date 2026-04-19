@@ -1,0 +1,407 @@
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const RAW = `stem education in nepal
+stem education meaning
+stem education full form
+stem education jobs
+stem education courses
+stem education in india
+stem education meaning in tamil
+stem education malaysia
+stem education definition
+stem education journal
+stem education meaning in urdu
+stem education stands for
+stem education in ghana
+stem education works
+stem education in png
+stem education australia
+stem education adalah
+stem education academy
+stem education academy trust
+stem education activities
+stem education articles
+stem education act of 2015
+stem education and emerging technologies
+stem education ap lang prompt
+stem education africa
+stem education app
+stem education and training strategy for scotland
+stem education and humanities
+stem education and innovation
+stem education across the learning continuum
+stem education books
+stem education benefits
+stem education background
+stem education budget
+stem education business
+stem education book pdf
+stem education biology
+stem education bangalore
+stem education building set
+stem education bangladesh
+stem education bihar
+stem education by cbse
+stem based education
+science education bill
+science education books
+stem education conferences
+stem education conference 2026
+stem education center
+stem education company
+stem education coalition
+stem education cyprus
+stem education certificate
+stem education consultants
+stem education curriculum
+stem education companies in india
+stem education consultant jobs
+stem education careers
+stem education canada
+stem education centres
+stem education degree
+stem education director jobs
+stem education department
+stem education director
+stem education data
+stem education drawing
+stem education dubai
+stem education day
+stem education doctoral programs
+stem education development coordinator
+stem education disadvantages
+stem education define
+stem education doctorate
+stem education diploma
+stem education examples
+stem education experience inc
+stem education essay
+stem education equipment
+stem education early childhood
+stem education edu
+stem program edmonton
+science education edu
+iowa stem education executive order
+global stem education expo 2025
+stem educator program
+education & science egitim ve bilim
+stem education for girls
+stem education franchise
+stem education for kindergarten
+stem education for toddlers
+stem education funding
+stem education for women
+stem education framework
+stem education for the twenty-first century
+stem education focused on girl students
+stem education for teachers
+stem education for kids near me
+stem education full form salary
+stem education franchise in india
+stem education for special needs
+stem education grants
+stem education games
+stem education gampaha
+stem education ghana
+stem education grant opportunities
+stem education grants for nonprofits
+stem education grants uk
+stem education government
+stem education greece
+stem education guide
+stem education grant iowa
+stem education group
+stem education gadsby dolly
+stem education girls
+stem education germany
+stem education hub
+stem education hong kong
+stem education history
+stem education hub inaugurated in shillong
+stem education hellas
+stem education homeschool
+stem education high school
+stem education hyderabad
+stem education hub in shillong
+stem education hku
+stem education how to pronounce
+stem education hindi
+stem higher education
+stem h education
+stem higher education conference
+stem education in pakistan
+stem education in the philippines
+stem education in chinese
+stem education in botswana
+stem education in malaysia
+stem education in nigeria
+stem education in uae
+stem education in south africa
+stem education in uganda
+stem education initiative
+stem education in bihar
+stem education jobs near me
+stem education jobs remote
+stem education jobs scotland
+stem education jobs uk
+stem education jobs boston
+stem education journal scopus
+stem education jobs atlanta
+stem education jobs in the last 3 days
+stem education japan
+stem education jobs in pune
+stem education jobs houston
+stem education jobs nyc
+stem education job opportunities
+stem education kit
+stem education kya hai
+stem education kcl
+stem education k-12 perspectives on integration
+stem education king's college
+stem education k 12
+stem education kits in india
+stem education kids
+stem education karachi
+stem education kenya
+stem education kindergarten
+stem education kerala
+stem education kings
+stem education kits for kids
+stem education korea
+stem education logo
+stem education là gì
+stem education long form
+stem education lab
+stem education latur
+stem education login
+stem education lesson plans pdf
+stem education lego
+stem education llc
+stem learning login
+stem learning ltd
+stem learning lab
+stem learning logo
+stem program list
+science education logo
+stem education meaning in hindi
+stem education meaning in marathi
+stem education masters
+stem education melbourne
+stem education minor
+stem education model
+stem education month
+stem education meaning in telugu
+stem education minor uark
+stem education ma
+stem education minor ucsc
+stem education near me
+stem education nepal
+stem education nz
+stem education nsf
+stem education ngo
+stem education news
+stem education non profits
+stem education now more than ever
+stem education nigeria
+stem program near me
+stem learning near me
+stem program nyc
+science education news
+stem learning nz
+stem program naval academy
+stem education organization for cambodia
+stem education online
+stem education or steam education
+stem education outreach jobs
+stem education objectives
+stem education org
+stem program ontario
+science education outreach jobs
+stem program opt
+science education of the philippines
+stem learning org
+stem learning oakville
+science education org
+stem.school education
+stem education courses online free
+stem education pdf
+stem education policy
+stem education programs k-12
+stem education pronunciation
+stem education phd
+stem education project
+stem education ppt
+stem education policy statement
+stem education philippines
+stem education phd programs
+stem education poster
+stem education pictures
+stem education postdoc
+stem education products
+stem education pk
+stem education qatar
+stem education quotes
+stem education quiz
+stem education questions
+stem education questionnaire
+stem education qualification
+stem education queensland
+stem education quality framework
+science education quarterly
+science education quotes
+science education questions
+stem learning quotes
+stem teaching qualifications
+science education quartile
+science education qualification
+stem education research
+stem education requirements
+stem education robotics
+stem education remote jobs
+stem education research jobs
+stem education research topics
+stem education resources
+stem education research center
+stem education research centre
+stem education ranking by country
+stem education research paper
+stem education research grant cuts
+stem education review
+stem education ranking
+stem education report
+stem education strategic plan
+stem education system
+stem education singapore
+stem education sri lanka
+stem education specialist
+stem education scotland
+stem education subjects
+stem education scholarships
+stem education syllabus
+stem education school
+stem education specialist jobs
+stem education synonym
+stem education statistics
+stem education standards
+stem education toys
+stem education trust
+stem education training
+stem education trends 2026
+stem education teaching and learning
+stem education thesis
+stem education training for teachers
+stem education thailand
+stem education thessaloniki
+stem education tools
+stem education topics
+stem education technology
+stem education tamil
+stem education trump
+stem educational toys for 8 year olds
+stem education upsc
+stem education uk
+stem education usa
+stem education university
+stem education uky
+stem education uark
+stem education uae
+stem education utm
+stem education unesco
+stem education ut austin
+stem education united states
+stem education uj
+stem education unicef
+stem education usm
+stem education uganda
+stem education videos
+stem education vs steam
+stem education vs traditional
+stem education volunteer
+stem education victoria
+stem education volunteer opportunities
+stem education vs liberal arts
+stem education vacancies
+stem education vietnam
+stem education vector
+stem education vr
+stem education vs
+stem education vancouver
+stem vocational education
+science education videos
+stem education website
+stem education what is it
+stem education workshop
+stem education with robotics
+stem education wikipedia
+stem education what it is and why it matters
+stem education workshop for teachers
+stem education women
+stem education worldwide
+stem education week
+stem education with robotics lessons from research and practice
+stem education why is it important
+stem education with ai
+stem education when did it start
+stem education xanthi
+stem x program
+stem education workshop for teachers xl by slidesgo
+stem in education means
+what is stem education and why is it important
+stem pedagogy
+steam education in nepal
+stem education youtube
+stem learning york
+stem learning york jobs
+science education youtube channels
+stem learning youtube
+youtube science education
+stem program ymca
+stem learning york address
+stem program york region
+stem program yrdsb
+stem learning year 12
+stem learning year 12 work experience
+stem.program.yonkers
+stem education for young children
+stem education for youth
+stem learning zone
+stem education in zimbabwe
+stem education in zambia
+stem education new zealand
+stem education in zimbabwe pdf
+stem z program
+stem z learning
+science education zabawka
+what is technology in stem education
+stem full form in education
+stem nepal
+steam education nepal
+science education in nepal
+stem courses in nepal
+health science education in nepal
+health science education in nepal essay
+what is stem education in india
+what is stem education system
+stem foundation nepal
+stem in nepali`;
+
+const lines = RAW.split(/\r?\n/)
+  .map((l) => l.trim())
+  .filter(Boolean);
+const seen = new Set();
+const out = [];
+for (const l of lines) {
+  const k = l.toLowerCase();
+  if (seen.has(k)) continue;
+  seen.add(k);
+  out.push(l);
+}
+
+const outPath = path.join(__dirname, "..", "app", "(site)", "data", "stem-education-seo-keywords.json");
+fs.mkdirSync(path.dirname(outPath), { recursive: true });
+fs.writeFileSync(outPath, JSON.stringify(out, null, 2), "utf8");
+console.log("Wrote", out.length, "keywords to", outPath);

@@ -117,12 +117,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   for (const p of staticPages) putEntry(map, p);
 
+  const highPriorityServiceIds = new Set([
+    "stem-education",
+    "stem-lab-setup",
+    "institutional-programs",
+  ]);
+
   for (const service of ourServices || []) {
     putEntry(map, {
       url: `${baseUrl}/services/${service.id}`,
       lastModified: new Date(),
       changeFrequency: "weekly",
-      priority: 0.72,
+      priority: highPriorityServiceIds.has(service.id) ? 0.85 : 0.72,
     });
   }
 

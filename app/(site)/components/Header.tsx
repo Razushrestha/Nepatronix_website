@@ -17,6 +17,9 @@ const navLinks = [
 
 const servicesDropdown = [
   { href: "/services", label: "All Services" },
+  { href: "/services/stem-education", label: "STEM Education" },
+  { href: "/services/stem-lab-setup", label: "STEM Lab Setup" },
+  { href: "/services/institutional-programs", label: "Government & CSR" },
   { href: "/services/courses", label: "Courses" },
   { href: "/services/apply-certificate", label: "Apply Certificate" },
   { href: "/services/upcoming-sessions", label: "Upcoming Sessions" },
@@ -191,7 +194,7 @@ export function Header() {
                   </button>
                   
                   {/* Mobile Services Dropdown */}
-                  <div className={`overflow-hidden transition-all duration-300 ${mobileServicesOpen ? 'max-h-60 mt-2' : 'max-h-0'}`}>
+                  <div className={`overflow-hidden transition-all duration-300 ${mobileServicesOpen ? 'max-h-[28rem] mt-2' : 'max-h-0'}`}>
                     <div className="bg-slate-50 rounded-xl p-2 space-y-1">
                       {servicesDropdown.map((item) => (
                         <Link

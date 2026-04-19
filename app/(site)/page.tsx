@@ -12,17 +12,30 @@ import { StatsBar } from "./components/StatsBar";
 import { HeroSection } from "./components/HeroSection";
 import { RecognitionGrid } from "./components/RecognitionGrid";
 import { PartnersGrid } from "./components/PartnersGrid";
+import {
+  STEM_EDUCATION_SEO_KEYWORDS,
+  mergeSeoKeywordGroups,
+} from "./data/stemEducationSeoKeywords";
 
 export const revalidate = 1800;
 
 export const metadata: Metadata = {
   title: "Certified IoT, Robotics & STEM Education in Nepal",
   description: "Nepatronix is Nepal's #1 IoT and Robotics training institute. Expert-led workshops for schools covering Arduino, PCB Design, and Electronics. 25,000+ students trained.",
-  keywords: [
-    "IoT training Nepal", "Robotics institute Nepal", "STEM education Kathmandu",
-    "Arduino workshop Nepal", "PCB design Nepal", "electronics training Nepal",
-    "Nepatronix", "STEM lab setup Nepal", "robotics for schools Nepal"
-  ],
+  keywords: mergeSeoKeywordGroups(
+    [
+      "IoT training Nepal",
+      "Robotics institute Nepal",
+      "STEM education Kathmandu",
+      "Arduino workshop Nepal",
+      "PCB design Nepal",
+      "electronics training Nepal",
+      "Nepatronix",
+      "STEM lab setup Nepal",
+      "robotics for schools Nepal",
+    ],
+    STEM_EDUCATION_SEO_KEYWORDS
+  ),
   authors: [{ name: "Nepatronix Engineering Solutions", url: "https://nepatronix.org" }],
   alternates: {
     canonical: "https://nepatronix.org",
@@ -171,14 +184,13 @@ export default function Home() {
         <SectionHeading
           eyebrow="Certification"
           title="Certified and Accreditation"
-          description="Our STEAM with IoT and Robotic course is being accredited and certified by Kathmandu University"
+          description="Our STEAM with IoT and Robotics course is accredited by Kathmandu University, with professional pathways through IIT Madras Pravartak."
           align="center"
         />
 
-        {/* Certification Partners */}
-        <div className="mt-16 flex justify-center">
-          <div className="max-w-md w-full rounded-2xl border border-[#e3f2fd] bg-white p-10 shadow-sm transition-all duration-300 hover:shadow-lg flex flex-col items-center">
-            <div className="mb-8 flex h-28 w-full items-center justify-center">
+        <div className="mx-auto mt-14 grid max-w-4xl gap-12 sm:gap-14 md:grid-cols-2 md:gap-10">
+          <div className="flex flex-col items-center border-t border-slate-200 pt-10 text-center md:border-t-0 md:border-r md:border-slate-200 md:pr-8 md:pt-0">
+            <div className="mb-6 flex h-28 w-full items-center justify-center">
               <Image
                 src="/recognition/KU.png"
                 alt="Kathmandu University"
@@ -190,13 +202,36 @@ export default function Home() {
               />
             </div>
             <span className="mb-3 rounded-full bg-[#1e88e5]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#1e88e5]">
-              Academic Accreditation
+              Academic accreditation
             </span>
-            <h3 className="mb-4 text-center text-xl font-bold text-[#020617]">
+            <h3 className="mb-3 text-xl font-bold text-[#020617]">
               Kathmandu University
             </h3>
-            <p className="text-center text-base leading-relaxed text-[#64748b]">
-              Official university certification for our comprehensive STEAM curriculum
+            <p className="max-w-sm text-base leading-relaxed text-[#64748b]">
+              Official university accreditation for our comprehensive STEAM curriculum.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center border-t border-slate-200 pt-10 text-center md:border-t-0 md:pl-8 md:pt-0">
+            <div className="mb-6 flex h-28 w-full items-center justify-center">
+              <Image
+                src="/pravartak.png"
+                alt="IIT Madras Pravartak"
+                width={220}
+                height={120}
+                loading="lazy"
+                sizes="(max-width: 768px) 200px, 220px"
+                className="h-auto max-h-20 w-auto max-w-full object-contain"
+              />
+            </div>
+            <span className="mb-3 rounded-full bg-emerald-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-emerald-700">
+              Professional certification
+            </span>
+            <h3 className="mb-3 text-xl font-bold text-[#020617]">
+              IIT Madras Pravartak
+            </h3>
+            <p className="max-w-sm text-base leading-relaxed text-[#64748b]">
+              Industry-aligned programmes on SWAYAM Plus, including NCrF-aligned intensive training.
             </p>
           </div>
         </div>
@@ -214,7 +249,7 @@ export default function Home() {
           {[
             {
               name: "STEM Tutor Program",
-              href: "/services#stem-education",
+              href: "/services/stem-education",
               icon: (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
@@ -227,7 +262,7 @@ export default function Home() {
             },
             {
               name: "STEM Lab Setup",
-              href: "/services#stem-lab-setup",
+              href: "/services/stem-lab-setup",
               icon: (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M6 18h8" />
@@ -244,7 +279,7 @@ export default function Home() {
             },
             {
               name: "Software and APP Development",
-              href: "/services#product-engineering",
+              href: "/services/product-engineering",
               icon: (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="16 18 22 12 16 6" />
@@ -258,7 +293,7 @@ export default function Home() {
             },
             {
               name: "Research and Innovations",
-              href: "/services#institutional-programs",
+              href: "/services/institutional-programs",
               icon: (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 7 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5" />

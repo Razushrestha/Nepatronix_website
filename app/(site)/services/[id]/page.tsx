@@ -1,29 +1,78 @@
 import { ourServices } from "../../data";
+import {
+  STEM_EDUCATION_SEO_KEYWORDS,
+  mergeSeoKeywordGroups,
+} from "../../data/stemEducationSeoKeywords";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import Breadcrumb from "../../components/Breadcrumb";
+
+/** Optional extra keywords per service id — merged with title, tagline, and defaults. */
+const SERVICE_SEO_EXTRA_KEYWORDS: Partial<Record<string, readonly string[]>> = {
+  "stem-education": STEM_EDUCATION_SEO_KEYWORDS,
+  "stem-lab-setup": [
+    "STEM lab setup Nepal",
+    "school laboratory design Kathmandu",
+    "robotics lab for schools Nepal",
+    "electronics lab equipment Nepal",
+    "STEM classroom infrastructure",
+    "IoT lab installation Nepal",
+    "Nepatronix lab deployment",
+  ],
+  "institutional-programs": [
+    "CSR STEM programs Nepal",
+    "government STEM initiatives Nepal",
+    "NGO education programs Nepal",
+    "INGO STEM implementation",
+    "large-scale teacher training Nepal",
+    "national STEM rollout Nepal",
+    "corporate social responsibility education",
+    "Nepatronix institutional partnerships",
+  ],
+};
+
+const DEFAULT_SERVICE_KEYWORDS = [
+  "Nepatronix",
+  "STEM education Nepal",
+  "IoT services Nepal",
+  "Robotics Nepal",
+] as const;
+
+function metaDescriptionFromService(service: { description: string; tagline: string }, max: number) {
+  return `${service.description} ${service.tagline}`.replace(/\s+/g, " ").trim().slice(0, max);
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const service = ourServices.find((s) => s.id === id);
-  
+
   if (!service) {
     return {
       title: "Service Not Found",
       robots: { index: false, follow: false },
     };
   }
- 
+
   const canonicalUrl = `https://nepatronix.org/services/${id}`;
+  const extras = SERVICE_SEO_EXTRA_KEYWORDS[id] ?? [];
+  const keywords = mergeSeoKeywordGroups(
+    service.title,
+    service.tagline,
+    DEFAULT_SERVICE_KEYWORDS,
+    extras
+  );
+  const description = metaDescriptionFromService(service, 165);
+  const ogDescription = metaDescriptionFromService(service, 200);
+
   return {
     title: service.title,
-    description: service.description,
-    keywords: [service.title, "Nepatronix", "STEM education Nepal", "IoT services Nepal", "Robotics Nepal"],
+    description,
+    keywords,
     alternates: { canonical: canonicalUrl },
     openGraph: {
+      siteName: "Nepatronix",
       title: `${service.title} | Nepatronix`,
-      description: service.description,
+      description: ogDescription,
       url: canonicalUrl,
       type: "website",
       images: [{ url: "https://nepatronix.org/og-banner.png", width: 1200, height: 630, alt: service.title }],
@@ -31,7 +80,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     twitter: {
       card: "summary_large_image",
       title: `${service.title} | Nepatronix`,
-      description: service.description,
+      description: ogDescription,
       images: ["https://nepatronix.org/og-banner.png"],
     },
     robots: {
@@ -194,18 +243,26 @@ export default async function ServiceDetail({ params }: { params: Promise<{ id: 
     notFound();
   }
 
+  const pageUrl = `https://nepatronix.org/services/${id}`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Service",
-    "name": service.title,
-    "description": service.description,
-    "provider": {
-      "@type": "Organization",
-      "name": "Nepatronix",
-      "url": "https://nepatronix.org"
+    "@id": `${pageUrl}#service`,
+    url: pageUrl,
+    name: service.title,
+    description: service.description,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${pageUrl}#webpage`,
+      url: pageUrl,
     },
-    "areaServed": "Nepal",
-    "category": "Technology & Education"
+    provider: {
+      "@type": "Organization",
+      name: "Nepatronix Engineering Solutions",
+      url: "https://nepatronix.org",
+    },
+    areaServed: { "@type": "Country", name: "Nepal" },
+    category: "Technology & Education",
   };
 
   return (
@@ -214,7 +271,6 @@ export default async function ServiceDetail({ params }: { params: Promise<{ id: 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <Breadcrumb />
       {/* 1. HERO SECTION (Pristine White Theme) */}
       <section className="relative pt-44 pb-32 px-6 overflow-hidden bg-white">
         {/* Background Decorative Elements */}

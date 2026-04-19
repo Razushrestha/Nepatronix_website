@@ -78,14 +78,6 @@ export function HeroSection() {
       {/* Content */}
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 pt-24 text-center">
         <div className="mx-auto max-w-4xl space-y-8">
-          {/* Eyebrow badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#C1121F]/30 bg-[#C1121F]/10 px-4 py-2">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-[#e63946]" />
-            <span className="text-xs font-semibold uppercase tracking-widest text-red-200">
-              Empowering Future Innovators
-            </span>
-          </div>
-
           {/* Headline */}
           <h1 className="text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
             Certified IoT, Robotics & STEM <br className="hidden sm:block" />

@@ -192,12 +192,12 @@ export default function ServicesPage() {
               {header.description}
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <button
-                onClick={() => document.getElementById('stem-education')?.scrollIntoView({ behavior: 'smooth' })}
-                className="rounded-full bg-[#C1121F] px-8 py-4 text-sm md:text-base font-bold text-white shadow-lg hover:bg-[#A00F1A] hover:shadow-[#C1121F]/25 transition-all transform hover:-translate-y-0.5"
+              <Link
+                href="/services/stem-education"
+                className="rounded-full bg-[#C1121F] px-8 py-4 text-sm md:text-base font-bold text-white shadow-lg hover:bg-[#A00F1A] hover:shadow-[#C1121F]/25 transition-all transform hover:-translate-y-0.5 text-center"
               >
-                See More
-              </button>
+                Explore STEM Education
+              </Link>
               <Link
                 href="/partners"
                 className="rounded-full bg-white/5 px-8 py-4 text-sm md:text-base font-bold text-white hover:bg-white/10 ring-1 ring-white/10 transition-all backdrop-blur-sm"

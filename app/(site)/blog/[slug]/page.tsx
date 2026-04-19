@@ -4,7 +4,6 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Metadata } from "next";
-import Breadcrumb from "../../components/Breadcrumb";
 import ShareButtons from "./ShareButtons";
 
 interface BlogPost {
@@ -20,9 +19,42 @@ interface BlogPost {
   body: any;
 }
 
+const SITE = "https://nepatronix.org";
+const OG_FALLBACK = `${SITE}/og-banner.png`;
+
+/** Strip trailing brand so root `title.template` does not produce "… | Nepatronix | Nepatronix". */
+function titleForMetadata(seoTitle: string | undefined, title: string) {
+  const raw = (seoTitle || title || "Blog post").trim();
+  return raw.replace(/\s*\|\s*Nepatronix(\s+Blog)?\s*$/i, "").trim() || title;
+}
+
+function metaDescription(seoDescription: string | undefined, excerpt: string | undefined) {
+  const text = (seoDescription || excerpt || "Read this article on Nepatronix.").replace(/\s+/g, " ").trim();
+  return text.slice(0, 165);
+}
+
+function ogDescription(seoDescription: string | undefined, excerpt: string | undefined) {
+  const text = (seoDescription || excerpt || "Read this article on Nepatronix.").replace(/\s+/g, " ").trim();
+  return text.slice(0, 200);
+}
+
+function dedupeKeywords(parts: (string | undefined)[]): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const p of parts) {
+    if (typeof p !== "string") continue;
+    const k = p.trim();
+    if (!k || seen.has(k.toLowerCase())) continue;
+    seen.add(k.toLowerCase());
+    out.push(k);
+    if (out.length >= 40) break;
+  }
+  return out;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  
+
   const query = `*[_type == "post" && slug.current == $slug][0] {
     title,
     excerpt,
@@ -35,8 +67,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     publishedAt,
     author
   }`;
-  
-  const post = await client.fetch(query, { slug });
+
+  const post = await client.fetch(query, { slug }, { next: { revalidate: 60 } });
 
   if (!post) {
     return {
@@ -46,38 +78,50 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const imageUrl = post.mainImage ? urlFor(post.mainImage).width(1200).height(630).url() : "";
-  const canonicalUrl = `https://nepatronix.org/blog/${slug}`;
-  
-  // Combine custom keywords with categories and tags for better SEO
-  const allKeywords = [
-    ...(post.keywords || []),
+  const canonicalUrl = `${SITE}/blog/${slug}`;
+  const titleBase = titleForMetadata(post.seoTitle, post.title);
+  const description = metaDescription(post.seoDescription, post.excerpt);
+  const ogDesc = ogDescription(post.seoDescription, post.excerpt);
+  const brandedTitle = `${titleBase} | Nepatronix`;
+
+  const keywordParts = [
+    ...(Array.isArray(post.keywords) ? post.keywords : []),
     ...(post.categories || []),
-    ...(post.tags || [])
+    ...(post.tags || []),
+    "Nepatronix",
+    "Nepal",
+    "STEM",
+    "IoT",
+    "Robotics",
   ];
+  const keywords = dedupeKeywords(keywordParts);
+
+  const ogImage = imageUrl
+    ? [{ url: imageUrl, width: 1200, height: 630, alt: post.title }]
+    : [{ url: OG_FALLBACK, width: 1200, height: 630, alt: post.title }];
 
   return {
-    title: post.seoTitle || post.title,
-    description: post.seoDescription || post.excerpt || "Read our latest blog post on Nepatronix.",
-    keywords: allKeywords.length > 0 ? allKeywords : ["Robotics", "IoT", "Engineering", "Nepal"],
-    authors: [{ name: post.author || "Nepatronix Team", url: "https://nepatronix.org" }],
-    alternates: {
-      canonical: canonicalUrl,
-    },
+    title: titleBase,
+    description,
+    keywords: keywords.length ? keywords : ["Nepatronix", "IoT Nepal", "STEM blog", "Robotics Nepal"],
+    authors: [{ name: post.author || "Nepatronix Team", url: SITE }],
+    alternates: { canonical: canonicalUrl },
     openGraph: {
-      title: post.seoTitle || post.title,
-      description: post.seoDescription || post.excerpt,
+      siteName: "Nepatronix",
+      title: brandedTitle,
+      description: ogDesc,
       url: canonicalUrl,
-      images: imageUrl ? [{ url: imageUrl, width: 1200, height: 630, alt: post.title }] : [],
+      images: ogImage,
       type: "article",
       publishedTime: post.publishedAt,
       authors: [post.author || "Nepatronix Team"],
-      tags: allKeywords,
+      tags: keywords.slice(0, 20),
     },
     twitter: {
       card: "summary_large_image",
-      title: post.seoTitle || post.title,
-      description: post.seoDescription || post.excerpt,
-      images: imageUrl ? [imageUrl] : [],
+      title: brandedTitle,
+      description: ogDesc,
+      images: [imageUrl || OG_FALLBACK],
     },
     robots: {
       index: true,
@@ -144,12 +188,15 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
   }
 
   // JSON-LD Structured Data
+  const pageUrl = `https://nepatronix.org/blog/${slug}`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    "headline": post.title,
-    "image": post.mainImage ? urlFor(post.mainImage).width(1200).url() : "",
-    "datePublished": post.publishedAt,
+    "@id": `${pageUrl}#article`,
+    url: pageUrl,
+    headline: post.title,
+    image: post.mainImage ? urlFor(post.mainImage).width(1200).url() : "",
+    datePublished: post.publishedAt,
     "author": {
       "@type": "Person",
       "name": post.author || "Nepatronix Team"
@@ -164,10 +211,11 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
       }
     },
     "description": post.excerpt,
-    "mainEntityOfPage": {
+    mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://nepatronix.org/blog/${slug}`
-    }
+      "@id": `${pageUrl}#webpage`,
+      url: pageUrl,
+    },
   };
 
   const breadcrumbJsonLd = {
@@ -212,11 +260,6 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      
-      <div className="relative z-[100] bg-[#020617]">
-        <Breadcrumb />
-      </div>
-
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 right-0 z-[110] h-1 bg-transparent">
         <div id="progress-bar" className="h-full bg-[#C1121F] w-0 transition-all duration-150 origin-left shadow-[0_0_10px_rgba(193,18,31,0.5)]"></div>
