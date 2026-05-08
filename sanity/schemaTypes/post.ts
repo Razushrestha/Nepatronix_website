@@ -16,8 +16,18 @@ export const post = defineType({
       type: 'slug',
       options: {
         source: 'title',
-        maxLength: 96,
+        maxLength: 200,
       },
+      validation: (Rule) =>
+        Rule.required().custom((value) => {
+          const current = typeof value?.current === 'string' ? value.current.trim() : ''
+          if (!current) return 'Slug is required for the post URL'
+          // Must work as a single URL path segment (Windows build-safe) — use Generate from title.
+          if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(current)) {
+            return 'Slug may only contain lowercase letters, numbers, and hyphens. Click "Generate" next to Slug.'
+          }
+          return true
+        }),
     }),
     defineField({
       name: 'excerpt',

@@ -4,7 +4,13 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Metadata } from "next";
+import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import ShareButtons from "./ShareButtons";
+import { canonicalBlogSlug } from "@/lib/blog/slugPath";
+
+const SITE = "https://nepatronix.org";
+const OG_FALLBACK = `${SITE}/og-banner.png`;
 
 interface BlogPost {
   _id: string;
@@ -17,10 +23,76 @@ interface BlogPost {
   mainImage: any;
   author: string;
   body: any;
+  seoTitle?: string;
+  seoDescription?: string;
+  keywords?: string[];
 }
+/** Next.js App Router: tie Sanity fetches to ISR so new posts appear without a full redeploy. */
+const sanityFetch = { next: { revalidate: 60, tags: ["blog-post"] } };
 
-const SITE = "https://nepatronix.org";
-const OG_FALLBACK = `${SITE}/og-banner.png`;
+type SlugRow = { _id: string; stored: string; publishedAt?: string };
+
+const getSlugRows = unstable_cache(
+  async (): Promise<SlugRow[]> =>
+    client.fetch(
+      `*[_type == "post" && defined(slug.current)]{_id, "stored": slug.current, publishedAt} | order(coalesce(publishedAt, _updatedAt) desc)`,
+      {},
+      sanityFetch
+    ),
+  ["blog-canonical-slug-index"],
+  { revalidate: 60, tags: ["blog-post", "blog-list"] }
+);
+
+/** Match URL slug segment to Sanity even when slug field has Unicode dashes, spaces, punctuation, emoji. */
+const resolvePostIdFromCanonicalSlug = cache(async (canonicalSlug: string): Promise<string | null> => {
+  const rows = await getSlugRows();
+  for (const r of rows) {
+    const c = canonicalBlogSlug(r.stored);
+    if (c !== null && c === canonicalSlug) return r._id;
+  }
+  return null;
+});
+
+const fetchBlogPostById = cache(async (postId: string) =>
+  client.fetch<BlogPost | null>(
+    `*[_type == "post" && _id == $postId][0] {
+      _id,
+      title,
+      excerpt,
+      seoTitle,
+      seoDescription,
+      keywords,
+      publishedAt,
+      readingTime,
+      "categories": categories[],
+      "tags": tags[],
+      mainImage,
+      author,
+      body
+    }`,
+    { postId },
+    sanityFetch
+  )
+);
+
+const fetchBlogPostForCanonicalSlug = cache(async (canonicalSlug: string): Promise<BlogPost | null> => {
+  const postId = await resolvePostIdFromCanonicalSlug(canonicalSlug);
+  if (!postId) return null;
+  return fetchBlogPostById(postId);
+});
+
+export const dynamicParams = true;
+
+function normalizeSlugParam(raw: string | undefined): string | null {
+  if (raw == null || typeof raw !== "string") return null;
+  try {
+    const s = decodeURIComponent(raw).trim();
+    return s.length ? s : null;
+  } catch {
+    const s = raw.trim();
+    return s.length ? s : null;
+  }
+}
 
 /** Strip trailing brand so root `title.template` does not produce "… | Nepatronix | Nepatronix". */
 function titleForMetadata(seoTitle: string | undefined, title: string) {
@@ -53,22 +125,14 @@ function dedupeKeywords(parts: (string | undefined)[]): string[] {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const decoded = normalizeSlugParam(rawSlug);
+  const slug = decoded ? canonicalBlogSlug(decoded) : null;
+  if (!slug) {
+    return { title: "Post Not Found", robots: { index: false, follow: false } };
+  }
 
-  const query = `*[_type == "post" && slug.current == $slug][0] {
-    title,
-    excerpt,
-    seoTitle,
-    seoDescription,
-    keywords,
-    "categories": categories[],
-    "tags": tags[],
-    mainImage,
-    publishedAt,
-    author
-  }`;
-
-  const post = await client.fetch(query, { slug }, { next: { revalidate: 60 } });
+  const post = await fetchBlogPostForCanonicalSlug(slug);
 
   if (!post) {
     return {
@@ -139,35 +203,35 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export async function generateStaticParams() {
   const slugs: { slug: { current: string } }[] = await client.fetch(
-    `*[_type == "post" && defined(slug.current)]{ slug }`
+    `*[_type == "post" && defined(slug.current)]{ slug }`,
+    {},
+    { next: { revalidate: 3600, tags: ["blog-index"] } }
   );
 
-  return slugs.map(({ slug }) => ({ slug: slug.current }));
+  const out: { slug: string }[] = [];
+  const seen = new Set<string>();
+  for (const row of slugs) {
+    const current = typeof row.slug?.current === "string" ? row.slug.current : "";
+    const canon = canonicalBlogSlug(current);
+    if (!canon || seen.has(canon)) continue;
+    seen.add(canon);
+    out.push({ slug: canon });
+  }
+  return out;
 }
 
 export const revalidate = 60; // refresh detail pages periodically
 
 export default async function BlogDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const decoded = normalizeSlugParam(rawSlug);
+  const slug = decoded ? canonicalBlogSlug(decoded) : null;
 
   if (!slug) {
     notFound();
   }
 
-  const query = `*[_type == "post" && slug.current == $slug][0] {
-    _id,
-    title,
-    excerpt,
-    publishedAt,
-    readingTime,
-    "categories": categories[],
-    "tags": tags[],
-    mainImage,
-    author,
-    body
-  }`;
-
-  const relatedQuery = `*[_type == "post" && slug.current != $slug && count(categories[@ in $categories]) > 0][0...3] {
+  const relatedQuery = `*[_type == "post" && _id != $excludeId && count(categories[@ in $categories]) > 0][0...3] {
     _id,
     title,
     excerpt,
@@ -178,10 +242,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
     slug
   }`;
 
-  const [post, relatedPosts]: [BlogPost | null, BlogPost[]] = await Promise.all([
-    client.fetch(query, { slug }),
-    client.fetch(relatedQuery, { slug, categories: [] }) 
-  ]);
+  const post = await fetchBlogPostForCanonicalSlug(slug);
 
   if (!post) {
     notFound();
@@ -243,11 +304,11 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
     ]
   };
 
-  // Refetch related posts with actual categories now that we have the post
-  const actualRelatedPosts = await client.fetch(relatedQuery, { 
-    slug, 
-    categories: post.categories || [] 
-  });
+  const actualRelatedPosts = await client.fetch(
+    relatedQuery,
+    { excludeId: post._id, categories: post.categories || [] },
+    sanityFetch
+  );
 
   return (
     <div className="bg-white min-h-screen">
@@ -397,33 +458,37 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {actualRelatedPosts.map((post: any) => (
-                <Link href={`/blog/${post.slug.current}`} key={post._id} className="group flex flex-col h-full bg-white rounded-xl overflow-hidden shadow-md border border-slate-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-500">
+              {actualRelatedPosts.map((related: any) => {
+                const hrefSlug = canonicalBlogSlug(related.slug?.current ?? "");
+                if (!hrefSlug) return null;
+                return (
+                <Link href={`/blog/${hrefSlug}`} key={related._id} className="group flex flex-col h-full bg-white rounded-xl overflow-hidden shadow-md border border-slate-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-500">
                   <div className="relative aspect-[16/10] overflow-hidden">
                     <Image
-                      src={urlFor(post.mainImage).width(500).url()}
-                      alt={post.title}
+                      src={urlFor(related.mainImage).width(500).url()}
+                      alt={related.title}
                       fill
                       className="object-cover transition duration-500 group-hover:scale-110"
                     />
                     <div className="absolute top-3 left-3">
-                      <span className="text-[9px] font-semibold text-white bg-[#C1121F] px-2.5 py-1 rounded-full uppercase tracking-wider">{post.categories?.[0] || 'Article'}</span>
+                      <span className="text-[9px] font-semibold text-white bg-[#C1121F] px-2.5 py-1 rounded-full uppercase tracking-wider">{related.categories?.[0] || 'Article'}</span>
                     </div>
                   </div>
                   <div className="p-5 flex-1 flex flex-col">
                     <h3 className="text-base font-bold text-slate-900 leading-snug group-hover:text-[#C1121F] transition-colors line-clamp-2 mb-2">
-                      {post.title}
+                      {related.title}
                     </h3>
-                    <p className="text-slate-500 text-sm line-clamp-2 flex-1">{post.excerpt}</p>
+                    <p className="text-slate-500 text-sm line-clamp-2 flex-1">{related.excerpt}</p>
                     <div className="flex items-center gap-2 mt-4 text-[10px] text-slate-400 font-medium">
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      {post.readingTime || "5 min read"}
+                      {related.readingTime || "5 min read"}
                     </div>
                   </div>
                 </Link>
-              ))}
+              );
+              })}
             </div>
           </div>
         )}

@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { client } from "@/sanity/lib/client";
 import { ourServices } from "./(site)/data";
+import { canonicalBlogSlug } from "@/lib/blog/slugPath";
 
 const baseUrl = "https://nepatronix.org";
 
@@ -161,11 +162,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   for (const post of posts || []) {
-    const slug = typeof post.slug === "string" ? post.slug.trim() : "";
+    const raw = typeof post.slug === "string" ? post.slug.trim() : "";
+    const slug = canonicalBlogSlug(raw);
     if (!slug) continue;
     const lastModified = latestDate(toTimestamp(post.publishedAt), toTimestamp(post._updatedAt));
     putEntry(map, {
-      url: `${baseUrl}/blog/${encodeURIComponent(slug)}`,
+      url: `${baseUrl}/blog/${slug}`,
       lastModified,
       changeFrequency: "weekly",
       priority: 0.68,

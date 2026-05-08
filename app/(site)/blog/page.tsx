@@ -1,6 +1,7 @@
 import { client } from "@/sanity/lib/client";
 import BlogContent from "./BlogContent";
 import type { Metadata } from "next";
+import { canonicalBlogSlug } from "@/lib/blog/slugPath";
 
 const SITE = "https://nepatronix.org";
 const OG_DEFAULT = `${SITE}/og-banner.png`;
@@ -79,7 +80,7 @@ export async function generateMetadata(): Promise<Metadata> {
   }[] = [];
 
   try {
-    metaPosts = await client.fetch(postsMetaQuery, {}, { next: { revalidate: 3600 } });
+    metaPosts = await client.fetch(postsMetaQuery, {}, { next: { revalidate: 120, tags: ["blog-list"] } });
   } catch {
     metaPosts = [];
   }
@@ -124,10 +125,15 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export const revalidate = 3600;
+export const revalidate = 120;
 
 export default async function BlogPage() {
-  const posts = await client.fetch(postsListQuery);
+  const rawPosts = await client.fetch(postsListQuery, {}, { next: { revalidate: 120, tags: ["blog-list"] } });
+  const posts = rawPosts.flatMap((post: { slug?: { current?: string } | string }) => {
+    const canon = canonicalBlogSlug(slugFromPost(post));
+    if (!canon) return [];
+    return [{ ...post, slug: { current: canon } }];
+  });
 
   const jsonLd = {
     "@context": "https://schema.org",
