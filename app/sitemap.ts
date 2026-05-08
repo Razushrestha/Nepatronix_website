@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next";
 import { client } from "@/sanity/lib/client";
-import { blogPosts, ourServices } from "./(site)/data";
+import { ourServices } from "./(site)/data";
 
 const baseUrl = "https://nepatronix.org";
 
@@ -129,15 +129,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: highPriorityServiceIds.has(service.id) ? 0.85 : 0.72,
-    });
-  }
-
-  for (const post of blogPosts || []) {
-    putEntry(map, {
-      url: `${baseUrl}/blog/${post.id}`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.48,
     });
   }
 

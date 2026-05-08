@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { indexingRobots } from "@/lib/seo/indexingRobots";
 import { client } from "@/sanity/lib/client";
 import UpcomingSessionsClient, { UpcomingSession } from "./UpcomingSessionsClient";
 
@@ -25,6 +26,7 @@ export const metadata: Metadata = {
     description: "STEM, IoT and Robotics upcoming sessions in Nepal. Limited seats — enroll now.",
     images: ["https://nepatronix.org/og-banner.png"],
   },
+  robots: indexingRobots,
 };
 
 export const revalidate = 900;

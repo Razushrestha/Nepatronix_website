@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { indexingRobots } from "@/lib/seo/indexingRobots";
 
 export const revalidate = 43200;
 
@@ -37,6 +38,7 @@ export const metadata: Metadata = {
       "Nepatronix partners with 50+ schools across Nepal for STEM and IoT education.",
     images: ["https://nepatronix.org/og-banner.png"],
   },
+  robots: indexingRobots,
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

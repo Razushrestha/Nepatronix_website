@@ -16,6 +16,7 @@ import {
   STEM_EDUCATION_SEO_KEYWORDS,
   mergeSeoKeywordGroups,
 } from "./data/stemEducationSeoKeywords";
+import { indexingRobots } from "@/lib/seo/indexingRobots";
 
 export const revalidate = 1800;
 
@@ -53,6 +54,7 @@ export const metadata: Metadata = {
     description: "Nepal's #1 IoT and Robotics training institute. 25,000+ students trained across 50+ schools.",
     images: ["https://nepatronix.org/og-banner.png"],
   },
+  robots: indexingRobots,
 };
 
 export default function Home() {

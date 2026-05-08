@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { indexingRobots } from "@/lib/seo/indexingRobots";
 import CoursesClient from "./CoursesClient";
 import { client } from "@/sanity/lib/client";
 
@@ -26,6 +27,7 @@ export const metadata: Metadata = {
     description: "Hands-on IoT, Robotics and STEM courses for teachers and students in Nepal.",
     images: ["https://nepatronix.org/og-banner.png"],
   },
+  robots: indexingRobots,
 };
 
 export const revalidate = 1800;

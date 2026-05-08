@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { indexingRobots } from "@/lib/seo/indexingRobots";
 
 export const metadata: Metadata = {
   title: "Apply for Certificate – Get Certified in IoT & Robotics",
@@ -35,10 +36,7 @@ export const metadata: Metadata = {
       "Get officially certified in IoT, Robotics and STEM training programs in Nepal.",
     images: ["https://nepatronix.org/og-banner.png"],
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  robots: indexingRobots,
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
