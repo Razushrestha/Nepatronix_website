@@ -43,70 +43,20 @@ function getEmbeddedYouTubeUrl(url: string): string {
   return url
 }
 
-function MarqueeRow({
-  items,
-  direction,
-  durationSec,
-}: {
-  items: School[]
-  direction: 'forward' | 'reverse'
-  durationSec: number
-}) {
-  const doubled = [...items, ...items]
-  const animationClass = direction === 'reverse' ? 'animate-marquee-reverse' : 'animate-marquee'
-
-  return (
-    <div className="relative py-1">
-      <div
-        className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-white to-transparent sm:w-24"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-white to-transparent sm:w-24"
-        aria-hidden
-      />
-      <div className="overflow-hidden">
-        <div
-          className={`flex w-max items-center gap-6 sm:gap-10 motion-reduce:animate-none ${animationClass}`}
-          style={{ animationDuration: `${durationSec}s` }}
-        >
-          {doubled.map((school, index) => (
-            <div
-              key={`${school.name}-${index}`}
-              className="flex h-[72px] w-[140px] shrink-0 items-center justify-center rounded-2xl border border-slate-200/90 bg-slate-50/80 px-4 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-colors duration-200 hover:border-[#C1121F]/35 hover:bg-white"
-            >
-              <Image
-                src={school.logo}
-                alt=""
-                width={112}
-                height={48}
-                className="h-10 w-auto max-w-[120px] object-contain"
-                loading="lazy"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function PartnerTile({ school }: { school: School }) {
   return (
-    <div className="group flex flex-col items-center justify-center gap-2 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-3 text-center transition-all duration-200 hover:border-[#C1121F]/40 hover:bg-white hover:shadow-md">
-      <div className="flex h-14 w-full items-center justify-center">
+    <div className="group flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-3 text-center transition-colors hover:border-[#C1121F]/35">
+      <div className="flex h-[52px] w-full items-center justify-center sm:h-14">
         <Image
           src={school.logo}
           alt={`${school.name} logo`}
-          width={96}
-          height={48}
-          className="max-h-11 w-auto max-w-full object-contain transition-transform duration-200 group-hover:scale-105"
+          width={120}
+          height={56}
+          className="max-h-12 w-auto max-w-full object-contain transition-transform duration-200 group-hover:scale-[1.03] sm:max-h-14"
           loading="lazy"
         />
       </div>
-      <p className="line-clamp-2 min-h-8 text-[11px] font-medium leading-snug text-slate-600 sm:text-xs">
-        {school.name}
-      </p>
+      <p className="line-clamp-2 text-[11px] font-medium leading-snug text-slate-500 sm:text-xs">{school.name}</p>
     </div>
   )
 }
@@ -141,23 +91,13 @@ function YouTubePlayer({ url }: { url: string }) {
 }
 
 export default function SchoolCollaborations() {
-  const [isExpanded, setIsExpanded] = useState(false)
   const embedUrl = useMemo(() => getEmbeddedYouTubeUrl(schoolVideoUrl), [])
 
-  const { rowA, rowB } = useMemo(() => {
-    const half = Math.ceil(schools.length / 2)
-    return {
-      rowA: schools.slice(0, half),
-      rowB: schools.slice(half),
-    }
-  }, [])
-
   return (
-    <section className="mt-16 rounded-3xl border border-slate-200/60 bg-gradient-to-b from-slate-50 to-slate-100/80 p-6 sm:p-10">
+    <section className="mt-16 rounded-3xl bg-white p-6 sm:p-10">
       <div className="grid gap-10 lg:grid-cols-[1.45fr_1fr] lg:gap-12">
-        {/* Partners — single surface */}
-        <div className="rounded-[28px] border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#C1121F] sm:text-sm">Partners</p>
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#C1121F] sm:text-sm">Partners</p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
             Our school & college partners
           </h2>
@@ -165,38 +105,16 @@ export default function SchoolCollaborations() {
             We work with leading educational institutions across Nepal, driving hands-on STEM learning and innovation.
           </p>
 
-          <div className="mt-8 space-y-5">
-            <p className="text-xs font-medium uppercase tracking-wider text-slate-400">Scrolling showcase</p>
-            <MarqueeRow items={rowA} direction="forward" durationSec={32} />
-            <MarqueeRow items={rowB} direction="reverse" durationSec={38} />
-          </div>
-
-          <div className="mt-10 border-t border-slate-100 pt-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-slate-400">Full directory</p>
-                <p className="mt-1 text-sm text-slate-600">Every institution we collaborate with</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsExpanded((v) => !v)}
-                className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-700 transition-colors hover:border-[#C1121F]/30 hover:bg-white md:hidden"
-                aria-expanded={isExpanded}
-              >
-                {isExpanded ? 'Hide grid' : 'Show all logos'}
-              </button>
-            </div>
-
-            <div
-              className={`mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 ${
-                isExpanded ? 'grid' : 'hidden'
-              } md:mt-6 md:grid md:grid-cols-4`}
-            >
-              {schools.map((school) => (
-                <PartnerTile key={school.name} school={school} />
-              ))}
-            </div>
-          </div>
+          <ul
+            className="mt-8 grid list-none grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-3.5 lg:grid-cols-4"
+            aria-label="Partner schools and colleges"
+          >
+            {schools.map((school) => (
+              <li key={school.name}>
+                <PartnerTile school={school} />
+              </li>
+            ))}
+          </ul>
         </div>
 
         {/* Testimonials */}
