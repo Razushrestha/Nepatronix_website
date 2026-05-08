@@ -1,18 +1,20 @@
 import { MetadataRoute } from "next";
 import { client } from "@/sanity/lib/client";
+import { urlFor } from "@/sanity/lib/image";
 import { ourServices } from "./(site)/data";
 import { canonicalBlogSlug } from "@/lib/blog/slugPath";
 
 const baseUrl = "https://nepatronix.org";
 
-/** Regenerate sitemap periodically so new CMS content appears without redeploying. */
-export const revalidate = 600;
+/** Match blog listing / ISR so new posts show in sitemap quickly without redeploying. */
+export const revalidate = 120;
 
-const sanityFetchOptions = { next: { revalidate: 600 } } as const;
+const sanityFetchOptions = { next: { revalidate: 120, tags: ["blog-list", "sitemap"] } };
 
 type SitemapPayload = {
   posts: {
     slug: string | null;
+    mainImage?: unknown;
     _updatedAt?: string;
     publishedAt?: string;
   }[];
@@ -24,7 +26,8 @@ type SitemapPayload = {
 };
 
 const sitemapContentQuery = `{
-  "posts": *[_type == "post" && defined(slug.current)] | order(publishedAt desc) {
+  "posts": *[_type == "post" && defined(slug.current)] | order(coalesce(publishedAt, _updatedAt) desc) {
+    mainImage,
     "slug": slug.current,
     _updatedAt,
     publishedAt
@@ -104,7 +107,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/services/upcoming-sessions`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${baseUrl}/services/apply-certificate`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
     { url: `${baseUrl}/verify-certificate`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.52 },
-    { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${baseUrl}/partners`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/teams`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.65 },
     { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.55 },
@@ -161,18 +163,43 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
+  let maxBlogLastModifiedMs = 0;
+
   for (const post of posts || []) {
     const raw = typeof post.slug === "string" ? post.slug.trim() : "";
     const slug = canonicalBlogSlug(raw);
     if (!slug) continue;
     const lastModified = latestDate(toTimestamp(post.publishedAt), toTimestamp(post._updatedAt));
-    putEntry(map, {
+    maxBlogLastModifiedMs = Math.max(maxBlogLastModifiedMs, lastModifiedToMs(lastModified));
+
+    const entry: MetadataRoute.Sitemap[number] = {
       url: `${baseUrl}/blog/${slug}`,
       lastModified,
       changeFrequency: "weekly",
       priority: 0.68,
-    });
+    };
+
+    if (post.mainImage) {
+      try {
+        const imgUrl = urlFor(post.mainImage).width(1200).height(630).url();
+        if (imgUrl) {
+          entry.images = [imgUrl];
+        }
+      } catch {
+        /* ignore image build failures */
+      }
+    }
+
+    putEntry(map, entry);
   }
+
+  putEntry(map, {
+    url: `${baseUrl}/blog`,
+    lastModified:
+      maxBlogLastModifiedMs > 0 ? new Date(maxBlogLastModifiedMs) : new Date(),
+    changeFrequency: "daily",
+    priority: 0.8,
+  });
 
   return [...map.values()].sort((a, b) => a.url.localeCompare(b.url));
 }
