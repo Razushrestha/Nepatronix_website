@@ -3,6 +3,7 @@ import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 import { ourServices } from "./(site)/data";
 import { canonicalBlogSlug } from "@/lib/blog/slugPath";
+import { escapeXmlUrlForSitemap } from "@/lib/sitemap/escapeXmlUrl";
 
 const baseUrl = "https://nepatronix.org";
 
@@ -69,15 +70,25 @@ function putEntry(
   map: Map<string, MetadataRoute.Sitemap[number]>,
   entry: MetadataRoute.Sitemap[number]
 ) {
-  const prev = map.get(entry.url);
+  const normalized: MetadataRoute.Sitemap[number] = {
+    ...entry,
+    url: escapeXmlUrlForSitemap(entry.url),
+  };
+  if (normalized.images?.length) {
+    normalized.images = normalized.images.map((img) =>
+      typeof img === "string" ? escapeXmlUrlForSitemap(img) : img
+    );
+  }
+
+  const prev = map.get(normalized.url);
   if (!prev) {
-    map.set(entry.url, entry);
+    map.set(normalized.url, normalized);
     return;
   }
   const prevMs = lastModifiedToMs(prev.lastModified);
-  const nextMs = lastModifiedToMs(entry.lastModified);
+  const nextMs = lastModifiedToMs(normalized.lastModified);
   if (nextMs >= prevMs) {
-    map.set(entry.url, { ...prev, ...entry, lastModified: entry.lastModified });
+    map.set(normalized.url, { ...prev, ...normalized, lastModified: normalized.lastModified });
   }
 }
 
