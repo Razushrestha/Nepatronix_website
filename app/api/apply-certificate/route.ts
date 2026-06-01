@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { client } from "@/sanity/lib/client";
+import { normalizeCertificateGender } from "@/lib/certificate/pronouns";
 
 // Generate unique certificate UID: NT-YYYYMMDD-00000009 format
 async function generateCertificateUID(): Promise<string> {
@@ -68,6 +69,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       fullName,
+      gender,
       email,
       contactNumber,
       courseType,
@@ -78,8 +80,10 @@ export async function POST(req: NextRequest) {
       paymentScreenshot,
     } = body;
 
+    const normalizedGender = normalizeCertificateGender(gender);
+
     // Validate required fields
-    if (!fullName || !email || !contactNumber || !courseType || !trainingHours || !trainingDays) {
+    if (!fullName || !gender || !email || !contactNumber || !courseType || !trainingHours || !trainingDays) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -114,9 +118,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Create application in Sanity
-    const applicationData: { _type: string; applicantName: string; email: string; phone: string; courseType: string; trainingHours: string; trainingDays: string; courseName: string; status: string; submittedAt: string; profileImage?: { _type: string; asset: { _type: string; _ref: string } }; paymentDetails?: { amount: number | null; paymentMethod: string; paymentDate: string; paymentProof?: { _type: string; asset: { _type: string; _ref: string } } }; certificateDetails?: { certificateUID: string; issueDate: string; certificateUrl: string; qrCodeData: string } } = {
+    const applicationData: { _type: string; applicantName: string; gender: string; email: string; phone: string; courseType: string; trainingHours: string; trainingDays: string; courseName: string; status: string; submittedAt: string; profileImage?: { _type: string; asset: { _type: string; _ref: string } }; paymentDetails?: { amount: number | null; paymentMethod: string; paymentDate: string; paymentProof?: { _type: string; asset: { _type: string; _ref: string } } }; certificateDetails?: { certificateUID: string; issueDate: string; certificateUrl: string; qrCodeData: string } } = {
       _type: "certificationApplication",
       applicantName: fullName,
+      gender: normalizedGender,
       email,
       phone: contactNumber,
       courseType,

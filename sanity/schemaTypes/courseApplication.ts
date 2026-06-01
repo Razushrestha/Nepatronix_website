@@ -12,6 +12,20 @@ export const certificationApplication = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'gender',
+      title: 'Gender',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Male', value: 'male' },
+          { title: 'Female', value: 'female' },
+          { title: 'Other', value: 'other' },
+        ],
+        layout: 'radio',
+      },
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
       name: 'email',
       title: 'Email',
       type: 'string',

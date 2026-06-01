@@ -23,7 +23,7 @@ const schools: School[] = [
   { name: 'Texas College', logo: '/school_College/texas_college.png' },
 ]
 
-const schoolVideoUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+const defaultReelUrl = 'https://www.facebook.com/reel/1104098458271218'
 
 const schoolTestimonial = {
   quote:
@@ -31,16 +31,15 @@ const schoolTestimonial = {
   attribution: 'Principal, Kathmandu Modern School',
 }
 
-function getEmbeddedYouTubeUrl(url: string): string {
-  if (!url) return ''
+function getFacebookReelEmbedUrl(reelUrl: string): string {
+  if (!reelUrl) return ''
 
-  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([\w-]+)/)
+  const normalized = reelUrl
+    .replace(/^https?:\/\/web\.facebook\.com/i, 'https://www.facebook.com')
+    .replace(/^https?:\/\/facebook\.com/i, 'https://www.facebook.com')
 
-  if (match?.[1]) {
-    return `https://www.youtube.com/embed/${match[1]}?rel=0&showinfo=0&autoplay=0&modestbranding=1`
-  }
-
-  return url
+  const encoded = encodeURIComponent(normalized)
+  return `https://www.facebook.com/plugins/video.php?href=${encoded}&show_text=false&width=500`
 }
 
 function PartnerTile({ school }: { school: School }) {
@@ -61,12 +60,12 @@ function PartnerTile({ school }: { school: School }) {
   )
 }
 
-function YouTubePlayer({ url }: { url: string }) {
+function FacebookReelPlayer({ url }: { url: string }) {
   const [isLoaded, setIsLoaded] = useState(false)
 
   return (
-    <div className="overflow-hidden rounded-[32px] bg-black shadow-2xl">
-      <div className="relative aspect-video bg-slate-900">
+    <div className="mx-auto w-full max-w-[320px] overflow-hidden rounded-[32px] bg-black shadow-2xl">
+      <div className="relative aspect-[9/16] bg-slate-900">
         {!isLoaded && (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
             <div className="text-center">
@@ -78,8 +77,8 @@ function YouTubePlayer({ url }: { url: string }) {
         )}
         <iframe
           src={url}
-          title="School partner testimonial video"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          title="School partner Facebook reel"
+          allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
           allowFullScreen
           onLoad={() => setIsLoaded(true)}
           className="absolute inset-0 h-full w-full border-0"
@@ -91,7 +90,8 @@ function YouTubePlayer({ url }: { url: string }) {
 }
 
 export default function SchoolCollaborations() {
-  const embedUrl = useMemo(() => getEmbeddedYouTubeUrl(schoolVideoUrl), [])
+  const reelUrl = process.env.NEXT_PUBLIC_FACEBOOK_REEL_URL || defaultReelUrl
+  const embedUrl = useMemo(() => getFacebookReelEmbedUrl(reelUrl), [reelUrl])
 
   return (
     <section className="mt-16 rounded-3xl bg-white p-6 sm:p-10">
@@ -133,7 +133,7 @@ export default function SchoolCollaborations() {
           </div>
 
           {embedUrl ? (
-            <YouTubePlayer url={embedUrl} />
+            <FacebookReelPlayer url={embedUrl} />
           ) : (
             <div className="overflow-hidden rounded-[32px] bg-slate-900 shadow-2xl">
               <div className="relative flex aspect-video items-center justify-center">

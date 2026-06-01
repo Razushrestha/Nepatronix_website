@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { CertificateTemplate } from "@/app/(site)/components/CertificateTemplate";
 import PrintButton from "./PrintButton";
+import { normalizeCertificateGender } from "@/lib/certificate/pronouns";
 
 interface Props {
   params: Promise<{ uid: string }>;
@@ -45,6 +46,7 @@ export default async function VerifyCertificatePage({ params }: Props) {
     `*[_type == "certificationApplication" && certificateDetails.certificateUID == $uid][0]{
       _id,
       applicantName,
+      gender,
       courseName,
       trainingHours,
       trainingDays,
@@ -191,6 +193,7 @@ export default async function VerifyCertificatePage({ params }: Props) {
           courseName={application.courseName}
           courseHours={application.trainingHours ?? ''}
           courseDays={application.trainingDays ?? ''}
+          gender={normalizeCertificateGender(application.gender)}
           certificateUID={application.certificateUID}
           organizationName={COMPANY_NAME}
           issueDate={application.issueDate ?? new Date().toISOString()}

@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { client } from "@/sanity/lib/client";
 import QRCode from "qrcode";
+import {
+  buildCertificateParticipationParagraph,
+  getCertificatePronouns,
+  normalizeCertificateGender,
+  type CertificateGender,
+} from "@/lib/certificate/pronouns";
 
 // Generate unique certificate UID: NT-YYYYMMDD-00000009 format
 async function generateCertificateUID(): Promise<string> {
@@ -37,6 +43,7 @@ async function generateCertificateHTML(data: {
   courseName: string;
   courseHours: string;
   courseDays: string;
+  gender?: CertificateGender;
   certificateUID: string;
   organizationName: string;
   issueDate: string;
@@ -57,6 +64,11 @@ async function generateCertificateHTML(data: {
     </div>`;
 
   const logo = data.logoUrl || 'https://nepatronix.org/logo.png';
+  const pronouns = getCertificatePronouns(data.gender);
+  const participationParagraph = buildCertificateParticipationParagraph(pronouns);
+  const participationHtml = participationParagraph
+    .replace('electronics and innovation', '<strong>electronics and innovation</strong>')
+    .replace('impact in society', '<strong>impact in society</strong>');
 
   return `
 <!DOCTYPE html>
@@ -101,7 +113,7 @@ async function generateCertificateHTML(data: {
   <!-- Body -->
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;font-size:27px;line-height:1.75;color:#222;padding:7px 178px 0;font-family:Georgia,serif;gap:14px;">
     <p>This is to certify that <strong>${data.recipientName}</strong> successfully participated in the <strong>${data.courseHours ? data.courseHours + '-minute ' : ''}${data.courseName}</strong>.</p>
-    <p style="font-size:26px;">During the workshop, he demonstrated enthusiasm for learning and a keen interest in <strong>electronics and innovation</strong>. We appreciate his active participation and encourage him to continue exploring technology and innovation to create meaningful <strong>impact in society</strong> and contribute to the nation's development.</p>
+    <p style="font-size:26px;">${participationHtml}</p>
   </div>
 
   <!-- Bottom row -->
@@ -160,6 +172,7 @@ export async function POST(req: NextRequest) {
       `*[_type == "certificationApplication" && _id == $applicationId][0]{
         _id,
         applicantName,
+        gender,
         email,
         phone,
         status,
@@ -219,6 +232,7 @@ export async function POST(req: NextRequest) {
       courseName: application.courseName,
       courseHours: application.trainingHours,
       courseDays: application.trainingDays,
+      gender: normalizeCertificateGender(application.gender),
       certificateUID,
       organizationName: COMPANY_NAME,
       issueDate,

@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { urlFor } from '@/sanity/lib/image'
 import CertificationActions from '../CertificationActions'
 import QRDisplay from '../../../../components/QRDisplay'
+import { normalizeCertificateGender } from '@/lib/certificate/pronouns'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,7 +21,7 @@ export default async function CertificationDetailPage({ params }: { params: Prom
   const { id } = await params
   const cert = await client.fetch(
     `*[_type == "certificationApplication" && _id == $id][0]{
-      _id, applicantName, email, phone, courseName, courseType,
+      _id, applicantName, gender, email, phone, courseName, courseType,
       trainingHours, trainingDays, status, submittedAt, profileImage,
       paymentDetails, certificateDetails
     }`,
@@ -29,8 +30,15 @@ export default async function CertificationDetailPage({ params }: { params: Prom
 
   if (!cert) notFound()
 
+  const genderLabel = {
+    male: 'Male',
+    female: 'Female',
+    other: 'Other',
+  }[normalizeCertificateGender(cert.gender)] ?? 'Other'
+
   const fields = [
     { label: 'Full Name', value: cert.applicantName },
+    { label: 'Gender', value: genderLabel },
     { label: 'Email', value: cert.email },
     { label: 'Phone', value: cert.phone },
     { label: 'Course', value: cert.courseName },
@@ -180,6 +188,7 @@ export default async function CertificationDetailPage({ params }: { params: Prom
             existingCertUID={cert.certificateDetails?.certificateUID}
             certData={{
               applicantName: cert.applicantName,
+              gender: normalizeCertificateGender(cert.gender),
               courseName: cert.courseName,
               trainingHours: cert.trainingHours,
               trainingDays: cert.trainingDays,

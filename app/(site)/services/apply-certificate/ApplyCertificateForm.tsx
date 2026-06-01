@@ -17,6 +17,7 @@ const ApplyCertificateForm = ({ courses }: Props) => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     fullName: '',
+    gender: '',
     courseName: '',
     trainingHours: '3',
     trainingDays: '1',
@@ -66,6 +67,7 @@ const ApplyCertificateForm = ({ courses }: Props) => {
     e.preventDefault();
     setSubmitMessage('');
     if (!formData.fullName) { setSubmitMessage('Please enter your full name.'); return; }
+    if (!formData.gender) { setSubmitMessage('Please select your gender.'); return; }
     if (!formData.courseName) { setSubmitMessage('Please select a course.'); return; }
     if (!formData.email) { setSubmitMessage('Please enter your email address.'); return; }
     if (!formData.contactNumber) { setSubmitMessage('Please enter your contact number.'); return; }
@@ -108,6 +110,7 @@ const ApplyCertificateForm = ({ courses }: Props) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fullName: formData.fullName,
+          gender: formData.gender,
           email: formData.email,
           contactNumber: formData.contactNumber,
           courseType: formData.courseType,
@@ -126,6 +129,7 @@ const ApplyCertificateForm = ({ courses }: Props) => {
         setStep(1);
         setFormData({
           fullName: '',
+          gender: '',
           courseName: '',
           trainingHours: '3',
           trainingDays: '1',
@@ -236,6 +240,24 @@ const ApplyCertificateForm = ({ courses }: Props) => {
                   />
                 </div>
 
+                {/* Gender */}
+                <div className="mb-4">
+                  <label htmlFor="gender" className="block text-gray-700 font-semibold mb-2 text-xs uppercase tracking-wide">Gender *</label>
+                  <select
+                    name="gender"
+                    id="gender"
+                    value={formData.gender}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+                    required
+                  >
+                    <option value="">— Select gender —</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
                 {/* Course Name */}
                 <div className="mb-4">
                   <label htmlFor="courseName" className="block text-gray-700 font-semibold mb-2 text-xs uppercase tracking-wide">Course Name *</label>
@@ -287,6 +309,7 @@ const ApplyCertificateForm = ({ courses }: Props) => {
                     className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
                   >
                     <option value="3">3 hours</option>
+                    <option value="7">7 hours</option>
                     <option value="30">30 hours</option>
                     <option value="35">35 hours</option>
                     <option value="40">40 hours</option>

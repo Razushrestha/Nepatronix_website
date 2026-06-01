@@ -1,11 +1,17 @@
 'use client';
 import React from 'react';
+import {
+  getCertificatePronouns,
+  normalizeCertificateGender,
+  type CertificateGender,
+} from '@/lib/certificate/pronouns';
 
 interface CertificateTemplateProps {
   recipientName: string;
   courseName: string;
   courseHours: string;
   courseDays: string;
+  gender?: CertificateGender;
   certificateUID: string;
   organizationName: string;
   issueDate: string;
@@ -34,6 +40,7 @@ export function CertificateTemplate({
   recipientName,
   courseName,
   courseHours,
+  gender,
   certificateUID,
   organizationName,
   issueDate,
@@ -47,6 +54,7 @@ export function CertificateTemplate({
 }: CertificateTemplateProps) {
   const resolvedLogo = logoUrl || '/logo.png';
   const resolvedSignature = signatoryImageUrl || '/signaturee.png';
+  const pronouns = getCertificatePronouns(gender);
 
   // Ref for certificate div
   const certRef = React.useRef<HTMLDivElement>(null);
@@ -283,9 +291,9 @@ export function CertificateTemplate({
           <strong>{courseHours ? `${courseHours} hours ` : ''}{courseName}</strong>.
         </p>
         <p style={{ fontSize: '28px' }}>
-          During the workshop, he demonstrated enthusiasm for learning and a keen interest in{' '}
-          <strong>electronics and innovation</strong>. We appreciate his active participation and
-          encourage him to continue exploring technology and innovation to create meaningful{' '}
+          During the workshop, {pronouns.subject} demonstrated enthusiasm for learning and a keen interest in{' '}
+          <strong>electronics and innovation</strong>. We appreciate {pronouns.possessive} active participation and
+          encourage {pronouns.object} to continue exploring technology and innovation to create meaningful{' '}
           <strong>impact in society</strong> and contribute to the nation&apos;s development.
         </p>
       </div>

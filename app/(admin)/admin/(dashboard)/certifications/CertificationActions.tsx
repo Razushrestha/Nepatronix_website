@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import QRCode from 'qrcode'
 import { CertificateTemplate } from '@/app/(site)/components/CertificateTemplate'
+import { type CertificateGender } from '@/lib/certificate/pronouns'
 
 const COMPANY_NAME = 'Nepatronix Engineering Solution Pvt. Ltd.'
 
@@ -16,6 +17,7 @@ const STATUSES = [
 
 interface CertDataProp {
   applicantName: string
+  gender?: CertificateGender
   courseName: string
   trainingHours?: string
   trainingDays?: string
@@ -258,6 +260,7 @@ export default function CertificationActions({
             }}>
               <CertificateTemplate
                 recipientName={data.applicantName}
+                gender={data.gender}
                 courseName={data.courseName}
                 courseHours={data.trainingHours ?? ''}
                 courseDays={data.trainingDays ?? ''}
