@@ -335,6 +335,7 @@ const ApplyCertificateForm = ({ courses }: Props) => {
                     className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
                   >
                     <option value="1">1 day</option>
+                    <option value="3">3 days</option>
                     <option value="7">7 days</option>
                     <option value="10">10 days</option>
                     <option value="45">45 days</option>
