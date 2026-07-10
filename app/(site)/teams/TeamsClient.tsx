@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { urlFor } from "@/sanity/lib/image";
 import Image from "next/image";
 
 export interface TeamMember {
@@ -10,16 +9,13 @@ export interface TeamMember {
   title: string;
   role: "Leadership" | "Advisor" | "Team";
   image?: {
-    asset?: {
-      _ref?: string;
-      _type?: string;
-      url?: string;
-    };
+    url?: string;
+    alt?: string;
   };
 }
 
 const TeamMemberCard = ({ member, className = "" }: { member: TeamMember; className?: string }) => {
-  const imageUrl = member.image ? urlFor(member.image).width(400).url() : "https://dummyimage.com/400x400/ccc/fff";
+  const imageUrl = member.image?.url || "https://dummyimage.com/400x400/ccc/fff";
 
   return (
     <div className={`group relative bg-white rounded-3xl p-6 shadow-sm border border-slate-100 transition-all duration-300 hover:shadow-xl hover:shadow-red-900/10 hover:-translate-y-2 ${className}`}>

@@ -1,59 +1,40 @@
-import { createClient } from 'next-sanity';
 import { NextResponse } from 'next/server';
+import { connectToDatabase } from '@/lib/mongodb';
+import { Subscriber } from '@/lib/models';
 
-const readClient = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
-  apiVersion: '2023-01-01',
-  useCdn: false,
-});
-
-// IMPORTANT: Secure this route with a secret key in your Sanity Webhook
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const secret = req.headers.get('x-sanity-secret');
+    const secret = req.headers.get('x-webhook-secret');
 
-    // Basic security check (You should set this in your environment variables)
-    if (secret !== process.env.SANITY_WEBHOOK_SECRET) {
+    if (secret !== process.env.BLOG_WEBHOOK_SECRET) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // This data comes from the Sanity Webhook payload
     const { title, slug, excerpt } = body;
 
     if (!title || !slug) {
       return NextResponse.json({ error: 'Missing blog information' }, { status: 400 });
     }
 
-    // 1. Fetch all active subscribers
-    const subscribers = await readClient.fetch(
-      `*[_type == "subscriber" && status == "active"].email`
-    );
+    await connectToDatabase();
+    const subscribers = await Subscriber.find({ status: 'active' })
+      .select('email')
+      .lean<{ email: string }[]>();
 
-    if (!subscribers || subscribers.length === 0) {
+    if (!subscribers.length) {
       return NextResponse.json({ message: 'No subscribers to notify' });
     }
 
     console.log(`Preparing to notify ${subscribers.length} subscribers about: ${title}`);
 
-    // 2. TRIGGER EMAIL SENDING
-    // In a real-world scenario, you would use a service like Resend or SendGrid here.
-    // Example with Resend:
-    // const resend = new Resend(process.env.RESEND_API_KEY);
-    // await resend.emails.send({
-    //   from: 'Nepatronix <updates@nepatronix.org>',
-    //   to: subscribers,
-    //   subject: `New Post: ${title}`,
-    //   html: `<p>${excerpt}</p><a href="https://nepatronix.org/blog/${slug}">Read more</a>`
-    // });
-
-    return NextResponse.json({ 
-      message: 'Notification trigger received', 
-      subscriberCount: subscribers.length 
+    return NextResponse.json({
+      message: 'Notification trigger received',
+      subscriberCount: subscribers.length,
+      excerpt,
+      slug,
     });
-
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Notification error:', error);
     return NextResponse.json({ error: 'Failed to process notification' }, { status: 500 });
   }

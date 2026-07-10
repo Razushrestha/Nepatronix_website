@@ -1,5 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { createClient } from 'next-sanity';
+import { connectToDatabase } from '@/lib/mongodb';
+import { Enrollment } from '@/lib/models';
+
+export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,7 +16,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let sanitySuccess = false;
+    let dbSuccess = false;
     let emailSuccess = false;
 
     // Send email using Web3Forms FIRST (more reliable)
@@ -50,47 +53,36 @@ export async function POST(req: NextRequest) {
       console.error('Email error:', emailError);
     }
 
-    // Save to Sanity (optional - if token has write permissions)
+    // Save to MongoDB
     try {
-      if (process.env.SANITY_API_TOKEN) {
-        const client = createClient({
-          projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
-          dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
-          token: process.env.SANITY_API_TOKEN,
-          useCdn: false,
-          apiVersion: '2024-01-01',
-        });
-
-        await client.create({
-          _type: 'enrollment',
-          fullName,
-          email,
-          phone,
-          organization: organization || '',
-          message: message || '',
-          courseName,
-          coursePrice,
-          status: 'pending',
-          createdAt: new Date().toISOString(),
-        });
-        sanitySuccess = true;
-        console.log('Sanity: Enrollment saved successfully');
-      }
-    } catch (sanityError) {
-      console.error('Sanity error (not critical):', sanityError);
-      // Continue - email is more important
+      await connectToDatabase();
+      await Enrollment.create({
+        fullName,
+        email,
+        phone,
+        organization: organization || '',
+        message: message || '',
+        courseName,
+        coursePrice,
+        status: 'pending',
+      });
+      dbSuccess = true;
+      console.log('MongoDB: Enrollment saved successfully');
+    } catch (dbError) {
+      console.error('MongoDB error (not critical):', dbError);
+      // Continue - email is a secondary channel
     }
 
     // Return success if email was sent (primary goal)
     if (emailSuccess) {
       return NextResponse.json(
-        { message: 'Enrollment request submitted successfully', sanity: sanitySuccess },
+        { message: 'Enrollment request submitted successfully', saved: dbSuccess },
         { status: 200 }
       );
     }
 
-    // If email failed but sanity worked
-    if (sanitySuccess) {
+    // If email failed but DB worked
+    if (dbSuccess) {
       return NextResponse.json(
         { message: 'Enrollment saved but email notification failed' },
         { status: 200 }

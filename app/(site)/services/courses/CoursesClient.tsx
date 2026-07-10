@@ -126,8 +126,8 @@ export default function CoursesClient({ courses, objectives }: CoursesClientProp
     setIsSubmitting(true);
 
     try {
-      // First, save to Sanity
-      const sanityResponse = await fetch("/api/enroll", {
+      // Save enrollment to MongoDB via API
+      const enrollResponse = await fetch("/api/enroll", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -164,13 +164,13 @@ Additional Message: ${formData.message || "None"}
 
       await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams);
 
-      if (sanityResponse.ok) {
+      if (enrollResponse.ok) {
         setSubmitStatus("success");
         setTimeout(() => {
           closeModal();
         }, 2000);
       } else {
-        // Even if Sanity fails, email was sent
+        // Enrollment API failed but notification email was sent
         setSubmitStatus("success");
         setTimeout(() => {
           closeModal();

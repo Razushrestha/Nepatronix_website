@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 
 export default function AdminLoginPage() {
   const router = useRouter()
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
@@ -17,13 +18,15 @@ export default function AdminLoginPage() {
     const res = await fetch('/api/admin/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ email, password }),
     })
 
     if (res.ok) {
       router.push('/admin')
+      router.refresh()
     } else {
-      setError('Invalid password. Please try again.')
+      const data = await res.json().catch(() => ({}))
+      setError(data.error || 'Invalid credentials. Please try again.')
     }
     setLoading(false)
   }
@@ -38,12 +41,24 @@ export default function AdminLoginPage() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
-          <p className="text-gray-400 text-sm mt-1">Nepatronix — Staff Only</p>
+          <p className="text-gray-400 text-sm mt-1">Nepatronix Staff Only</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Admin Password<span className="text-[#C1121F]">*</span></label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Email<span className="text-[#C1121F]">*</span></label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#C1121F] transition-colors"
+              placeholder="admin@nepatronix.org"
+              autoComplete="username"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Password<span className="text-[#C1121F]">*</span></label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}

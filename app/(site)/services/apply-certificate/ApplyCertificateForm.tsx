@@ -251,7 +251,7 @@ const ApplyCertificateForm = ({ courses }: Props) => {
                     className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
                     required
                   >
-                    <option value="">— Select gender —</option>
+                    <option value="">Select gender</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
                     <option value="other">Other</option>
@@ -269,10 +269,10 @@ const ApplyCertificateForm = ({ courses }: Props) => {
                     className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
                     required
                   >
-                    <option value="">— Select a course —</option>
+                    <option value="">Select a course</option>
                     {courses.map((course) => (
                       <option key={course._id} value={course.title}>
-                        {course.title}{course.hours ? ` (${course.hours}h)` : ''} — {course.isFree ? 'Free' : 'Paid'}
+                        {course.title}{course.hours ? ` (${course.hours}h)` : ''} · {course.isFree ? 'Free' : 'Paid'}
                       </option>
                     ))}
                   </select>

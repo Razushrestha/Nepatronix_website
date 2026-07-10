@@ -1,37 +1,12 @@
-import { client } from "@/sanity/lib/client";
 import BlogContent from "./BlogContent";
 import type { Metadata } from "next";
-import { canonicalBlogSlug } from "@/lib/blog/slugPath";
+import {
+  getAllBlogPosts,
+  toBlogListPost,
+} from "@/lib/blog/queries";
 
 const SITE = "https://nepatronix.org";
 const OG_DEFAULT = `${SITE}/og-banner.png`;
-
-const postsListQuery = `*[_type == "post" && defined(slug.current)] | order(publishedAt desc) {
-  _id,
-  title,
-  excerpt,
-  publishedAt,
-  readingTime,
-  "categories": categories[],
-  "tags": tags[],
-  mainImage,
-  author,
-  slug
-}`;
-
-const postsMetaQuery = `*[_type == "post" && defined(slug.current)] | order(publishedAt desc)[0...60] {
-  title,
-  excerpt,
-  publishedAt,
-  "categories": categories[],
-  "tags": tags[],
-  "slug": slug.current
-}`;
-
-function slugFromPost(post: { slug?: { current?: string } | string }) {
-  if (typeof post.slug === "string") return post.slug;
-  return post.slug?.current ?? "";
-}
 
 function buildBlogIndexDescription(
   posts: { title: string; excerpt?: string }[]
@@ -80,7 +55,13 @@ export async function generateMetadata(): Promise<Metadata> {
   }[] = [];
 
   try {
-    metaPosts = await client.fetch(postsMetaQuery, {}, { next: { revalidate: 120, tags: ["blog-list"] } });
+    const docs = await getAllBlogPosts();
+    metaPosts = docs.slice(0, 60).map((post) => ({
+      title: post.title || "",
+      excerpt: post.excerpt,
+      categories: post.categories,
+      tags: post.tags,
+    }));
   } catch {
     metaPosts = [];
   }
@@ -128,11 +109,10 @@ export async function generateMetadata(): Promise<Metadata> {
 export const revalidate = 120;
 
 export default async function BlogPage() {
-  const rawPosts = await client.fetch(postsListQuery, {}, { next: { revalidate: 120, tags: ["blog-list"] } });
-  const posts = rawPosts.flatMap((post: { slug?: { current?: string } | string }) => {
-    const canon = canonicalBlogSlug(slugFromPost(post));
-    if (!canon) return [];
-    return [{ ...post, slug: { current: canon } }];
+  const docs = await getAllBlogPosts();
+  const posts = docs.flatMap((post) => {
+    const item = toBlogListPost(post);
+    return item ? [item] : [];
   });
 
   const jsonLd = {
@@ -147,12 +127,12 @@ export default async function BlogPage() {
       url: SITE,
       logo: { "@type": "ImageObject", url: `${SITE}/logo.png` },
     },
-    blogPost: posts.map((post: { title: string; excerpt?: string; publishedAt?: string; slug?: { current?: string } | string }) => ({
+    blogPost: posts.map((post) => ({
       "@type": "BlogPosting",
       headline: post.title,
       name: post.title,
       description: post.excerpt?.replace(/\s+/g, " ").trim().slice(0, 300),
-      url: `${SITE}/blog/${slugFromPost(post)}`,
+      url: `${SITE}/blog/${post.slug.current}`,
       datePublished: post.publishedAt,
     })),
   };
@@ -162,25 +142,20 @@ export default async function BlogPage() {
     "@type": "ItemList",
     name: "Nepatronix blog articles",
     numberOfItems: posts.length,
-    itemListElement: posts.map(
-      (
-        post: { title: string; slug?: { current?: string } | string },
-        index: number
-      ) => {
-        const url = `${SITE}/blog/${slugFromPost(post)}`;
-        return {
-          "@type": "ListItem",
-          position: index + 1,
-          name: post.title,
-          item: {
-            "@type": "BlogPosting",
-            "@id": `${url}#article`,
-            url,
-            headline: post.title,
-          },
-        };
-      }
-    ),
+    itemListElement: posts.map((post, index) => {
+      const url = `${SITE}/blog/${post.slug.current}`;
+      return {
+        "@type": "ListItem",
+        position: index + 1,
+        name: post.title,
+        item: {
+          "@type": "BlogPosting",
+          "@id": `${url}#article`,
+          url,
+          headline: post.title,
+        },
+      };
+    }),
   };
 
   const breadcrumbJsonLd = {

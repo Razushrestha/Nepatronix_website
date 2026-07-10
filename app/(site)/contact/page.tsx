@@ -1,4 +1,5 @@
-import { client } from "@/sanity/lib/client";
+import { connectToDatabase } from "@/lib/mongodb";
+import { ContactPage as ContactPageModel } from "@/lib/models";
 import ContactClient from "./ContactClient";
 
 export const revalidate = 3600;
@@ -20,30 +21,27 @@ interface ContactPageData {
   }[];
 }
 
+const DEFAULT_CONTACT: ContactPageData = {
+  pageTitle: "Contact Us",
+  pageDescription: "Reach out to Nepatronix for courses, collaborations, and STEM solutions.",
+  contactDetails: {
+    email: "info@nepatronix.org",
+    phone: "+977-9803661701",
+    address: "Tinkune, Kathmandu, Nepal",
+    hours: "Sun-Fri, 9:00 AM - 6:00 PM",
+  },
+  formTitle: "Send us a message",
+  formSubtitle: "Tell us how we can help.",
+  socialMedia: [
+    { platform: "LinkedIn", url: "https://www.linkedin.com/company/nepatronix" },
+    { platform: "Facebook", url: "https://www.facebook.com/NepaTronixx" },
+  ],
+};
+
 async function getContactData(): Promise<ContactPageData> {
-  const data = await client.fetch<ContactPageData>(
-    `*[_type == "contact"][0]`,
-    {},
-    { next: { revalidate: 3600 } }
-  );
-  return (
-    data || {
-      pageTitle: "Contact Us",
-      pageDescription: "Reach out to Nepatronix for courses, collaborations, and STEM solutions.",
-      contactDetails: {
-        email: "info@nepatronix.org",
-        phone: "+977-9803661701",
-        address: "Tinkune, Kathmandu, Nepal",
-        hours: "Sun-Fri, 9:00 AM - 6:00 PM",
-      },
-      formTitle: "Send us a message",
-      formSubtitle: "Tell us how we can help.",
-      socialMedia: [
-        { platform: "LinkedIn", url: "https://www.linkedin.com/company/nepatronix" },
-        { platform: "Facebook", url: "https://www.facebook.com/NepaTronixx" },
-      ],
-    }
-  );
+  await connectToDatabase();
+  const data = await ContactPageModel.findOne({ key: "contact" }).lean<ContactPageData | null>();
+  return data || DEFAULT_CONTACT;
 }
 
 export default async function ContactPage() {

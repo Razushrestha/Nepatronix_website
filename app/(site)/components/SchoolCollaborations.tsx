@@ -8,7 +8,7 @@ interface School {
   logo: string
 }
 
-const schools: School[] = [
+const defaultSchools: School[] = [
   { name: 'BIT', logo: '/school_College/BIT-removebg-preview.png' },
   { name: 'Bramarupa', logo: '/school_College/bramarupa-removebg-preview.png' },
   { name: 'Candid Career', logo: '/school_College/candidcareer-removebg-preview.png' },
@@ -89,7 +89,7 @@ function FacebookReelPlayer({ url }: { url: string }) {
   )
 }
 
-export default function SchoolCollaborations() {
+export default function SchoolCollaborations({ schools = defaultSchools }: { schools?: School[] }) {
   const reelUrl = process.env.NEXT_PUBLIC_FACEBOOK_REEL_URL || defaultReelUrl
   const embedUrl = useMemo(() => getFacebookReelEmbedUrl(reelUrl), [reelUrl])
 

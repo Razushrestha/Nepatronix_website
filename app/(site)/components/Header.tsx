@@ -61,8 +61,8 @@ export function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Don't show header in Sanity Studio
-  if (pathname?.startsWith("/studio")) return null;
+  // Don't show header in the admin dashboard
+  if (pathname?.startsWith("/admin")) return null;
 
   return (
     <>

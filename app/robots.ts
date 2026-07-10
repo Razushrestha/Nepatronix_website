@@ -7,16 +7,15 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         disallow: [
-          '/studio/',          // Sanity CMS Studio
-          '/admin',            // Dashboard (with or without trailing slash)
+          '/admin',
           '/admin/',
-          '/api/',             // API routes
+          '/api/',
         ],
       },
       {
         userAgent: ['GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'PerplexityBot'],
         allow: '/',
-        disallow: ['/studio/', '/admin', '/admin/', '/api/'],
+        disallow: ['/admin', '/admin/', '/api/'],
       },
     ],
     sitemap: 'https://nepatronix.org/sitemap.xml',

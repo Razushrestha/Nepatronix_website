@@ -1,8 +1,23 @@
 "use client";
 
 import Link from "next/link";
+import type { HeroSlideContent } from "@/lib/site-content";
 
-export function HeroSection() {
+const DEFAULT_HERO = {
+  title: "Certified IoT, Robotics & STEM Education in Nepal",
+  eyebrow: "",
+  description:
+    "From classrooms to real-world engineering — Nepatronix empowers the next generation of innovators.",
+  primaryCtaLabel: "Explore Programs",
+  primaryCtaHref: "/services",
+  secondaryCtaLabel: "Partner With Us",
+  secondaryCtaHref: "/partners",
+};
+
+export function HeroSection({ slide }: { slide?: HeroSlideContent | null }) {
+  const hero = { ...DEFAULT_HERO, ...(slide || {}) };
+  const useDefaultLayout = !slide?.title;
+
   return (
     <section className="relative isolate min-h-screen overflow-hidden bg-[#020617]">
       {/* Animated radar pulse rings */}
@@ -78,35 +93,45 @@ export function HeroSection() {
       {/* Content */}
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 pt-24 text-center">
         <div className="mx-auto max-w-4xl space-y-8">
+          {hero.eyebrow ? (
+            <p className="text-[#C1121F] font-semibold uppercase tracking-[0.3em] text-xs">
+              {hero.eyebrow}
+            </p>
+          ) : null}
           {/* Headline */}
           <h1 className="text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Certified IoT, Robotics & STEM <br className="hidden sm:block" />
-            <span className="bg-gradient-to-r from-[#C1121F] to-red-500 bg-clip-text text-transparent">
-              Education in Nepal
-            </span>
+            {useDefaultLayout ? (
+              <>
+                Certified IoT, Robotics & STEM <br className="hidden sm:block" />
+                <span className="bg-gradient-to-r from-[#C1121F] to-red-500 bg-clip-text text-transparent">
+                  Education in Nepal
+                </span>
+              </>
+            ) : (
+              hero.title
+            )}
           </h1>
 
           {/* Subtext */}
           <p className="mx-auto max-w-2xl text-lg leading-relaxed text-[#94a3b8] sm:text-xl">
-            From classrooms to real-world engineering — Nepatronix empowers the
-            next generation of innovators.
+            {hero.description}
           </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col items-center justify-center gap-4 pt-4 sm:flex-row">
             <Link
-              href="/services"
+              href={hero.primaryCtaHref}
               className="inline-flex items-center gap-2 rounded-full bg-[#e63946] px-8 py-4 text-sm font-semibold text-white shadow-lg shadow-[#e63946]/30 transition hover:bg-[#c62828] hover:shadow-xl"
             >
               <span className="text-lg">🔴</span>
-              Explore Programs
+              {hero.primaryCtaLabel}
             </Link>
             <Link
-              href="/partners"
+              href={hero.secondaryCtaHref}
               className="inline-flex items-center gap-2 rounded-full border-2 border-[#1e88e5] px-8 py-4 text-sm font-semibold text-[#1e88e5] transition hover:bg-[#1e88e5] hover:text-white"
             >
               <span className="text-lg">🔵</span>
-              Partner With Us
+              {hero.secondaryCtaLabel}
             </Link>
           </div>
         </div>

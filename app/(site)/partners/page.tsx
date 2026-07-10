@@ -276,7 +276,7 @@ export default function AboutPage() {
             <FadeIn direction="left">
               <div className="group relative rounded-2xl overflow-hidden shadow-xl border border-slate-200 hover:shadow-2xl transition-all duration-500">
                 <Image
-                  src="/certificate-iitm.jpg"
+                  src="/certificate-iitm.png"
                   alt="IIT Madras SWAYAM Plus Course Completion Certificate – Raju Shrestha"
                   width={800}
                   height={566}

@@ -1,10 +1,13 @@
 import { Metadata } from "next";
-import { client } from "@/sanity/lib/client";
+import { connectToDatabase } from "@/lib/mongodb";
+import { Certification } from "@/lib/models";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { CertificateTemplate } from "@/app/(site)/components/CertificateTemplate";
 import PrintButton from "./PrintButton";
 import { normalizeCertificateGender } from "@/lib/certificate/pronouns";
+
+export const runtime = "nodejs";
 
 interface Props {
   params: Promise<{ uid: string }>;
@@ -42,24 +45,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function VerifyCertificatePage({ params }: Props) {
   const { uid } = await params;
 
-  const application = await client.fetch(
-    `*[_type == "certificationApplication" && certificateDetails.certificateUID == $uid][0]{
-      _id,
-      applicantName,
-      gender,
-      courseName,
-      trainingHours,
-      trainingDays,
-      "issueDate": certificateDetails.issueDate,
-      "certificateUID": certificateDetails.certificateUID,
-      "profileImage": profileImage.asset->url,
-    }`,
-    { uid }
-  );
+  await connectToDatabase();
+  const doc = await Certification.findOne({ "certificateDetails.certificateUID": uid })
+    .select("applicantName gender courseName trainingHours trainingDays profileImage certificateDetails")
+    .lean<{
+      applicantName?: string;
+      gender?: string;
+      courseName?: string;
+      trainingHours?: string;
+      trainingDays?: string;
+      profileImage?: { url?: string };
+      certificateDetails?: { issueDate?: Date; certificateUID?: string };
+    }>();
 
-  if (!application) {
+  if (!doc) {
     notFound();
   }
+
+  const application = {
+    applicantName: doc.applicantName,
+    gender: doc.gender,
+    courseName: doc.courseName,
+    trainingHours: doc.trainingHours,
+    trainingDays: doc.trainingDays,
+    issueDate: doc.certificateDetails?.issueDate
+      ? new Date(doc.certificateDetails.issueDate).toISOString()
+      : null,
+    certificateUID: doc.certificateDetails?.certificateUID,
+    profileImage: doc.profileImage?.url,
+  };
 
   const COMPANY_NAME = "Nepatronix Engineering Solution Pvt. Ltd.";
   const verificationUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://nepatronix.org'}/verify-certificate/${uid}`;
@@ -141,7 +155,7 @@ export default async function VerifyCertificatePage({ params }: Props) {
                 { label: 'Certificate ID', value: application.certificateUID, mono: true },
                 { label: 'Full Name',      value: application.applicantName },
                 { label: 'Course',         value: application.courseName },
-                { label: 'Duration',       value: `${application.trainingHours ?? '—'} hrs / ${application.trainingDays ?? '—'} days` },
+                { label: 'Duration',       value: `${application.trainingHours ?? ''} hrs / ${application.trainingDays ?? ''} days` },
                 { label: 'Issue Date',     value: issueDateLabel },
                 { label: 'Issued By',      value: COMPANY_NAME },
               ].map(({ label, value, mono }) => (

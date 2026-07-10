@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 
-const partnersData = [
+const defaultPartners = [
   { name: "Gyan Bazzar", logo: "/partner/gyanbazzar.png" },
   { name: "Drone Hub", logo: "/partner/dronehub.png" },
   { name: "diyo.ai", logo: "/partner/diyo.ai.png" },
@@ -18,7 +18,10 @@ const partnersData = [
   { name: "Youth Innovation Lab", logo: "/partner/Youth_Innovation_Lab_textlogo.svg_.png" },
 ];
 
-export function PartnersGrid() {
+type PartnerItem = { name: string; logo: string };
+
+export function PartnersGrid({ partners }: { partners?: PartnerItem[] }) {
+  const partnersData = partners?.length ? partners : defaultPartners;
   const [showAll, setShowAll] = useState(false);
   const initialCount = 6;
 

@@ -1,4 +1,5 @@
-import { client } from "@/sanity/lib/client";
+import { connectToDatabase } from "@/lib/mongodb";
+import { Footer as FooterModel, ContactPage } from "@/lib/models";
 
 interface FooterData {
   companyName: string;
@@ -51,21 +52,116 @@ function SocialIcon({ platform }: { platform: string }) {
   );
 }
 
-export async function Footer() {
-  const query = `*[_type == "footer"][0]`;
-  const footerData: FooterData | null = await client.fetch(
-    query,
-    {},
-    { next: { revalidate: 60 } }
-  );
+interface ContactData {
+  contactDetails?: {
+    email?: string;
+    phone?: string;
+    address?: string;
+    hours?: string;
+  };
+  socialMedia?: {
+    platform: string;
+    url: string;
+  }[];
+}
 
-  if (!footerData) {
-    // Fallback if data is not present
-    return null; 
-  }
+const SITE_URL = "https://nepatronix.org";
+
+// SEO: keyword-rich description reused for visible copy and structured data.
+const SEO_DESCRIPTION =
+  "Nepatronix Engineering Solutions is Nepal's leading IoT, robotics, and STEM education institute based in Kathmandu, offering hands-on Arduino training, PCB design courses, robotics workshops, drone building, and STEM lab setup for schools across Nepal.";
+
+const SEO_KEYWORDS = [
+  "IoT training in Nepal",
+  "Robotics training in Nepal",
+  "STEM education Nepal",
+  "Arduino training",
+  "PCB design training",
+  "Robotics workshops Kathmandu",
+  "STEM lab setup for schools",
+  "Engineering training Nepal",
+  "Electronics courses Nepal",
+  "Drone building workshops",
+];
+
+const DEFAULT_FOOTER: FooterData = {
+  companyName: "Nepatronix",
+  tagline: "Excellence Through Innovation",
+  description:
+    "Nepatronix Engineering Solutions is Nepal's leading IoT, robotics, and STEM education institute.",
+  contactInfo: {
+    address: "Tinkune, Kathmandu, Nepal",
+    postalCode: "44600",
+    weekdayHours: "Sun–Fri: 9:00 AM – 6:00 PM",
+    weekendHours: "Sat: By appointment",
+  },
+  quickLinks: [
+    { name: "Home", href: "/" },
+    { name: "Courses", href: "/services/courses" },
+    { name: "Blog", href: "/blog" },
+    { name: "Contact", href: "/contact" },
+  ],
+  expertise: [
+    { name: "IoT Training", desc: "Hands-on Arduino and sensor workshops" },
+    { name: "Robotics", desc: "School and college robotics programs" },
+    { name: "STEM Labs", desc: "End-to-end lab design and setup" },
+  ],
+  socialLinks: [
+    { platform: "Facebook", url: "https://www.facebook.com/NepaTronixx" },
+    { platform: "LinkedIn", url: "https://www.linkedin.com/company/nepatronix" },
+  ],
+  copyrightText: "Nepatronix Engineering Solutions",
+};
+
+export async function Footer() {
+  await connectToDatabase();
+  const [footerDoc, contactData] = await Promise.all([
+    FooterModel.findOne({ key: "footer" }).lean<FooterData | null>(),
+    ContactPage.findOne({ key: "contact" }).lean<ContactData | null>(),
+  ]);
+
+  const footerData = footerDoc || (await FooterModel.findOne().lean<FooterData | null>()) || DEFAULT_FOOTER;
+
+  const email = contactData?.contactDetails?.email;
+  const phone = contactData?.contactDetails?.phone;
+  const socialUrls = [
+    ...(footerData.socialLinks?.map((s) => s.url) ?? []),
+    ...(contactData?.socialMedia?.map((s) => s.url) ?? []),
+  ].filter(Boolean) as string[];
+
+  // SEO: Organization / LocalBusiness structured data so search engines can
+  // surface Nepatronix's NAP (name, address, phone), email, and social
+  // profiles, and trigger local-business rich results.
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": ["EducationalOrganization", "LocalBusiness"],
+    name: footerData.companyName,
+    alternateName: "NepaTronix",
+    url: SITE_URL,
+    logo: `${SITE_URL}/logo.png`,
+    image: `${SITE_URL}/og-banner.png`,
+    description: SEO_DESCRIPTION,
+    email,
+    telephone: phone,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: footerData.contactInfo?.address,
+      addressLocality: "Kathmandu",
+      addressCountry: "NP",
+      postalCode: footerData.contactInfo?.postalCode,
+    },
+    areaServed: "Nepal",
+    sameAs: socialUrls,
+    knowsAbout: SEO_KEYWORDS,
+  };
 
   return (
     <footer className="relative bg-[#020617] text-white overflow-hidden border-t border-white/5">
+      {/* SEO: Organization / LocalBusiness structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+      />
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(white_0.5px,transparent_0.5px)] bg-[length:30px_30px]"></div>
       
@@ -89,10 +185,13 @@ export async function Footer() {
               <p className="text-sm leading-relaxed text-slate-400 max-w-sm font-medium">
                 {footerData.description}
               </p>
+              <p className="text-[11px] leading-relaxed text-slate-500 max-w-sm font-medium">
+                Specializing in IoT, robotics, Arduino, PCB design, drone workshops, and STEM lab setup for schools across Kathmandu and Nepal.
+              </p>
             </div>
             
             {/* Contact Info */}
-            <div className="grid gap-6">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-6">
               <div className="flex items-start gap-4 group">
                  <div className="mt-1 w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[#C1121F] border border-white/10 transition-all group-hover:bg-[#C1121F] group-hover:text-white group-hover:-translate-y-1">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -112,6 +211,34 @@ export async function Footer() {
                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">{footerData.contactInfo?.weekendHours}</p>
                  </div>
               </div>
+
+              {email && (
+                <div className="flex items-start gap-4 group">
+                  <div className="mt-1 w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[#C1121F] border border-white/10 transition-all group-hover:bg-[#C1121F] group-hover:text-white group-hover:-translate-y-1">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Email Us</p>
+                    <a href={`mailto:${email}`} className="block text-sm font-bold text-white tracking-tight hover:text-[#C1121F] transition-colors break-all">
+                      {email}
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {phone && (
+                <div className="flex items-start gap-4 group">
+                  <div className="mt-1 w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[#C1121F] border border-white/10 transition-all group-hover:bg-[#C1121F] group-hover:text-white group-hover:-translate-y-1">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Call Us</p>
+                    <a href={`tel:${phone.replace(/\s+/g, "")}`} className="block text-sm font-bold text-white tracking-tight hover:text-[#C1121F] transition-colors">
+                      {phone}
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -183,6 +310,23 @@ export async function Footer() {
                   </a>
                 ))}
               </div>
+
+              {email && (
+                <a
+                  href={`mailto:${email}`}
+                  className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-[#C1121F] text-white text-xs font-black uppercase tracking-[0.2em] hover:bg-white hover:text-[#020617] transition-all duration-300 shadow-lg"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  Email Nepatronix
+                </a>
+              )}
+
+              <a
+                href="/contact"
+                className="block text-sm font-bold text-slate-400 hover:text-white transition-colors"
+              >
+                Or send us a message via the <span className="text-[#C1121F]">contact form</span> &rarr;
+              </a>
             </div>
           </div>
         </div>

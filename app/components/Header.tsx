@@ -35,8 +35,8 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  // Don't show header in Sanity Studio
-  if (pathname?.startsWith("/studio")) return null;
+  // Hide site header on admin routes
+  if (pathname?.startsWith("/admin")) return null;
 
   return (
     <>

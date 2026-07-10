@@ -1,8 +1,10 @@
 import { Metadata } from "next";
-import { client } from "@/sanity/lib/client";
 import Link from "next/link";
 import CoursePdfViewer from "./CoursePdfViewer";
-import { fetchCourseByListId } from "@/lib/course-list-order";
+import { fetchCourseByListId, fetchCoursesOrdered } from "@/lib/course-list-order";
+import { connectToDatabase } from "@/lib/mongodb";
+import { CoursePdf, CourseVideo } from "@/lib/models";
+import { resolveFileUrl } from "@/lib/content-image";
 
 // Force dynamic rendering to always fetch fresh data
 export const dynamic = "force-dynamic";
@@ -79,49 +81,35 @@ export default async function ViewCoursePage({ params }: { params: Promise<{ id:
 
   const courseName = resolved.title;
 
-  // First, try to fetch course with embedded PDF from the course document itself
-  let courseData: CoursePdfData | null = await client.fetch(
-    `*[_type == "course"] | order(publishedAt desc) [$courseIndex] {
-      _id,
-      title,
-      description,
-      "pdfUrl": coursePdf.pdfFile.asset->url
-    }`,
-    { courseIndex: courseId - 1 }
-  );
+  await connectToDatabase();
+  const courses = await fetchCoursesOrdered();
+  const courseDoc = courses[courseId - 1];
 
-  // If no embedded PDF found, fall back to separate coursePdf document
-  if (!courseData?.pdfUrl) {
-    courseData = await client.fetch(
-      `*[_type == "coursePdf" && courseId == $courseId && isPublished == true] | order(order asc) [0] {
-        _id,
-        title,
-        description,
-        "pdfUrl": pdfFile.asset->url
-      }`,
-      { courseId }
-    );
-  }
-
-  // Final fallback: check old courseVideo schema
-  if (!courseData?.pdfUrl) {
-    courseData = await client.fetch(
-      `*[_type == "courseVideo" && courseId == $courseId && isPublished == true] | order(order asc) [0] {
-        _id,
-        title,
-        description,
-        "pdfUrl": coalesce(pdfFile.asset->url, overviewPdf.asset->url)
-      }`,
-      { courseId }
-    );
-  }
-
-  console.log("Course Data for ID", courseId, ":", JSON.stringify(courseData, null, 2));
-
-  const pdfUrl = courseData?.pdfUrl;
-  const courseDescription =
-    courseData?.description ||
+  let pdfUrl = resolveFileUrl(courseDoc?.coursePdf?.pdfFile);
+  let courseDescription =
     `Syllabus and overview for ${courseName} covering STEM, IoT, and Robotics topics.`;
+
+  if (!pdfUrl) {
+    const coursePdf = await CoursePdf.findOne({
+      courseId,
+      isPublished: true,
+    })
+      .sort({ order: 1 })
+      .lean<{ description?: string; pdfFile?: { url?: string } }>();
+    pdfUrl = resolveFileUrl(coursePdf?.pdfFile);
+    if (coursePdf?.description) courseDescription = coursePdf.description;
+  }
+
+  if (!pdfUrl) {
+    const courseVideo = await CourseVideo.findOne({
+      courseId,
+      isPublished: true,
+    })
+      .sort({ order: 1 })
+      .lean<{ description?: string; overviewPdf?: { url?: string } }>();
+    pdfUrl = resolveFileUrl(courseVideo?.overviewPdf);
+    if (courseVideo?.description) courseDescription = courseVideo.description;
+  }
 
   const courseJsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",

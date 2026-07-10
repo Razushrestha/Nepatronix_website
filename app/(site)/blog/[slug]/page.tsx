@@ -1,13 +1,19 @@
-import { client } from "@/sanity/lib/client";
-import { urlFor } from "@/sanity/lib/image";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Metadata } from "next";
 import { cache } from "react";
-import { unstable_cache } from "next/cache";
 import ShareButtons from "./ShareButtons";
 import { canonicalBlogSlug } from "@/lib/blog/slugPath";
+import {
+  getAllBlogPosts,
+  getBlogPostByCanonicalSlug,
+  getRelatedBlogPosts,
+  blogPostImageUrl,
+  type BlogPostDoc,
+} from "@/lib/blog/queries";
+import { resolveImageUrl } from "@/lib/content-image";
+import { PortableBody } from "@/lib/portable-text";
 
 const SITE = "https://nepatronix.org";
 const OG_FALLBACK = `${SITE}/og-banner.png`;
@@ -17,68 +23,42 @@ interface BlogPost {
   title: string;
   excerpt: string;
   publishedAt: string;
+  _updatedAt?: string;
   readingTime: string;
   categories: string[];
   tags: string[];
-  mainImage: any;
+  mainImage?: BlogPostDoc["mainImage"];
   author: string;
-  body: any;
+  body: unknown[];
   seoTitle?: string;
   seoDescription?: string;
   keywords?: string[];
 }
-/** Next.js App Router: tie Sanity fetches to ISR so new posts appear without a full redeploy. */
-const sanityFetch = { next: { revalidate: 60, tags: ["blog-post"] } };
 
-type SlugRow = { _id: string; stored: string; publishedAt?: string };
-
-const getSlugRows = unstable_cache(
-  async (): Promise<SlugRow[]> =>
-    client.fetch(
-      `*[_type == "post" && defined(slug.current)]{_id, "stored": slug.current, publishedAt} | order(coalesce(publishedAt, _updatedAt) desc)`,
-      {},
-      sanityFetch
-    ),
-  ["blog-canonical-slug-index"],
-  { revalidate: 60, tags: ["blog-post", "blog-list"] }
-);
-
-/** Match URL slug segment to Sanity even when slug field has Unicode dashes, spaces, punctuation, emoji. */
-const resolvePostIdFromCanonicalSlug = cache(async (canonicalSlug: string): Promise<string | null> => {
-  const rows = await getSlugRows();
-  for (const r of rows) {
-    const c = canonicalBlogSlug(r.stored);
-    if (c !== null && c === canonicalSlug) return r._id;
-  }
-  return null;
-});
-
-const fetchBlogPostById = cache(async (postId: string) =>
-  client.fetch<BlogPost | null>(
-    `*[_type == "post" && _id == $postId][0] {
-      _id,
-      title,
-      excerpt,
-      seoTitle,
-      seoDescription,
-      keywords,
-      publishedAt,
-      readingTime,
-      "categories": categories[],
-      "tags": tags[],
-      mainImage,
-      author,
-      body
-    }`,
-    { postId },
-    sanityFetch
-  )
-);
+function mapPostDoc(doc: BlogPostDoc): BlogPost {
+  return {
+    _id: String(doc._id),
+    title: doc.title || "",
+    excerpt: doc.excerpt || "",
+    publishedAt: doc.publishedAt
+      ? new Date(doc.publishedAt).toISOString()
+      : "",
+    _updatedAt: doc.updatedAt ? new Date(doc.updatedAt).toISOString() : undefined,
+    readingTime: doc.readingTime || "",
+    categories: doc.categories || [],
+    tags: doc.tags || [],
+    mainImage: doc.mainImage,
+    author: doc.author || "",
+    body: Array.isArray(doc.body) ? doc.body : [],
+    seoTitle: doc.seoTitle,
+    seoDescription: doc.seoDescription,
+    keywords: doc.keywords,
+  };
+}
 
 const fetchBlogPostForCanonicalSlug = cache(async (canonicalSlug: string): Promise<BlogPost | null> => {
-  const postId = await resolvePostIdFromCanonicalSlug(canonicalSlug);
-  if (!postId) return null;
-  return fetchBlogPostById(postId);
+  const doc = await getBlogPostByCanonicalSlug(canonicalSlug);
+  return doc ? mapPostDoc(doc) : null;
 });
 
 export const dynamicParams = true;
@@ -141,7 +121,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     };
   }
 
-  const imageUrl = post.mainImage ? urlFor(post.mainImage).width(1200).height(630).url() : "";
+  const imageUrl = post.mainImage ? blogPostImageUrl(post) : "";
   const canonicalUrl = `${SITE}/blog/${slug}`;
   const titleBase = titleForMetadata(post.seoTitle, post.title);
   const description = metaDescription(post.seoDescription, post.excerpt);
@@ -202,17 +182,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export async function generateStaticParams() {
-  const slugs: { slug: { current: string } }[] = await client.fetch(
-    `*[_type == "post" && defined(slug.current)]{ slug }`,
-    {},
-    { next: { revalidate: 3600, tags: ["blog-index"] } }
-  );
-
+  const docs = await getAllBlogPosts();
   const out: { slug: string }[] = [];
   const seen = new Set<string>();
-  for (const row of slugs) {
-    const current = typeof row.slug?.current === "string" ? row.slug.current : "";
-    const canon = canonicalBlogSlug(current);
+  for (const row of docs) {
+    const canon = canonicalBlogSlug(row.slug || "");
     if (!canon || seen.has(canon)) continue;
     seen.add(canon);
     out.push({ slug: canon });
@@ -231,47 +205,71 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
     notFound();
   }
 
-  const relatedQuery = `*[_type == "post" && _id != $excludeId && count(categories[@ in $categories]) > 0][0...3] {
-    _id,
-    title,
-    excerpt,
-    publishedAt,
-    readingTime,
-    "categories": categories[],
-    mainImage,
-    slug
-  }`;
-
   const post = await fetchBlogPostForCanonicalSlug(slug);
 
   if (!post) {
     notFound();
   }
 
-  // JSON-LD Structured Data
+  const relatedPosts = await getRelatedBlogPosts(post._id, post.categories || []);
+
+  // JSON-LD Structured Data — rich Article schema pulling every SEO-relevant
+  // field from the post: title, description, image, dates, author, publisher,
+  // categories (articleSection), and the merged keyword set.
   const pageUrl = `https://nepatronix.org/blog/${slug}`;
+  const articleDescription = metaDescription(post.seoDescription, post.excerpt);
+  const articleKeywords = dedupeKeywords([
+    ...(Array.isArray(post.keywords) ? post.keywords : []),
+    ...(post.categories || []),
+    ...(post.tags || []),
+    "Nepatronix",
+    "Nepal",
+    "STEM",
+    "IoT",
+    "Robotics",
+  ]);
+  const articleImageUrl = post.mainImage ? blogPostImageUrl(post, OG_FALLBACK) : OG_FALLBACK;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     "@id": `${pageUrl}#article`,
     url: pageUrl,
-    headline: post.title,
-    image: post.mainImage ? urlFor(post.mainImage).width(1200).url() : "",
+    headline: (post.title || "Nepatronix Blog Post").slice(0, 110),
+    name: post.title,
+    description: articleDescription,
+    image: {
+      "@type": "ImageObject",
+      url: articleImageUrl,
+      width: 1200,
+      height: 630,
+    },
     datePublished: post.publishedAt,
+    dateModified: post._updatedAt || post.publishedAt,
+    inLanguage: "en-US",
+    articleSection: post.categories?.[0] || "Innovation",
+    keywords: articleKeywords.join(", "),
     "author": {
       "@type": "Person",
-      "name": post.author || "Nepatronix Team"
+      "name": post.author || "Nepatronix Team",
+      "url": SITE,
     },
     "publisher": {
       "@type": "Organization",
-      "name": "Nepatronix",
-      "url": "https://nepatronix.org",
+      "name": "Nepatronix Engineering Solutions",
+      "url": SITE,
       "logo": {
         "@type": "ImageObject",
-        "url": "https://nepatronix.org/logo.png" 
-      }
+        "url": `${SITE}/logo.png`,
+        width: 512,
+        height: 512,
+      },
     },
-    "description": post.excerpt,
+    isPartOf: {
+      "@type": "Blog",
+      name: "Nepatronix Blog",
+      url: `${SITE}/blog`,
+    },
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": `${pageUrl}#webpage`,
@@ -303,12 +301,6 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
       }
     ]
   };
-
-  const actualRelatedPosts = await client.fetch(
-    relatedQuery,
-    { excludeId: post._id, categories: post.categories || [] },
-    sanityFetch
-  );
 
   return (
     <div className="bg-white min-h-screen">
@@ -392,7 +384,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
             <div className="relative -mt-12 mb-10 mx-auto max-w-3xl">
               <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl shadow-2xl border border-slate-200 bg-slate-100 group">
               <Image
-                src={urlFor(post.mainImage).width(1200).url()}
+                src={blogPostImageUrl(post, OG_FALLBACK)}
                 alt={post.title}
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -440,7 +432,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
         </div>
 
         {/* Related Posts */}
-        {actualRelatedPosts.length > 0 && (
+        {relatedPosts.length > 0 && (
           <div className="pt-16 space-y-10">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
@@ -458,14 +450,14 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {actualRelatedPosts.map((related: any) => {
-                const hrefSlug = canonicalBlogSlug(related.slug?.current ?? "");
+              {relatedPosts.map((related) => {
+                const hrefSlug = related.slug.current;
                 if (!hrefSlug) return null;
                 return (
                 <Link href={`/blog/${hrefSlug}`} key={related._id} className="group flex flex-col h-full bg-white rounded-xl overflow-hidden shadow-md border border-slate-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-500">
                   <div className="relative aspect-[16/10] overflow-hidden">
                     <Image
-                      src={urlFor(related.mainImage).width(500).url()}
+                      src={blogPostImageUrl(related, OG_FALLBACK)}
                       alt={related.title}
                       fill
                       className="object-cover transition duration-500 group-hover:scale-110"
@@ -496,71 +488,4 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
       </div>
     </div>
   );
-}
-
-// Portable Text renderer
-import { PortableText, PortableTextComponents } from "next-sanity";
-
-const components: PortableTextComponents = {
-  types: {
-    image: ({ value }) => (
-      <div className="my-8 overflow-hidden rounded-xl shadow-lg border border-slate-100">
-        <Image
-          src={urlFor(value).width(1200).url()}
-          alt={value.alt || "Blog image"}
-          width={1200}
-          height={675}
-          className="w-full h-auto"
-        />
-        {value.caption && (
-          <p className="text-center text-sm text-slate-500 py-3 bg-slate-50 border-t border-slate-100">
-            {value.caption}
-          </p>
-        )}
-      </div>
-    ),
-  },
-  block: {
-    h1: ({ children }) => <h1 className="text-3xl font-bold text-slate-900 mt-10 mb-4">{children}</h1>,
-    h2: ({ children }) => <h2 className="text-2xl font-bold text-slate-900 mt-8 mb-3">{children}</h2>,
-    h3: ({ children }) => <h3 className="text-xl font-bold text-slate-900 mt-6 mb-2">{children}</h3>,
-    h4: ({ children }) => <h4 className="text-lg font-bold text-slate-900 mt-5 mb-2">{children}</h4>,
-    normal: ({ children }) => <p className="text-slate-700 leading-relaxed mb-4">{children}</p>,
-    blockquote: ({ children }) => (
-      <blockquote className="border-l-4 border-[#C1121F] bg-slate-50 pl-6 pr-4 py-4 my-6 rounded-r-lg italic text-slate-600">
-        {children}
-      </blockquote>
-    ),
-  },
-  marks: {
-    link: ({ children, value }) => (
-      <a 
-        href={value?.href} 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="text-[#C1121F] hover:underline font-medium"
-      >
-        {children}
-      </a>
-    ),
-    strong: ({ children }) => <strong className="font-bold text-slate-900">{children}</strong>,
-    em: ({ children }) => <em className="italic">{children}</em>,
-    code: ({ children }) => (
-      <code className="bg-slate-100 text-[#C1121F] px-1.5 py-0.5 rounded text-sm font-mono">
-        {children}
-      </code>
-    ),
-  },
-  list: {
-    bullet: ({ children }) => <ul className="list-disc list-inside space-y-2 my-4 text-slate-700 ml-4">{children}</ul>,
-    number: ({ children }) => <ol className="list-decimal list-inside space-y-2 my-4 text-slate-700 ml-4">{children}</ol>,
-  },
-  listItem: {
-    bullet: ({ children }) => <li className="text-slate-700">{children}</li>,
-    number: ({ children }) => <li className="text-slate-700">{children}</li>,
-  },
-};
-
-function PortableBody({ value }: { value: any }) {
-  return <PortableText value={value} components={components} />;
 }

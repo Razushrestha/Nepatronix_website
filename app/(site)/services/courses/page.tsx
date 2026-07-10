@@ -1,7 +1,8 @@
 import { Metadata } from "next";
 import { indexingRobots } from "@/lib/seo/indexingRobots";
 import CoursesClient from "./CoursesClient";
-import { client } from "@/sanity/lib/client";
+import { connectToDatabase } from "@/lib/mongodb";
+import { Course } from "@/lib/models";
 
 export const metadata: Metadata = {
   title: "Courses | STEM, IoT & Robotics Training Programs",
@@ -30,49 +31,38 @@ export const metadata: Metadata = {
   robots: indexingRobots,
 };
 
-export const revalidate = 1800;
+export const dynamic = "force-dynamic";
 
-// GROQ query to fetch courses from Sanity
-const coursesQuery = `*[_type == "course"] | order(publishedAt desc) {
-  _id,
-  title,
-  "slug": slug.current,
-  description,
-  hours,
-  deliveryMode,
-  price,
-  priceUnit,
-  examMode,
-  popular,
-  isFree
-}`;
-
-interface SanityCourse {
-  _id: string;
-  title: string;
-  slug: string;
-  description?: string;
-  hours: number;
-  deliveryMode: string;
-  price: number;
-  priceUnit: string;
-  examMode: string;
-  popular: boolean;
-  isFree: boolean;
+interface CourseDoc {
+  _id: unknown;
+  title?: string;
+  slug?: string;
+  hours?: number;
+  deliveryMode?: string;
+  price?: number;
+  priceUnit?: string;
+  examMode?: string;
+  popular?: boolean;
+  isFree?: boolean;
 }
 
-// Transform Sanity data to match the component's expected format
-function transformCourses(sanityCourses: SanityCourse[]) {
-  return sanityCourses.map((course, index) => ({
+// Fetch courses from MongoDB and map to the component's expected format.
+async function getCourses() {
+  await connectToDatabase();
+  const docs = await Course.find()
+    .sort({ order: 1, createdAt: -1 })
+    .lean<CourseDoc[]>();
+
+  return docs.map((course, index) => ({
     id: index + 1,
-    _id: course._id,
-    slug: course.slug,
-    name: course.title,
-    description: course.description || "",
+    _id: String(course._id),
+    slug: course.slug || "",
+    name: course.title || "",
+    description: "",
     hours: course.hours || 0,
     deliveryMode: course.deliveryMode || "Online",
-    price: course.isFree ? "Free" : (course.price ? `NPR ${course.price.toLocaleString()}` : "Contact for price"),
-    priceUnit: course.isFree ? "" : (course.priceUnit || "per person"),
+    price: course.isFree ? "Free" : course.price ? `NPR ${course.price.toLocaleString()}` : "Contact for price",
+    priceUnit: course.isFree ? "" : course.priceUnit || "per person",
     examMode: course.examMode || "Online",
     popular: course.popular || false,
     isFree: course.isFree || false,
@@ -89,18 +79,7 @@ const objectives = [
 ];
 
 export default async function CoursesPage() {
-  // Fetch courses from Sanity with no-cache
-  const sanityCourses = await client.fetch<SanityCourse[]>(
-    coursesQuery,
-    {},
-    { next: { revalidate: 1800 } }
-  );
-  const courses = transformCourses(sanityCourses);
-
-  // If no courses from Sanity, show fallback message
-  if (courses.length === 0) {
-    console.log("No courses found from Sanity");
-  }
+  const courses = await getCourses();
 
   const coursesJsonLd = {
     "@context": "https://schema.org",

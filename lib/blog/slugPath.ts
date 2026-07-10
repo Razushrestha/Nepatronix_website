@@ -4,7 +4,7 @@ const SAFE_SEGMENT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const UNICODE_HYPHENS = /[\u2013\u2014\u2212\uFE58\uFE63\uFF0D]/g;
 
 /**
- * Normalize a Sanity or URL slug into a filesystem-safe path segment used on the website.
+ * Normalize a blog slug into a filesystem-safe path segment used on the website.
  * Strips punctuation, emoji, parentheses, rockets, converts spaces to hyphens.
  */
 export function canonicalBlogSlug(raw: string | null | undefined): string | null {

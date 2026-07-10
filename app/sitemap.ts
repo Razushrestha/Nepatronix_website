@@ -1,54 +1,22 @@
 import { MetadataRoute } from "next";
-import { client } from "@/sanity/lib/client";
-import { urlFor } from "@/sanity/lib/image";
 import { ourServices } from "./(site)/data";
 import { canonicalBlogSlug } from "@/lib/blog/slugPath";
 import { escapeXmlUrlForSitemap } from "@/lib/sitemap/escapeXmlUrl";
+import { connectToDatabase } from "@/lib/mongodb";
+import {
+  CoursePdf,
+  CourseVideo,
+  Gallery,
+  Post,
+} from "@/lib/models";
+import { blogPostImageUrl } from "@/lib/blog/queries";
+import { fetchCoursesOrdered } from "@/lib/course-list-order";
 
 const baseUrl = "https://nepatronix.org";
 
-/** Match blog listing / ISR so new posts show in sitemap quickly without redeploying. */
 export const revalidate = 120;
 
-const sanityFetchOptions = { next: { revalidate: 120, tags: ["blog-list", "sitemap"] } };
-
-type SitemapPayload = {
-  posts: {
-    slug: string | null;
-    mainImage?: unknown;
-    _updatedAt?: string;
-    publishedAt?: string;
-  }[];
-  courses: { _id: string; _updatedAt?: string }[];
-  coursePdfs: { courseId?: number; _updatedAt?: string }[];
-  courseVideos: { courseId?: number; _updatedAt?: string }[];
-  /** Most recently updated gallery document, for /image freshness */
-  galleryTouch?: string | null;
-};
-
-const sitemapContentQuery = `{
-  "posts": *[_type == "post" && defined(slug.current)] | order(coalesce(publishedAt, _updatedAt) desc) {
-    mainImage,
-    "slug": slug.current,
-    _updatedAt,
-    publishedAt
-  },
-  "courses": *[_type == "course"] | order(publishedAt desc) {
-    _id,
-    _updatedAt
-  },
-  "coursePdfs": *[_type == "coursePdf" && isPublished == true]{
-    courseId,
-    _updatedAt
-  },
-  "courseVideos": *[_type == "courseVideo" && isPublished == true]{
-    courseId,
-    _updatedAt
-  },
-  "galleryTouch": *[_type == "gallery"] | order(_updatedAt desc)[0]._updatedAt
-}`;
-
-function toTimestamp(iso?: string): number {
+function toTimestamp(iso?: string | Date): number {
   if (!iso) return 0;
   const t = new Date(iso).getTime();
   return Number.isFinite(t) ? t : 0;
@@ -93,23 +61,45 @@ function putEntry(
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  let payload: SitemapPayload = {
-    posts: [],
-    courses: [],
-    coursePdfs: [],
-    courseVideos: [],
-    galleryTouch: null,
-  };
+  const map = new Map<string, MetadataRoute.Sitemap[number]>();
+
+  let galleryTouch: string | null = null;
+  let posts: {
+    slug?: string;
+    mainImage?: unknown;
+    updatedAt?: Date | string;
+    publishedAt?: Date | string;
+  }[] = [];
+  let courses: { _id: unknown; updatedAt?: Date | string }[] = [];
+  let coursePdfs: { courseId?: number; updatedAt?: Date | string }[] = [];
+  let courseVideos: { courseId?: number; updatedAt?: Date | string }[] = [];
 
   try {
-    payload = await client.fetch<SitemapPayload>(sitemapContentQuery, {}, sanityFetchOptions);
+    await connectToDatabase();
+    const [postDocs, courseDocs, pdfDocs, videoDocs, galleryDoc] = await Promise.all([
+      Post.find({ slug: { $exists: true, $ne: "" } })
+        .sort({ publishedAt: -1, updatedAt: -1 })
+        .select("slug mainImage publishedAt updatedAt")
+        .lean(),
+      fetchCoursesOrdered(),
+      CoursePdf.find({ isPublished: true }).select("courseId updatedAt").lean(),
+      CourseVideo.find({ isPublished: true }).select("courseId updatedAt").lean(),
+      Gallery.findOne().sort({ updatedAt: -1 }).select("updatedAt").lean(),
+    ]);
+
+    posts = postDocs;
+    courses = courseDocs.map((course) => ({
+      _id: course._id,
+      updatedAt: course.updatedAt,
+    }));
+    coursePdfs = pdfDocs;
+    courseVideos = videoDocs;
+    galleryTouch = galleryDoc?.updatedAt
+      ? new Date(galleryDoc.updatedAt).toISOString()
+      : null;
   } catch {
-    // Static routes only if Sanity is unreachable
+    // Static routes only if MongoDB is unreachable
   }
-
-  const { posts, courses, coursePdfs, courseVideos, galleryTouch } = payload;
-
-  const map = new Map<string, MetadataRoute.Sitemap[number]>();
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1 },
@@ -150,13 +140,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const row of [...coursePdfs, ...courseVideos]) {
     if (row.courseId == null || !Number.isFinite(row.courseId)) continue;
     const id = Math.floor(row.courseId);
-    const t = toTimestamp(row._updatedAt);
+    const t = toTimestamp(row.updatedAt);
     touchByCourseId.set(id, Math.max(touchByCourseId.get(id) ?? 0, t));
   }
 
   for (let i = 0; i < courses.length; i++) {
     const numericId = i + 1;
-    const courseMs = toTimestamp(courses[i]._updatedAt);
+    const courseMs = toTimestamp(courses[i].updatedAt);
     const assetMs = touchByCourseId.get(numericId) ?? 0;
     const lastModified = latestDate(courseMs, assetMs);
 
@@ -180,7 +170,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const raw = typeof post.slug === "string" ? post.slug.trim() : "";
     const slug = canonicalBlogSlug(raw);
     if (!slug) continue;
-    const lastModified = latestDate(toTimestamp(post.publishedAt), toTimestamp(post._updatedAt));
+    const lastModified = latestDate(toTimestamp(post.publishedAt), toTimestamp(post.updatedAt));
     maxBlogLastModifiedMs = Math.max(maxBlogLastModifiedMs, lastModifiedToMs(lastModified));
 
     const entry: MetadataRoute.Sitemap[number] = {
@@ -190,15 +180,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.68,
     };
 
-    if (post.mainImage) {
-      try {
-        const imgUrl = urlFor(post.mainImage).width(1200).height(630).url();
-        if (imgUrl) {
-          entry.images = [imgUrl];
-        }
-      } catch {
-        /* ignore image build failures */
-      }
+    const imgUrl = blogPostImageUrl({ mainImage: post.mainImage as { url?: string } });
+    if (imgUrl) {
+      entry.images = [imgUrl.startsWith("http") ? imgUrl : `${baseUrl}${imgUrl}`];
     }
 
     putEntry(map, entry);

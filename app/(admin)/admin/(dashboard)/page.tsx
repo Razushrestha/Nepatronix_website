@@ -1,207 +1,170 @@
-import { client } from '@/sanity/lib/client'
+'use client'
+import useSWR from 'swr'
 import Link from 'next/link'
+import {
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+  PieChart, Pie, Cell, Legend,
+} from 'recharts'
+import { fetcher, StatusBadge, timeAgo, Spinner } from '@/app/(admin)/components/ui'
+import { collectionMap } from '@/lib/admin-collections'
 
-export const revalidate = 60
+const PIE_COLORS = ['#eab308', '#3b82f6', '#22c55e', '#a855f7', '#ef4444', '#64748b']
 
-function timeAgo(dateStr?: string): string {
-  if (!dateStr) return '—'
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${mins}m ago`
-  const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}h ago`
-  const days = Math.floor(hrs / 24)
-  if (days < 7) return `${days}d ago`
-  return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
-}
-
-async function getStats() {
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  const [
-    totalEnrollments, totalCertifications,
-    pendingEnrollments, pendingCertifications,
-    weekEnrollments, weekCertifications,
-    recentEnrollments, recentCertifications,
-  ] = await Promise.all([
-    client.fetch<number>(`count(*[_type == "enrollment"])`),
-    client.fetch<number>(`count(*[_type == "certificationApplication"])`),
-    client.fetch<number>(`count(*[_type == "enrollment" && status == "pending"])`),
-    client.fetch<number>(`count(*[_type == "certificationApplication" && status == "pending"])`),
-    client.fetch<number>(`count(*[_type == "enrollment" && _createdAt > $d])`, { d: sevenDaysAgo }),
-    client.fetch<number>(`count(*[_type == "certificationApplication" && submittedAt > $d])`, { d: sevenDaysAgo }),
-    client.fetch(`*[_type == "enrollment"] | order(_createdAt desc)[0..4]{_id, fullName, courseName, status, _createdAt}`),
-    client.fetch(`*[_type == "certificationApplication"] | order(submittedAt desc)[0..4]{_id, applicantName, courseName, status, submittedAt}`),
-  ])
-  return {
-    totalEnrollments, totalCertifications,
-    pendingEnrollments, pendingCertifications,
-    weekEnrollments, weekCertifications,
-    recentEnrollments, recentCertifications,
+interface Stats {
+  kpis: Record<string, number>
+  enrollmentStatus: { status: string; count: number }[]
+  certStatus: { status: string; count: number }[]
+  series: { date: string; enrollments: number; certifications: number }[]
+  recent: {
+    enrollments: { _id: string; fullName: string; courseName: string; status: string; createdAt: string }[]
+    certifications: { _id: string; applicantName: string; courseName: string; status: string; submittedAt: string }[]
+    messages: { _id: string; name: string; email: string; status: string; createdAt: string }[]
   }
 }
 
-const ENROLLMENT_BADGE: Record<string, string> = {
-  pending: 'bg-yellow-500/10 text-yellow-400',
-  contacted: 'bg-blue-500/10 text-blue-400',
-  enrolled: 'bg-green-500/10 text-green-400',
-  cancelled: 'bg-red-500/10 text-red-400',
+function KpiCard({ label, value, sub, href, accent }: { label: string; value: number; sub?: string; href?: string; accent: string }) {
+  const inner = (
+    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-gray-700 transition-colors h-full">
+      <p className="text-gray-400 text-xs">{label}</p>
+      <p className={`text-3xl font-bold mt-2 ${accent}`}>{value ?? 0}</p>
+      {sub && <p className="text-gray-500 text-xs mt-1">{sub}</p>}
+    </div>
+  )
+  return href ? <Link href={href}>{inner}</Link> : inner
 }
 
-const CERT_BADGE: Record<string, string> = {
-  pending: 'bg-yellow-500/10 text-yellow-400',
-  payment_verified: 'bg-blue-500/10 text-blue-400',
-  approved: 'bg-green-500/10 text-green-400',
-  certificate_generated: 'bg-purple-500/10 text-purple-400',
-  rejected: 'bg-red-500/10 text-red-400',
-}
+export default function AdminDashboard() {
+  const { data, isLoading } = useSWR<Stats>('/api/admin/stats', fetcher, { refreshInterval: 30000 })
 
-export default async function AdminDashboard() {
-  const {
-    totalEnrollments, totalCertifications,
-    pendingEnrollments, pendingCertifications,
-    weekEnrollments, weekCertifications,
-    recentEnrollments, recentCertifications,
-  } = await getStats()
-
-  const stats = [
-    {
-      label: 'Total Enrollments',
-      value: totalEnrollments,
-      sub: `${pendingEnrollments} pending`,
-      week: weekEnrollments,
-      href: '/admin/enrollments',
-      color: 'text-blue-400',
-      weekColor: 'text-blue-300',
-      dot: 'bg-blue-400',
-    },
-    {
-      label: 'Total Certifications',
-      value: totalCertifications,
-      sub: `${pendingCertifications} pending`,
-      week: weekCertifications,
-      href: '/admin/certifications',
-      color: 'text-purple-400',
-      weekColor: 'text-purple-300',
-      dot: 'bg-purple-400',
-    },
-  ]
+  if (isLoading || !data) return <Spinner />
+  const k = data.kpis
 
   return (
-    <div className="p-8 space-y-10">
+    <div className="p-6 lg:p-8 space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="text-gray-400 text-sm mt-1">Overview of enrollments and certifications</p>
+        <p className="text-gray-400 text-sm mt-1">Live overview of your website and operations</p>
       </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {stats.map((s) => (
-          <Link
-            key={s.label}
-            href={s.href}
-            className="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-gray-700 transition-colors group"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-gray-400 text-sm">{s.label}</p>
-              {s.week > 0 && (
-                <span className="flex items-center gap-1 text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-0.5 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                  +{s.week} this week
-                </span>
-              )}
+      {/* KPI grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <KpiCard label="Enrollments" value={k.totalEnrollments} sub={`${k.pendingEnrollments} pending`} href="/admin/c/enrollments" accent="text-blue-400" />
+        <KpiCard label="Certifications" value={k.totalCertifications} sub={`${k.pendingCertifications} pending`} href="/admin/c/certifications" accent="text-purple-400" />
+        <KpiCard label="Courses" value={k.totalCourses} href="/admin/c/courses" accent="text-emerald-400" />
+        <KpiCard label="Blog Posts" value={k.totalPosts} href="/admin/c/posts" accent="text-orange-400" />
+        <KpiCard label="Subscribers" value={k.totalSubscribers} href="/admin/c/subscribers" accent="text-pink-400" />
+        <KpiCard label="New Messages" value={k.newMessages} href="/admin/c/contactforms" accent="text-yellow-400" />
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2 bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <h2 className="text-white font-semibold mb-1">Activity — last 30 days</h2>
+          <p className="text-gray-500 text-xs mb-4">New enrollments and certification applications per day</p>
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart data={data.series} margin={{ left: -20, right: 10, top: 10 }}>
+              <defs>
+                <linearGradient id="gEnroll" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="gCert" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#a855f7" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
+              <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} tickFormatter={(d) => d.slice(5)} interval={4} />
+              <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} allowDecimals={false} />
+              <Tooltip contentStyle={{ background: '#0a0a0f', border: '1px solid #1f2937', borderRadius: 12, fontSize: 12 }} />
+              <Area type="monotone" dataKey="enrollments" stroke="#3b82f6" fill="url(#gEnroll)" strokeWidth={2} />
+              <Area type="monotone" dataKey="certifications" stroke="#a855f7" fill="url(#gCert)" strokeWidth={2} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <h2 className="text-white font-semibold mb-4">Enrollment status</h2>
+          <ResponsiveContainer width="100%" height={240}>
+            <PieChart>
+              <Pie data={data.enrollmentStatus} dataKey="count" nameKey="status" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3}>
+                {data.enrollmentStatus.map((_, i) => (
+                  <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="none" />
+                ))}
+              </Pie>
+              <Legend wrapperStyle={{ fontSize: 11, textTransform: 'capitalize' }} />
+              <Tooltip contentStyle={{ background: '#0a0a0f', border: '1px solid #1f2937', borderRadius: 12, fontSize: 12 }} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Recent activity */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <RecentPanel
+          title="Recent Enrollments"
+          href="/admin/c/enrollments"
+          dot="bg-blue-400"
+          items={data.recent.enrollments.map((e) => ({
+            id: e._id, title: e.fullName, sub: e.courseName, status: e.status, time: e.createdAt,
+            statusOptions: collectionMap.enrollments.statusOptions,
+            link: `/admin/c/enrollments/${e._id}`,
+          }))}
+        />
+        <RecentPanel
+          title="Recent Certifications"
+          href="/admin/c/certifications"
+          dot="bg-purple-400"
+          items={data.recent.certifications.map((c) => ({
+            id: c._id, title: c.applicantName, sub: c.courseName, status: c.status, time: c.submittedAt,
+            statusOptions: collectionMap.certifications.statusOptions,
+            link: `/admin/c/certifications/${c._id}`,
+          }))}
+        />
+        <RecentPanel
+          title="Recent Messages"
+          href="/admin/c/contactforms"
+          dot="bg-yellow-400"
+          items={data.recent.messages.map((m) => ({
+            id: m._id, title: m.name || m.email, sub: m.email, status: m.status, time: m.createdAt,
+            statusOptions: collectionMap.contactforms.statusOptions,
+            link: `/admin/c/contactforms/${m._id}`,
+          }))}
+        />
+      </div>
+    </div>
+  )
+}
+
+function RecentPanel({
+  title, href, dot, items,
+}: {
+  title: string; href: string; dot: string
+  items: { id: string; title: string; sub: string; status: string; time: string; statusOptions?: { value: string; label: string; color: string }[]; link: string }[]
+}) {
+  return (
+    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full ${dot}`} />
+          <h2 className="text-white font-semibold text-sm">{title}</h2>
+        </div>
+        <Link href={href} className="text-xs text-[#C1121F] hover:underline">View all →</Link>
+      </div>
+      <div className="space-y-2">
+        {items.length === 0 && <p className="text-gray-500 text-sm">Nothing yet.</p>}
+        {items.map((it) => (
+          <Link key={it.id} href={it.link} className="flex items-center justify-between p-3 bg-gray-800 rounded-xl hover:bg-gray-800/70 transition-colors">
+            <div className="min-w-0 flex-1">
+              <p className="text-white text-sm font-medium truncate">{it.title}</p>
+              <p className="text-gray-500 text-xs truncate">{it.sub}</p>
             </div>
-            <p className={`text-4xl font-bold ${s.color}`}>{s.value}</p>
-            <p className="text-gray-500 text-xs mt-1">{s.sub}</p>
+            <div className="flex flex-col items-end gap-1 ml-3 shrink-0">
+              <StatusBadge value={it.status} options={it.statusOptions} />
+              <span className="text-gray-600 text-[10px]">{timeAgo(it.time)}</span>
+            </div>
           </Link>
         ))}
-
-        {/* Combined This Week card */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-          <p className="text-gray-400 text-sm mb-3">New This Week</p>
-          <p className="text-4xl font-bold text-green-400">{weekEnrollments + weekCertifications}</p>
-          <div className="flex gap-4 mt-2">
-            <span className="text-xs text-blue-400">{weekEnrollments} enrollments</span>
-            <span className="text-xs text-gray-700">·</span>
-            <span className="text-xs text-purple-400">{weekCertifications} certifications</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#C1121F] animate-pulse" />
-          <h2 className="text-white font-semibold text-sm uppercase tracking-wider">Recent Activity</h2>
-          <span className="text-gray-600 text-xs ml-1">— latest 5 each</span>
-        </div>
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-
-          {/* Recent Enrollments */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-blue-400" />
-                <h2 className="text-white font-semibold">Recent Enrollments</h2>
-              </div>
-              <Link href="/admin/enrollments" className="text-xs text-[#C1121F] hover:underline">View all →</Link>
-            </div>
-            <div className="space-y-2">
-              {recentEnrollments.length === 0 && <p className="text-gray-500 text-sm">No enrollments yet.</p>}
-              {recentEnrollments.map((e: { _id: string; fullName: string; courseName: string; status: string; _createdAt?: string }) => (
-                <Link
-                  key={e._id}
-                  href={`/admin/enrollments/${e._id}`}
-                  className="flex items-center justify-between p-3 bg-gray-800 rounded-xl hover:bg-gray-800/80 transition-colors"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-white text-sm font-medium truncate">{e.fullName}</p>
-                    <p className="text-gray-500 text-xs truncate">{e.courseName}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 ml-3 shrink-0">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${ENROLLMENT_BADGE[e.status] || 'bg-gray-700 text-gray-300'}`}>
-                      {e.status}
-                    </span>
-                    <span className="text-gray-600 text-[10px]">{timeAgo(e._createdAt)}</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Recent Certifications */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-purple-400" />
-                <h2 className="text-white font-semibold">Recent Certification Applications</h2>
-              </div>
-              <Link href="/admin/certifications" className="text-xs text-[#C1121F] hover:underline">View all →</Link>
-            </div>
-            <div className="space-y-2">
-              {recentCertifications.length === 0 && <p className="text-gray-500 text-sm">No applications yet.</p>}
-              {recentCertifications.map((c: { _id: string; applicantName: string; courseName: string; status: string; submittedAt?: string }) => (
-                <Link
-                  key={c._id}
-                  href={`/admin/certifications/${c._id}`}
-                  className="flex items-center justify-between p-3 bg-gray-800 rounded-xl hover:bg-gray-800/80 transition-colors"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-white text-sm font-medium truncate">{c.applicantName}</p>
-                    <p className="text-gray-500 text-xs truncate">{c.courseName}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 ml-3 shrink-0">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${CERT_BADGE[c.status] || 'bg-gray-700 text-gray-300'}`}>
-                      {c.status?.replace(/_/g, ' ')}
-                    </span>
-                    <span className="text-gray-600 text-[10px]">{timeAgo(c.submittedAt)}</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-
-        </div>
       </div>
     </div>
   )

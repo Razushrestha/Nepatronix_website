@@ -3,6 +3,7 @@ import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import Breadcrumb from "./components/Breadcrumb";
 import MahabirChat from "./components/MahabirChat";
+import VisitTracker from "./components/VisitTracker";
 
 // Default ISR for public SEO pages in the site group.
 export const revalidate = 3600;
@@ -47,6 +48,7 @@ export default function SiteLayout({
 }>) {
   return (
     <>
+      <VisitTracker />
       <Header />
       <Breadcrumb />
       <main>{children}</main>

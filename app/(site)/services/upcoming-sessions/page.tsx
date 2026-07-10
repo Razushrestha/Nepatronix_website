@@ -1,6 +1,8 @@
 import { Metadata } from "next";
 import { indexingRobots } from "@/lib/seo/indexingRobots";
-import { client } from "@/sanity/lib/client";
+import { connectToDatabase } from "@/lib/mongodb";
+import { Course } from "@/lib/models";
+import { resolveFileUrl } from "@/lib/content-image";
 import UpcomingSessionsClient, { UpcomingSession } from "./UpcomingSessionsClient";
 
 export const metadata: Metadata = {
@@ -31,41 +33,69 @@ export const metadata: Metadata = {
 
 export const revalidate = 900;
 
-// Query for courses marked as upcoming - shows all where isUpcoming is true
-// Sessions will be filtered by status (upcoming/completed) on the client side
-const upcomingSessionsQuery = `*[_type == "course" && isUpcoming == true] | order(sessionStartDate asc) {
-  _id,
-  title,
-  "slug": slug.current,
-  hours,
-  duration,
-  deliveryMode,
-  price,
-  priceUnit,
-  isFree,
-  level,
-  sessionStatus,
-  sessionStartDate,
-  sessionEndDate,
-  enrollmentDeadline,
-  maxSeats,
-  currentEnrollments,
-  sessionVenue,
-  batchName,
-  meetingUrl,
-  registrationLink,
-  "pdfUrl": coursePdf.pdfFile.asset->url
-}`;
+interface CourseDoc {
+  _id: unknown;
+  title?: string;
+  slug?: string;
+  hours?: number;
+  duration?: string;
+  deliveryMode?: string;
+  price?: number;
+  priceUnit?: string;
+  isFree?: boolean;
+  level?: string;
+  sessionStatus?: string;
+  sessionStartDate?: Date | string;
+  sessionEndDate?: Date | string;
+  enrollmentDeadline?: Date | string;
+  maxSeats?: number;
+  currentEnrollments?: number;
+  sessionVenue?: string;
+  batchName?: string;
+  meetingUrl?: string;
+  registrationLink?: string;
+  coursePdf?: { pdfFile?: { url?: string } };
+}
+
+async function getUpcomingSessions(): Promise<UpcomingSession[]> {
+  await connectToDatabase();
+  const docs = await Course.find({ isUpcoming: true })
+    .sort({ sessionStartDate: 1 })
+    .lean<CourseDoc[]>();
+
+  return docs.map((course) => ({
+    _id: String(course._id),
+    title: course.title || "",
+    slug: course.slug || "",
+    hours: course.hours || 0,
+    duration: course.duration || "",
+    deliveryMode: course.deliveryMode || "Online",
+    price: course.price || 0,
+    priceUnit: course.priceUnit || "per person",
+    isFree: course.isFree || false,
+    level: course.level || "Beginner",
+    sessionStatus: course.sessionStatus || "upcoming",
+    sessionStartDate: course.sessionStartDate
+      ? new Date(course.sessionStartDate).toISOString()
+      : "",
+    sessionEndDate: course.sessionEndDate
+      ? new Date(course.sessionEndDate).toISOString()
+      : "",
+    enrollmentDeadline: course.enrollmentDeadline
+      ? new Date(course.enrollmentDeadline).toISOString()
+      : "",
+    maxSeats: course.maxSeats || 0,
+    currentEnrollments: course.currentEnrollments || 0,
+    sessionVenue: course.sessionVenue || "",
+    batchName: course.batchName || "",
+    meetingUrl: course.meetingUrl || "",
+    registrationLink: course.registrationLink || "",
+    pdfUrl: resolveFileUrl(course.coursePdf?.pdfFile),
+  }));
+}
 
 export default async function UpcomingSessionsPage() {
-  const sessions = await client.fetch<UpcomingSession[]>(
-    upcomingSessionsQuery,
-    {},
-    { next: { revalidate: 900 } }
-  );
-
-  // Debug: Log what we're getting from Sanity
-  console.log("Upcoming sessions from Sanity:", JSON.stringify(sessions, null, 2));
+  const sessions = await getUpcomingSessions();
 
   const canonicalUrl = "https://nepatronix.org/services/upcoming-sessions";
   const sessionsJsonLd = {

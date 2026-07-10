@@ -1,8 +1,10 @@
 import { Metadata } from "next";
-import { client } from "@/sanity/lib/client";
 import Link from "next/link";
 import CourseVideoPlayer from "./CourseVideoPlayer";
 import { fetchCourseByListId } from "@/lib/course-list-order";
+import { connectToDatabase } from "@/lib/mongodb";
+import { CourseVideo } from "@/lib/models";
+import { resolveFileUrl, resolveImageUrl } from "@/lib/content-image";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -122,21 +124,39 @@ export default async function WatchCoursePage({ params }: { params: Promise<{ id
 
   const courseName = resolved.title;
 
-  // Fetch videos for this course from Sanity
-  const videos: CourseVideo[] = await client.fetch(
-    `*[_type == "courseVideo" && courseId == $courseId && isPublished == true] | order(order asc) {
-      _id,
-      title,
-      description,
-      videoUrl,
-      "videoFile": videoFile.asset->{url},
-      "thumbnail": thumbnail.asset->{url},
-      "overviewPdf": overviewPdf.asset->{url},
-      duration,
-      order
-    }`,
-    { courseId }
-  );
+  await connectToDatabase();
+  const videoDocs = await CourseVideo.find({ courseId, isPublished: true })
+    .sort({ order: 1 })
+    .lean<
+      {
+        _id: unknown;
+        title?: string;
+        description?: string;
+        videoUrl?: string;
+        videoFile?: { url?: string };
+        thumbnail?: { url?: string };
+        overviewPdf?: { url?: string };
+        duration?: string;
+        order?: number;
+      }[]
+    >();
+
+  const videos: CourseVideo[] = videoDocs.map((video) => {
+    const fileUrl = resolveFileUrl(video.videoFile);
+    const thumbUrl = resolveImageUrl(video.thumbnail);
+    const overviewUrl = resolveFileUrl(video.overviewPdf);
+    return {
+      _id: String(video._id),
+      title: video.title || "",
+      description: video.description,
+      videoUrl: video.videoUrl,
+      videoFile: fileUrl ? { asset: { url: fileUrl }, url: fileUrl } : undefined,
+      thumbnail: thumbUrl ? { asset: { url: thumbUrl }, url: thumbUrl } : undefined,
+      overviewPdf: overviewUrl ? { asset: { url: overviewUrl }, url: overviewUrl } : undefined,
+      duration: video.duration,
+      order: video.order || 0,
+    };
+  });
 
   const canonicalUrl = `https://nepatronix.org/services/courses/watch/${id}`;
   const courseUrl = "https://nepatronix.org/services/courses";

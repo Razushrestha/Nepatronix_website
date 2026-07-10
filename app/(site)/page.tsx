@@ -1,17 +1,15 @@
 import Image from "next/image";
 import type { Metadata } from "next";
-import { features, courses, mentors, testimonials, stats } from "./data";
+import fs from "fs";
+import path from "path";
 import Link from "next/link";
 import { SectionHeading } from "./components/SectionHeading";
-import { FeatureGrid } from "./components/FeatureGrid";
 import SchoolCollaborations from "./components/SchoolCollaborations";
-import { CourseShowcase } from "./components/CourseShowcase";
-import { MentorSpotlight } from "./components/MentorSpotlight";
-import { Testimonials } from "./components/Testimonials";
 import { StatsBar } from "./components/StatsBar";
 import { HeroSection } from "./components/HeroSection";
 import { RecognitionGrid } from "./components/RecognitionGrid";
 import { PartnersGrid } from "./components/PartnersGrid";
+import { getHomePageContent } from "@/lib/site-content";
 import {
   STEM_EDUCATION_SEO_KEYWORDS,
   mergeSeoKeywordGroups,
@@ -57,7 +55,9 @@ export const metadata: Metadata = {
   robots: indexingRobots,
 };
 
-export default function Home() {
+export default async function Home() {
+  const homeContent = await getHomePageContent();
+  const clientReviews = homeContent.testimonials;
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -102,11 +102,11 @@ export default function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
     <div className="relative overflow-hidden">
-      <HeroSection />
+      <HeroSection slide={homeContent.hero} />
 
       <section className="relative -mt-10" id="outcomes">
         <div className="mx-auto max-w-6xl px-6">
-          <StatsBar stats={stats} />
+          <StatsBar stats={homeContent.stats} />
         </div>
       </section>
 
@@ -176,7 +176,7 @@ export default function Home() {
           />
         </div>
 
-        <RecognitionGrid />
+        <RecognitionGrid items={homeContent.recognitions} />
       </section>
 
       <section
@@ -237,6 +237,55 @@ export default function Home() {
             </p>
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto mt-8 max-w-6xl px-6" id="incubated-by">
+        <div className="text-center">
+          <SectionHeading
+            eyebrow="Incubation"
+            title="Incubated By"
+            description="Nepatronix is incubated and supported by leading organizations driving innovation, education, and entrepreneurship across India and Nepal."
+            align="center"
+          />
+        </div>
+
+        {(() => {
+          const incubators = [
+            { name: "IIT Madras", file: "iit-madras.png" },
+            { name: "IITM Pravartak", file: "iitm-pravartak.png" },
+            { name: "Future Front", file: "future-front.png" },
+            { name: "IEDI", file: "iedi.png" },
+            { name: "Glocal After School", file: "glocal-after-school.png" },
+          ];
+          const dir = path.join(process.cwd(), "public", "incubated");
+          return (
+            <div className="mx-auto mt-14 grid max-w-5xl grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
+              {incubators.map((org) => {
+                const exists = fs.existsSync(path.join(dir, org.file));
+                return (
+                  <div
+                    key={org.name}
+                    className="flex h-44 flex-col items-center justify-center p-4 text-center transition-transform duration-300 hover:scale-105"
+                  >
+                    {exists ? (
+                      <Image
+                        src={`/incubated/${org.file}`}
+                        alt={`${org.name} logo`}
+                        width={260}
+                        height={130}
+                        className="h-auto max-h-36 w-auto max-w-full object-contain opacity-80 transition-opacity duration-300 hover:opacity-100"
+                      />
+                    ) : (
+                      <span className="text-sm font-bold text-[#020617]">
+                        {org.name}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </section>
 
       <section className="mx-auto mt-8 max-w-6xl space-y-12 px-6" id="mentors">
@@ -345,7 +394,7 @@ export default function Home() {
           align="center"
         />
 
-        <PartnersGrid />
+        <PartnersGrid partners={homeContent.partners} />
       </section>
 
       <section
@@ -434,7 +483,7 @@ export default function Home() {
           align="center"
         />
 
-        <SchoolCollaborations />
+        <SchoolCollaborations schools={homeContent.schools} />
       </section>
 
       <section
@@ -450,108 +499,8 @@ export default function Home() {
 
         <div className="mt-16 overflow-hidden">
           <div className="animate-marquee flex gap-6">
-            {[
-              {
-                name: "Rajesh Maharjan",
-                role: "Principal, Kathmandu Modern School",
-                rating: 5,
-                review:
-                  "Nepatronix transformed our school's science lab with cutting-edge STEM equipment. Students are now more engaged in practical learning than ever before.",
-              },
-              {
-                name: "Dr. Sunita Shrestha",
-                role: "Professor, Tribhuvan University",
-                rating: 5,
-                review:
-                  "The IoT training program conducted by Nepatronix was exceptional. Their expertise in modern technology education is truly remarkable.",
-              },
-              {
-                name: "Bikram Tamang",
-                role: "IT Director, Prime College",
-                rating: 5,
-                review:
-                  "Professional website development with excellent customer support. Nepatronix delivered exactly what we envisioned for our institution.",
-              },
-              {
-                name: "Priya Adhikari",
-                role: "Education Consultant",
-                rating: 5,
-                review:
-                  "Their STEM tutor program has significantly improved our students' performance in science and mathematics. Highly recommended service!",
-              },
-              {
-                name: "Amit Basnet",
-                role: "Director, Rainbow Academy",
-                rating: 5,
-                review:
-                  "Nepatronix helped us set up a complete digital classroom solution. The team is knowledgeable, responsive, and delivers quality work.",
-              },
-              {
-                name: "Dr. Kamala Devi",
-                role: "Research Head, BIT",
-                rating: 5,
-                review:
-                  "Excellent research and innovation support. Their technical expertise helped us complete our technology project successfully and on time.",
-              },
-              {
-                name: "Santosh Gurung",
-                role: "Principal, Marvellous School",
-                rating: 5,
-                review:
-                  "The mobile app development service exceeded our expectations. Clean interface, robust functionality. Outstanding work by the Nepatronix team!",
-              },
-              {
-                name: "Renu Karki",
-                role: "Academic Director, NCCS",
-                rating: 5,
-                review:
-                  "Professional team with deep understanding of educational technology needs. They delivered our learning management system exactly as promised.",
-              },
-            ]
-              .concat([
-                {
-                  name: "Rajesh Maharjan",
-                  role: "Principal, Kathmandu Modern School",
-                  rating: 5,
-                  review:
-                    "Nepatronix transformed our school's science lab with cutting-edge STEM equipment. Students are now more engaged in practical learning than ever before.",
-                },
-                {
-                  name: "Dr. Sunita Shrestha",
-                  role: "Professor, Tribhuvan University",
-                  rating: 5,
-                  review:
-                    "The IoT training program conducted by Nepatronix was exceptional. Their expertise in modern technology education is truly remarkable.",
-                },
-                {
-                  name: "Bikram Tamang",
-                  role: "IT Director, Prime College",
-                  rating: 5,
-                  review:
-                    "Professional website development with excellent customer support. Nepatronix delivered exactly what we envisioned for our institution.",
-                },
-                {
-                  name: "Priya Adhikari",
-                  role: "Education Consultant",
-                  rating: 5,
-                  review:
-                    "Their STEM tutor program has significantly improved our students' performance in science and mathematics. Highly recommended service!",
-                },
-                {
-                  name: "Amit Basnet",
-                  role: "Director, Rainbow Academy",
-                  rating: 5,
-                  review:
-                    "Nepatronix helped us set up a complete digital classroom solution. The team is knowledgeable, responsive, and delivers quality work.",
-                },
-                {
-                  name: "Dr. Kamala Devi",
-                  role: "Research Head, BIT",
-                  rating: 5,
-                  review:
-                    "Excellent research and innovation support. Their technical expertise helped us complete our technology project successfully and on time.",
-                },
-              ])
+            {clientReviews
+              .concat(clientReviews)
               .map((testimonial, index) => (
                 <div
                   key={`testimonial-${index}`}

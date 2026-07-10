@@ -1,7 +1,7 @@
 "use client";
 
-import { urlFor } from "@/sanity/lib/image";
-import { useState } from "react";
+import { resolveImageUrl, type ContentImage } from "@/lib/content-image";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -12,12 +12,7 @@ interface BlogPost {
   publishedAt: string;
   readingTime: string;
   categories: string[];
-  mainImage: {
-    asset: {
-      _ref: string;
-      _type: string;
-    };
-  };
+  mainImage?: ContentImage;
   author: string;
   slug: {
     current: string;
@@ -31,6 +26,9 @@ interface BlogContentProps {
 export default function BlogContent({ initialPosts }: BlogContentProps) {
   const [displayCount, setDisplayCount] = useState(9);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const filteredCountRef = useRef(0);
 
   const filteredPosts = initialPosts.filter(post => 
     post.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -38,6 +36,42 @@ export default function BlogContent({ initialPosts }: BlogContentProps) {
     post.categories?.some(cat => cat?.toLowerCase().includes(searchQuery.toLowerCase())) ||
     post.author?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Keep a ref of the latest filtered count so the observer callback never
+  // reads a stale value.
+  useEffect(() => {
+    filteredCountRef.current = filteredPosts.length;
+  }, [filteredPosts.length]);
+
+  // Lazy load: when the sentinel scrolls into view (or is about to, thanks to
+  // rootMargin), reveal the next batch. Re-runs after each batch so continuous
+  // scrolling keeps loading until everything is shown or the user stops.
+  useEffect(() => {
+    const sentinel = loadMoreRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          filteredCountRef.current > displayCount
+        ) {
+          setIsLoadingMore(true);
+          setDisplayCount((prev) => prev + 6);
+        }
+      },
+      { rootMargin: "400px" }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [displayCount, filteredPosts.length]);
+
+  // The data is already in memory, so each "load" is instant — clear the
+  // loading flag once the new batch has rendered.
+  useEffect(() => {
+    setIsLoadingMore(false);
+  }, [displayCount]);
 
   const featuredPost = initialPosts[0];
 
@@ -106,7 +140,7 @@ export default function BlogContent({ initialPosts }: BlogContentProps) {
             {/* Featured Bento Card */}
             <Link href={`/blog/${featuredPost.slug.current}`} className="lg:col-span-8 group relative block h-[450px] lg:h-[550px] rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_30px_60px_rgba(0,0,0,0.3)]">
               <Image
-                src={urlFor(featuredPost.mainImage).width(1600).url()}
+                src={resolveImageUrl(featuredPost.mainImage, "/og-banner.png")}
                 alt={featuredPost.title}
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -160,7 +194,7 @@ export default function BlogContent({ initialPosts }: BlogContentProps) {
                   {initialPosts.slice(1, 8).map((post) => (
                     <Link href={`/blog/${post.slug.current}`} key={post._id} className="group flex gap-3 items-center">
                       <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-lg transition-all duration-700 border border-gray-200">
-                        <Image src={urlFor(post.mainImage).width(150).url()} alt={post.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
+                        <Image src={resolveImageUrl(post.mainImage, "/og-banner.png")} alt={post.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
                       </div>
                       <div className="flex flex-col gap-1">
                         <span className="text-[8px] text-[#C1121F] font-black uppercase tracking-[0.2em] leading-none">
@@ -251,7 +285,7 @@ export default function BlogContent({ initialPosts }: BlogContentProps) {
               >
                 <div className="relative aspect-[16/10] w-full overflow-hidden bg-gray-100">
                   <Image
-                    src={post.mainImage ? urlFor(post.mainImage).width(800).url() : "https://dummyimage.com/800x500/020617/334155"}
+                    src={post.mainImage ? resolveImageUrl(post.mainImage, "/og-banner.png") : "https://dummyimage.com/800x500/020617/334155"}
                     alt={post.title}
                     fill
                     className="object-cover transition-transform duration-1000 group-hover:scale-110"
@@ -318,17 +352,24 @@ export default function BlogContent({ initialPosts }: BlogContentProps) {
           )}
         </div>
 
-        {filteredPosts.length > displayCount && (
-          <div className="py-24 flex justify-center">
-            <button
-              onClick={() => setDisplayCount(prev => prev + 6)}
-              className="px-12 py-5 rounded-2xl bg-gray-50 border border-gray-200 text-gray-900 font-black uppercase tracking-widest text-[11px] shadow-lg hover:bg-[#C1121F] hover:text-white hover:border-transparent transition-all active:scale-95 flex items-center gap-3 group"
-            >
-              <span>Show More Stories</span>
-              <svg className="w-4 h-4 group-hover:translate-y-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+        {filteredPosts.length > 0 && (
+          <div
+            ref={loadMoreRef}
+            className="py-24 flex flex-col items-center justify-center gap-4"
+            aria-live="polite"
+          >
+            {filteredPosts.length > displayCount ? (
+              <>
+                <span className="inline-block w-7 h-7 rounded-full border-2 border-gray-200 border-t-[#C1121F] animate-spin" />
+                <span className="text-gray-400 font-black uppercase tracking-[0.3em] text-[10px]">
+                  {isLoadingMore ? "Loading more stories" : "Scroll for more stories"}
+                </span>
+              </>
+            ) : filteredPosts.length > 9 ? (
+              <span className="text-gray-400 font-black uppercase tracking-[0.3em] text-[10px]">
+                You&apos;ve reached the end
+              </span>
+            ) : null}
           </div>
         )}
       </div>

@@ -1,17 +1,22 @@
-import { client } from '@/sanity/lib/client'
+import { connectToDatabase } from '@/lib/mongodb'
+import { Course } from '@/lib/models'
 import ApplyCertificateForm from './ApplyCertificateForm'
 
 export const revalidate = 1800
 
 async function getCourses() {
-  return client.fetch<{ _id: string; title: string; isFree: boolean; hours: number }[]>(`
-    *[_type == "course"] | order(title asc) {
-      _id,
-      title,
-      isFree,
-      hours
-    }
-  `)
+  await connectToDatabase()
+  const docs = await Course.find()
+    .sort({ title: 1 })
+    .select('_id title isFree hours')
+    .lean<{ _id: unknown; title?: string; isFree?: boolean; hours?: number }[]>()
+
+  return docs.map((course) => ({
+    _id: String(course._id),
+    title: course.title || '',
+    isFree: course.isFree || false,
+    hours: course.hours || 0,
+  }))
 }
 
 export default async function ApplyForCertificationPage() {

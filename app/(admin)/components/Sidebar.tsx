@@ -1,49 +1,33 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { collections, groupOrder, canView } from '@/lib/admin-collections'
+import { Icon } from './icons'
 
-const nav = [
-  {
-    label: 'Dashboard',
-    href: '/admin',
-    icon: (
-      <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Enrollments',
-    href: '/admin/enrollments',
-    icon: (
-      <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Certifications',
-    href: '/admin/certifications',
-    icon: (
-      <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-      </svg>
-    ),
-  },
-]
+interface SidebarUser {
+  name: string
+  email: string
+  role: string
+}
 
-export default function Sidebar() {
+export default function Sidebar({ user }: { user: SidebarUser }) {
   const pathname = usePathname()
   const router = useRouter()
+  const [open, setOpen] = useState(false)
 
   async function handleLogout() {
     await fetch('/api/admin/auth', { method: 'DELETE' })
     router.push('/admin/login')
+    router.refresh()
   }
 
-  return (
-    <aside className="w-60 flex flex-col min-h-screen bg-[#0a0a0f] border-r border-white/5">
-      {/* Brand */}
+  const grouped = groupOrder
+    .map((g) => ({ group: g, items: collections.filter((c) => c.group === g && canView(c.slug, user.role)) }))
+    .filter((g) => g.items.length > 0)
+
+  const content = (
+    <>
       <div className="px-5 pt-6 pb-5">
         <div className="flex items-center gap-3">
           <div className="relative flex-shrink-0">
@@ -59,68 +43,114 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Divider */}
       <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-      {/* Label */}
-      <p className="px-5 pt-5 pb-2 text-[10px] font-semibold text-gray-600 uppercase tracking-widest">Navigation</p>
+      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
+        {/* Dashboard */}
+        <Link
+          href="/admin"
+          onClick={() => setOpen(false)}
+          className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+            pathname === '/admin'
+              ? 'bg-gradient-to-r from-[#C1121F]/20 to-[#C1121F]/5 text-white'
+              : 'text-gray-500 hover:text-gray-200 hover:bg-white/5'
+          }`}
+        >
+          {pathname === '/admin' && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#C1121F] rounded-full" />}
+          <span className={pathname === '/admin' ? 'text-[#C1121F]' : 'text-gray-600 group-hover:text-gray-400'}>
+            <Icon name="dashboard" />
+          </span>
+          Dashboard
+        </Link>
 
-      {/* Nav items */}
-      <nav className="flex-1 px-3 space-y-0.5">
-        {nav.map((item) => {
-          const active = item.href === '/admin' ? pathname === '/admin' : pathname.startsWith(item.href)
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
-                active
-                  ? 'bg-gradient-to-r from-[#C1121F]/20 to-[#C1121F]/5 text-white'
-                  : 'text-gray-500 hover:text-gray-200 hover:bg-white/5'
-              }`}
-            >
-              {active && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#C1121F] rounded-full" />
-              )}
-              <span className={active ? 'text-[#C1121F]' : 'text-gray-600 group-hover:text-gray-400 transition-colors'}>
-                {item.icon}
-              </span>
-              {item.label}
-              {active && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#C1121F]" />
-              )}
-            </Link>
-          )
-        })}
+        {/* Analytics */}
+        <Link
+          href="/admin/analytics"
+          onClick={() => setOpen(false)}
+          className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+            pathname === '/admin/analytics'
+              ? 'bg-gradient-to-r from-[#C1121F]/20 to-[#C1121F]/5 text-white'
+              : 'text-gray-500 hover:text-gray-200 hover:bg-white/5'
+          }`}
+        >
+          {pathname === '/admin/analytics' && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#C1121F] rounded-full" />}
+          <span className={pathname === '/admin/analytics' ? 'text-[#C1121F]' : 'text-gray-600 group-hover:text-gray-400'}>
+            <Icon name="chart" />
+          </span>
+          Statistics
+        </Link>
+
+        {grouped.map(({ group, items }) => (
+          <div key={group}>
+            <p className="px-3 pb-1.5 text-[10px] font-semibold text-gray-600 uppercase tracking-widest">{group}</p>
+            <div className="space-y-0.5">
+              {items.map((item) => {
+                const href = `/admin/c/${item.slug}`
+                const active = pathname.startsWith(href)
+                return (
+                  <Link
+                    key={item.slug}
+                    href={href}
+                    onClick={() => setOpen(false)}
+                    className={`group relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                      active
+                        ? 'bg-gradient-to-r from-[#C1121F]/20 to-[#C1121F]/5 text-white'
+                        : 'text-gray-500 hover:text-gray-200 hover:bg-white/5'
+                    }`}
+                  >
+                    {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#C1121F] rounded-full" />}
+                    <span className={active ? 'text-[#C1121F]' : 'text-gray-600 group-hover:text-gray-400'}>
+                      <Icon name={item.icon} />
+                    </span>
+                    {item.label}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
-      {/* Spacer */}
-      <div className="flex-1" />
-
-      {/* Bottom section */}
       <div className="mx-5 mb-3 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      <div className="px-4 pb-3">
+        <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl bg-white/5">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#C1121F] to-[#8B0D15] flex items-center justify-center text-white text-xs font-bold">
+            {user.name?.[0]?.toUpperCase() || user.email[0]?.toUpperCase()}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-white text-xs font-semibold truncate">{user.name || 'Admin'}</p>
+            <p className="text-gray-500 text-[10px] capitalize">{user.role}</p>
+          </div>
+        </div>
+      </div>
       <div className="px-3 pb-5 space-y-0.5">
-        <a
-          href="/"
-          target="_blank"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-500 hover:text-gray-200 hover:bg-white/5 transition-all"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </svg>
+        <a href="/" target="_blank" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-500 hover:text-gray-200 hover:bg-white/5 transition-all">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
           View Site
         </a>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-500 hover:text-red-400 hover:bg-red-500/5 w-full transition-all"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
+        <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-500 hover:text-red-400 hover:bg-red-500/5 w-full transition-all">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
           Sign Out
         </button>
       </div>
-    </aside>
+    </>
+  )
+
+  return (
+    <>
+      {/* Mobile toggle */}
+      <button
+        onClick={() => setOpen(true)}
+        className="lg:hidden fixed top-3 left-3 z-30 w-9 h-9 rounded-lg bg-[#0a0a0f] border border-white/10 flex items-center justify-center text-gray-300"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+      </button>
+
+      {open && <div className="lg:hidden fixed inset-0 bg-black/60 z-30" onClick={() => setOpen(false)} />}
+
+      <aside className={`w-64 flex flex-col bg-[#0a0a0f] border-r border-white/5 z-40 fixed lg:sticky top-0 h-screen transition-transform ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        {content}
+      </aside>
+    </>
   )
 }
-

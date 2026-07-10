@@ -74,17 +74,18 @@ export function CertificateTemplate({
       const options = {
         margin: 0,
         filename: `certificate-${certificateUID}.pdf`,
-        image: { type: 'png' as const, quality: 0.99 },
-        html2canvas: { 
-          scale: 2.5, 
-          useCORS: true, 
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
           allowTaint: true,
           backgroundColor: '#ffffff',
           letterRendering: true,
           windowHeight: 1500,
           windowWidth: 2100,
         },
-        jsPDF: { orientation: 'landscape' as const, unit: 'px' as const, format: [2000, 1414] as [number, number] }
+        // True A4 landscape paper size.
+        jsPDF: { orientation: 'landscape' as const, unit: 'mm' as const, format: 'a4' as const },
       };
       
       html2pdf().set(options).from(element).save();
@@ -171,7 +172,7 @@ export function CertificateTemplate({
         </button>
       </div>
 
-      {/* Certificate - Only this gets captured */}
+      {/* Certificate - Only this gets captured. Fixed A4 landscape (√2 ratio). */}
       <div
         ref={certRef}
         style={{
@@ -179,211 +180,118 @@ export function CertificateTemplate({
           height: '1414px',
           fontFamily: 'Georgia, "Times New Roman", serif',
           background: '#ffffff',
-          display: 'flex',
-          flexDirection: 'column',
+          position: 'relative',
           overflow: 'hidden',
           boxSizing: 'border-box',
           lineHeight: 'normal',
         }}
       >
-      {/* Google Fonts */}
-      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Great+Vibes&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-      `}} />
+        {/* Google Fonts */}
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          @import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Great+Vibes&display=swap');
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+        `}} />
 
-      {/* ── Header: cert code top-right only ── */}
-      <div style={{
-        position: 'relative',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100px',
-        padding: '0 72px',
-        flexShrink: 0,
-      }}>
-        {/* Cert code — top right */}
+        {/* Full-bleed top & bottom accent stripes */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0 }}><StripeBar /></div>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}><StripeBar /></div>
+
+        {/* Decorative double frame */}
+        <div style={{ position: 'absolute', top: '88px', left: '70px', right: '70px', bottom: '88px', border: '3px solid #1D3461' }} />
+        <div style={{ position: 'absolute', top: '99px', left: '81px', right: '81px', bottom: '99px', border: '1px solid #C8102E' }} />
+
+        {/* Certificate code — top right inside frame */}
         <div style={{
-          position: 'absolute',
-          right: '64px',
-          top: '28px',
-          fontSize: '25px',
-          fontWeight: 'bold',
-          fontFamily: 'Georgia, serif',
-          color: '#111',
-          letterSpacing: '0.3px',
+          position: 'absolute', right: '110px', top: '120px',
+          fontSize: '24px', fontWeight: 'bold', color: '#333', letterSpacing: '0.3px',
         }}>
           Certificate code : {certificateUID}
         </div>
-      </div>
 
-      {/* ── Divider: stripes flanking logo ── */}
-      <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-        {/* Left stripe */}
-        <div style={{ flex: 1, lineHeight: 0 }}>
-          <div style={{ height: '24px', background: '#1D3461' }} />
-          <div style={{ height: '13px',  background: '#ffffff' }} />
-          <div style={{ height: '24px', background: '#C8102E' }} />
-        </div>
-        {/* Logo centered between stripes */}
-        <div style={{ padding: '0 48px', flexShrink: 0, marginTop: '-70px' }}>
-          <img
-            src={resolvedLogo}
-            alt="Nepatronix"
-            style={{ height: '350px', objectFit: 'contain', display: 'block' }}
-          />
-        </div>
-        {/* Right stripe */}
-        <div style={{ flex: 1, lineHeight: 0 }}>
-          <div style={{ height: '24px', background: '#1D3461' }} />
-          <div style={{ height: '13px',  background: '#ffffff' }} />
-          <div style={{ height: '24px', background: '#C8102E' }} />
-        </div>
-      </div>
+        {/* Content column */}
+        <div style={{
+          position: 'absolute', top: '88px', left: '70px', right: '70px', bottom: '88px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          padding: '70px 150px 60px', boxSizing: 'border-box', textAlign: 'center',
+        }}>
+          {/* Logo */}
+          <img src={resolvedLogo} alt="Nepatronix" style={{ height: '150px', objectFit: 'contain', display: 'block' }} />
 
-      {/* ── Gothic title ── */}
-      <div style={{
-        textAlign: 'center',
-        paddingTop: '8px',
-        paddingBottom: '4px',
-        fontFamily: '"UnifrakturMaguntia", cursive',
-        fontSize: '114px',
-        color: '#111',
-        lineHeight: '1',
-        flexShrink: 0,
-      }}>
-        Certificate of participation
-      </div>
+          {/* Title */}
+          <div style={{ fontFamily: '"UnifrakturMaguntia", cursive', fontSize: '92px', color: '#111', lineHeight: 1.1, marginTop: '18px' }}>
+            Certificate of Participation
+          </div>
 
-      {/* ── Cursive recipient name ── */}
-      <div style={{
-        textAlign: 'center',
-        fontFamily: '"Great Vibes", cursive',
-        fontSize: '110px',
-        color: '#111',
-        lineHeight: '0.95',
-        paddingTop: '0px',
-        paddingBottom: '4px',
-        flexShrink: 0,
-      }}>
-        {recipientName}
-      </div>
+          {/* Presented-to line */}
+          <div style={{ fontSize: '24px', color: '#555', letterSpacing: '4px', textTransform: 'uppercase', marginTop: '18px' }}>
+            This certificate is proudly presented to
+          </div>
 
-      {/* ── Body text ── */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        textAlign: 'center',
-        fontSize: '27px',
-        lineHeight: '1.85',
-        color: '#222',
-        padding: '0 220px',
-        fontFamily: 'Georgia, serif',
-        gap: '32px',
-      }}>
-        <p style={{ fontSize: '28px' }}>
-          This is to certify that{' '}
-          <strong>{recipientName}</strong>{' '}
-          successfully participated in the{' '}
-          <strong>{courseHours ? `${courseHours} hours ` : ''}{courseName}</strong>.
-        </p>
-        <p style={{ fontSize: '28px' }}>
-          During the workshop, {pronouns.subject} demonstrated enthusiasm for learning and a keen interest in{' '}
-          <strong>electronics and innovation</strong>. We appreciate {pronouns.possessive} active participation and
-          encourage {pronouns.object} to continue exploring technology and innovation to create meaningful{' '}
-          <strong>impact in society</strong> and contribute to the nation&apos;s development.
-        </p>
-      </div>
+          {/* Recipient name */}
+          <div style={{ fontFamily: '"Great Vibes", cursive', fontSize: '104px', color: '#1D3461', lineHeight: 1.1, marginTop: '6px' }}>
+            {recipientName}
+          </div>
+          {/* Accent underline */}
+          <div style={{ width: '520px', height: '3px', background: '#C8102E', marginTop: '4px', opacity: 0.7 }} />
 
-      {/* ── Bottom row: QR | Signature | Partner logos ── */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-end',
-        padding: '0 78px 22px',
-        flexShrink: 0,
-        minHeight: '232px',
-      }}>
+          {/* Body paragraphs */}
+          <div style={{ maxWidth: '1500px', marginTop: '34px', fontSize: '27px', lineHeight: 1.8, color: '#333' }}>
+            <p style={{ marginBottom: '20px' }}>
+              This is to certify that{' '}
+              <strong>{recipientName}</strong>{' '}
+              has successfully participated in the{' '}
+              <strong>{courseHours ? `${courseHours} hours ` : ''}{courseName}</strong>.
+            </p>
+            <p>
+              During the workshop, {pronouns.subject} demonstrated enthusiasm for learning and a keen interest in{' '}
+              <strong>electronics and innovation</strong>. We appreciate {pronouns.possessive} active participation and
+              encourage {pronouns.object} to continue exploring technology to create meaningful{' '}
+              <strong>impact in society</strong>.
+            </p>
+          </div>
 
-        {/* Left: QR code — no border, no label */}
-        <div style={{ width: '232px', flexShrink: 0 }}>
-          {qrCodeDataUrl && (
-            <img
-              src={qrCodeDataUrl}
-              alt="Verify"
-              style={{ width: '228px', height: '228px', display: 'block' }}
-            />
-          )}
-        </div>
-
-        {/* Centre: signature image + line + name/title/org */}
-        <div style={{ textAlign: 'center', flexShrink: 0, position: 'relative' }}>
-          {/* Invisible spacer for layout */}
-          <div style={{ height: '35px' }} />
-          {/* Signature image aligned with the line */}
-          <img
-            src={resolvedSignature}
-            alt="Signature"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-            style={{
-              marginBottom: '-100px', // Slight overlap with the line
-              height: '380px', // Even larger
-              maxWidth: '1500px', // Even wider
-              objectFit: 'contain',
-              mixBlendMode: 'multiply',
-              display: 'block',
-              marginLeft: 'auto',
-              marginRight: 'auto',
-            }}
-          />
+          {/* Bottom row pinned to bottom of the content area */}
           <div style={{
-            borderTop: '3px solid #222',
-            paddingTop: '11px',
-            minWidth: '392px',
+            marginTop: 'auto', width: '100%',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
           }}>
-            <p style={{ fontSize: '27px', fontWeight: 'bold', color: '#111', marginBottom: '4px' }}>
-              {signatoryName}
-            </p>
-            <p style={{ fontSize: '23px', color: '#333', marginBottom: '4px' }}>
-              {signatoryTitle}
-            </p>
-            <p style={{ fontSize: '21px', color: '#555' }}>{organizationName}</p>
+            {/* QR */}
+            <div style={{ width: '200px', flexShrink: 0, textAlign: 'center' }}>
+              {qrCodeDataUrl && (
+                <img src={qrCodeDataUrl} alt="Verify" style={{ width: '190px', height: '190px', display: 'block', margin: '0 auto' }} />
+              )}
+              <div style={{ fontSize: '16px', color: '#666', marginTop: '8px' }}>Scan to verify</div>
+            </div>
+
+            {/* Signature */}
+            <div style={{ textAlign: 'center', flexShrink: 0, position: 'relative', paddingBottom: '4px' }}>
+              <img
+                src={resolvedSignature}
+                alt="Signature"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                style={{ height: '150px', maxWidth: '460px', objectFit: 'contain', mixBlendMode: 'multiply', display: 'block', margin: '0 auto -18px' }}
+              />
+              <div style={{ borderTop: '3px solid #222', paddingTop: '10px', minWidth: '420px' }}>
+                <p style={{ fontSize: '26px', fontWeight: 'bold', color: '#111', marginBottom: '4px' }}>{signatoryName}</p>
+                <p style={{ fontSize: '22px', color: '#333', marginBottom: '2px' }}>{signatoryTitle}</p>
+                <p style={{ fontSize: '20px', color: '#555' }}>{organizationName}</p>
+              </div>
+            </div>
+
+            {/* Partner logos */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '40px', width: '340px', justifyContent: 'flex-end', flexShrink: 0 }}>
+              {partnerLogo1Url && (
+                <img src={partnerLogo1Url} alt="Partner 1" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  style={{ height: '130px', maxWidth: '200px', objectFit: 'contain', display: 'block' }} />
+              )}
+              {partnerLogo2Url && (
+                <img src={partnerLogo2Url} alt="Partner 2" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  style={{ height: '150px', maxWidth: '200px', objectFit: 'contain', display: 'block' }} />
+              )}
+            </div>
           </div>
         </div>
-
-        {/* Right: two partner logos side-by-side */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '43px',
-          width: '500px',
-          justifyContent: 'flex-end',
-          flexShrink: 0,
-        }}>
-          {partnerLogo1Url && (
-            <img
-              src={partnerLogo1Url}
-              alt="Partner 1"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-              style={{ height: '160px', maxWidth: '232px', objectFit: 'contain', display: 'block' }}
-            />
-          )}
-          {partnerLogo2Url && (
-            <img
-              src={partnerLogo2Url}
-              alt="Partner 2"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-              style={{ height: '300px', maxWidth: '400px', objectFit: 'contain', display: 'block' }}
-            />
-          )}
-        </div>
-      </div>
-
-      {/* ── Bottom stripes ── */}
-      <StripeBar />
       </div>
     </div>
   );

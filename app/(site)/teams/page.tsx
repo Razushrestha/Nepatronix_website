@@ -1,20 +1,29 @@
-import { client } from "@/sanity/lib/client";
+import { connectToDatabase } from "@/lib/mongodb";
+import { TeamMember as TeamMemberModel } from "@/lib/models";
 import TeamsClient, { TeamMember } from "./TeamsClient";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
+
+interface TeamDoc {
+  _id: unknown;
+  name?: string;
+  title?: string;
+  role?: string;
+  image?: { url?: string; alt?: string };
+}
 
 async function getTeamMembers(): Promise<TeamMember[]> {
-  return client.fetch<TeamMember[]>(
-    `*[_type == "teamMember"] | order(order asc) {
-      _id,
-      name,
-      title,
-      role,
-      image
-    }`,
-    {},
-    { next: { revalidate: 3600 } }
-  );
+  await connectToDatabase();
+  const docs = await TeamMemberModel.find()
+    .sort({ order: 1, createdAt: 1 })
+    .lean<TeamDoc[]>();
+  return docs.map((d) => ({
+    _id: String(d._id),
+    name: d.name || "",
+    title: d.title || "",
+    role: (d.role as TeamMember["role"]) || "Team",
+    image: d.image?.url ? { url: d.image.url, alt: d.image.alt } : undefined,
+  }));
 }
 
 export default async function TeamPage() {

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 
-const recognitionData = [
+const defaultRecognition = [
   { name: "ICT Startup Award", logo: "/recognition/ICT.png" },
   { name: "Government of Nepal", logo: "/recognition/NepalGov.png" },
   { name: "Kathmandu University", logo: "/recognition/KU.png" },
@@ -13,7 +13,10 @@ const recognitionData = [
   { name: "EU Business Forum", logo: "/recognition/EUbusinessforum.png" },
 ];
 
-export function RecognitionGrid() {
+type RecognitionItem = { name: string; logo: string };
+
+export function RecognitionGrid({ items }: { items?: RecognitionItem[] }) {
+  const recognitionData = items?.length ? items : defaultRecognition;
   const [showAll, setShowAll] = useState(false);
   const initialCount = 6;
 
