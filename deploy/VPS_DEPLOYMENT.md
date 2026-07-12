@@ -148,7 +148,41 @@ npm run verify -- https://nepatronix.org
 |---------|-----|
 | `cd nepatronix: No such file` | Run `git clone` first |
 | `npm ci` fails | Must run inside `/var/www/nepatronix` |
-| Build OOM | Enable swap (see `vps-setup.sh`) |
+| Build fails `find requires authentication` | Fix MongoDB URI or create DB user (see below) |
+| Build fails `eslint` config warning | Pull latest `next.config.ts` (eslint key removed) |
 | Admin login fails | Run `npm run seed:admin`, check `JWT_SECRET` |
 | Empty site | Run `npm run seed:content` or restore mongodump |
 | 502 Bad Gateway | `pm2 restart nepatronix`, check `pm2 logs` |
+
+### MongoDB authentication during build
+
+If `npm run build` fails with `Command find requires authentication`:
+
+**Option A — disable auth (local VPS only):**
+
+```bash
+grep authorization /etc/mongod.conf
+nano /etc/mongod.conf   # comment out authorization: enabled if present
+systemctl restart mongod
+```
+
+**Option B — create a user and update `.env.local`:**
+
+```bash
+mongosh
+use nepatronix
+db.createUser({
+  user: "nepatronix",
+  pwd: "YOUR_STRONG_PASSWORD",
+  roles: [{ role: "readWrite", db: "nepatronix" }]
+})
+exit
+```
+
+Set in `.env.local`:
+
+```env
+MONGODB_URI=mongodb://nepatronix:YOUR_STRONG_PASSWORD@127.0.0.1:27017/nepatronix?authSource=nepatronix
+```
+
+Then: `npm run build && pm2 restart nepatronix`
