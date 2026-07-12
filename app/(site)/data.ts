@@ -232,14 +232,14 @@ export const stats: Stat[] = [
 	{
 		id: 3,
 		label: "Project Completed",
-		value: "80+",
-		detail: "custom STEM kits and solutions",
+		value: "100+",
+		detail: "IoT & robotics builds",
 	},
 	{
 		id: 4,
-		label: "Certified Teachers",
-		value: "100+",
-		detail: "trained and certified",
+		label: "Expert Mentors",
+		value: "15+",
+		detail: "Industry practitioners",
 	},
 ];
 

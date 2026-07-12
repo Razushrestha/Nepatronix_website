@@ -177,11 +177,20 @@ async function main() {
     review: d.review,
   }))
 
-  const st = await upsertMany(db.collection('stats'), stats, (d) => ({
-    value: d.value,
-    label: d.label,
-    detail: d.detail,
-  }))
+  // Stats have no `name` field — replace collection to avoid duplicate-key upserts.
+  await db.collection('stats').deleteMany({})
+  for (let i = 0; i < stats.length; i++) {
+    const d = stats[i]
+    await db.collection('stats').insertOne({
+      value: d.value,
+      label: d.label,
+      detail: d.detail,
+      order: i,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+  }
+  const st = stats.length
 
   await db.collection('footers').updateOne(
     { key: 'footer' },

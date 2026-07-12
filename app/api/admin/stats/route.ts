@@ -9,6 +9,7 @@ import {
   ContactForm,
   Gallery,
   TeamMember,
+  Stat,
 } from '@/lib/models'
 import { requireRole } from '@/lib/auth'
 
@@ -67,6 +68,7 @@ export async function GET() {
     newMessages,
     totalGalleries,
     totalTeam,
+    totalHomeStats,
     pendingEnrollments,
     pendingCertifications,
     weekEnrollments,
@@ -87,6 +89,7 @@ export async function GET() {
     ContactForm.countDocuments({ status: 'new' }),
     Gallery.countDocuments(),
     TeamMember.countDocuments(),
+    Stat.countDocuments(),
     Enrollment.countDocuments({ status: 'pending' }),
     Certification.countDocuments({ status: 'pending' }),
     Enrollment.countDocuments({ createdAt: { $gte: weekAgo } }),
@@ -116,6 +119,7 @@ export async function GET() {
       newMessages,
       totalGalleries,
       totalTeam,
+      totalHomeStats,
       pendingEnrollments,
       pendingCertifications,
       weekEnrollments,

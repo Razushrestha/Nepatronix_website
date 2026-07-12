@@ -47,11 +47,12 @@ export default function AdminDashboard() {
       </div>
 
       {/* KPI grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
         <KpiCard label="Enrollments" value={k.totalEnrollments} sub={`${k.pendingEnrollments} pending`} href="/admin/c/enrollments" accent="text-blue-400" />
         <KpiCard label="Certifications" value={k.totalCertifications} sub={`${k.pendingCertifications} pending`} href="/admin/c/certifications" accent="text-purple-400" />
         <KpiCard label="Courses" value={k.totalCourses} href="/admin/c/courses" accent="text-emerald-400" />
         <KpiCard label="Blog Posts" value={k.totalPosts} href="/admin/c/posts" accent="text-orange-400" />
+        <KpiCard label="Homepage Stats" value={k.totalHomeStats} href="/admin/c/stats" accent="text-cyan-400" />
         <KpiCard label="Subscribers" value={k.totalSubscribers} href="/admin/c/subscribers" accent="text-pink-400" />
         <KpiCard label="New Messages" value={k.newMessages} href="/admin/c/contactforms" accent="text-yellow-400" />
       </div>

@@ -85,8 +85,9 @@ export async function getSchoolLogos(): Promise<LogoItem[]> {
 export async function getHomeStats(): Promise<Stat[]> {
   await connectToDatabase()
   const docs = await Stat.find().sort({ order: 1, createdAt: 1 }).lean()
-  if (!docs.length) return staticStats
-  return docs.map((d, i) => ({
+  const valid = docs.filter((d) => d.label?.trim() && d.value?.trim())
+  if (!valid.length) return staticStats
+  return valid.map((d, i) => ({
     id: i + 1,
     label: d.label || '',
     value: d.value || '',

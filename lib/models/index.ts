@@ -271,13 +271,14 @@ export const Feature = makeModel('Feature', FeatureSchema)
 /* ───────────────────────── Stats ─────────────────────────────── */
 const StatSchema = new Schema(
   {
-    value: String,
-    label: String,
-    detail: String,
+    value: { type: String, required: true, trim: true },
+    label: { type: String, required: true, trim: true, unique: true },
+    detail: { type: String, trim: true },
     order: { type: Number, default: 0 },
   },
   { timestamps: true }
 )
+StatSchema.index({ order: 1 })
 export const Stat = makeModel('Stat', StatSchema)
 
 /* ───────────────────────── Course PDFs ───────────────────────── */

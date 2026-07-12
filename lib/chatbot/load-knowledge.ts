@@ -64,11 +64,14 @@ export async function loadChatKnowledge(): Promise<ChatKnowledge> {
     }
 
     if (statDocs.length) {
-      stats = statDocs.map((s) => ({
-        label: s.label || '',
-        value: s.value || '',
-        detail: s.detail || '',
-      }))
+      const valid = statDocs.filter((s) => s.label?.trim() && s.value?.trim())
+      if (valid.length) {
+        stats = valid.map((s) => ({
+          label: s.label || '',
+          value: s.value || '',
+          detail: s.detail || '',
+        }))
+      }
     }
 
     courses = courseDocs
