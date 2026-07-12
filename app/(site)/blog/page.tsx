@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import {
   getAllBlogPosts,
   toBlogListPost,
+  type BlogListPost,
 } from "@/lib/blog/queries";
 
 const SITE = "https://nepatronix.org";
@@ -109,11 +110,16 @@ export async function generateMetadata(): Promise<Metadata> {
 export const revalidate = 120;
 
 export default async function BlogPage() {
-  const docs = await getAllBlogPosts();
-  const posts = docs.flatMap((post) => {
-    const item = toBlogListPost(post);
-    return item ? [item] : [];
-  });
+  let posts: BlogListPost[] = [];
+  try {
+    const docs = await getAllBlogPosts();
+    posts = docs.flatMap((post) => {
+      const item = toBlogListPost(post);
+      return item ? [item] : [];
+    });
+  } catch (err) {
+    console.warn("Blog index: MongoDB unavailable, showing empty list.", err);
+  }
 
   const jsonLd = {
     "@context": "https://schema.org",

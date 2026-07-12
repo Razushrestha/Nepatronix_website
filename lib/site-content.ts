@@ -186,13 +186,30 @@ export async function getHeroSlide(): Promise<HeroSlideContent | null> {
 }
 
 export async function getHomePageContent() {
-  const [stats, partners, recognitions, schools, testimonials, hero] = await Promise.all([
-    getHomeStats(),
-    getPartnerLogos('trusted'),
-    getRecognitionLogos(),
-    getSchoolLogos(),
-    getHomeTestimonials(),
-    getHeroSlide(),
-  ])
-  return { stats, partners, recognitions, schools, testimonials, hero }
+  try {
+    const [stats, partners, recognitions, schools, testimonials, hero] = await Promise.all([
+      getHomeStats(),
+      getPartnerLogos('trusted'),
+      getRecognitionLogos(),
+      getSchoolLogos(),
+      getHomeTestimonials(),
+      getHeroSlide(),
+    ])
+    return { stats, partners, recognitions, schools, testimonials, hero }
+  } catch (err) {
+    console.warn('Homepage: MongoDB unavailable, using static fallbacks.', err)
+    return {
+      stats: staticStats,
+      partners: getDefaultPartners(),
+      recognitions: getDefaultRecognitions(),
+      schools: getDefaultSchools(),
+      testimonials: staticTestimonials.map((t) => ({
+        name: t.name,
+        role: t.role,
+        rating: 5,
+        review: t.quote,
+      })),
+      hero: null as HeroSlideContent | null,
+    }
+  }
 }

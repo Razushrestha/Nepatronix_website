@@ -41,6 +41,19 @@ try {
   copyFileSync(FULL, BACKUP)
   writeFileSync(FULL, JSON.stringify(minimalTsconfig, null, 2))
 
+  console.log('VPS build: checking MongoDB (build continues with fallbacks if auth fails)...')
+  const ping = spawnSync('mongosh', ['--quiet', 'mongodb://127.0.0.1:27017/nepatronix', '--eval', 'db.runCommand({ ping: 1 })'], {
+    stdio: 'pipe',
+    encoding: 'utf8',
+  })
+  if (ping.status !== 0 || !ping.stdout?.includes('ok')) {
+    console.warn('\n⚠️  MongoDB not reachable or requires auth.')
+    console.warn('   Run: bash deploy/fix-mongodb-auth.sh')
+    console.warn('   Then: npm run seed:admin && npm run seed:content\n')
+  } else {
+    console.log('MongoDB OK.')
+  }
+
   const heap = process.env.NODE_OPTIONS?.includes('max-old-space-size')
     ? undefined
     : '--max-old-space-size=4096'

@@ -39,9 +39,14 @@ const DEFAULT_CONTACT: ContactPageData = {
 };
 
 async function getContactData(): Promise<ContactPageData> {
-  await connectToDatabase();
-  const data = await ContactPageModel.findOne({ key: "contact" }).lean<ContactPageData | null>();
-  return data || DEFAULT_CONTACT;
+  try {
+    await connectToDatabase();
+    const data = await ContactPageModel.findOne({ key: "contact" }).lean<ContactPageData | null>();
+    return data || DEFAULT_CONTACT;
+  } catch (err) {
+    console.warn("Contact page: MongoDB unavailable, using defaults.", err);
+    return DEFAULT_CONTACT;
+  }
 }
 
 export default async function ContactPage() {

@@ -114,13 +114,20 @@ const DEFAULT_FOOTER: FooterData = {
 };
 
 export async function Footer() {
-  await connectToDatabase();
-  const [footerDoc, contactData] = await Promise.all([
-    FooterModel.findOne({ key: "footer" }).lean<FooterData | null>(),
-    ContactPage.findOne({ key: "contact" }).lean<ContactData | null>(),
-  ]);
+  let footerDoc: FooterData | null = null;
+  let contactData: ContactData | null = null;
 
-  const footerData = footerDoc || (await FooterModel.findOne().lean<FooterData | null>()) || DEFAULT_FOOTER;
+  try {
+    await connectToDatabase();
+    [footerDoc, contactData] = await Promise.all([
+      FooterModel.findOne({ key: "footer" }).lean<FooterData | null>(),
+      ContactPage.findOne({ key: "contact" }).lean<ContactData | null>(),
+    ]);
+  } catch (err) {
+    console.warn("Footer: MongoDB unavailable, using defaults.", err);
+  }
+
+  const footerData = footerDoc || DEFAULT_FOOTER;
 
   const email = contactData?.contactDetails?.email;
   const phone = contactData?.contactDetails?.phone;
