@@ -182,16 +182,21 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export async function generateStaticParams() {
-  const docs = await getAllBlogPosts();
-  const out: { slug: string }[] = [];
-  const seen = new Set<string>();
-  for (const row of docs) {
-    const canon = canonicalBlogSlug(row.slug || "");
-    if (!canon || seen.has(canon)) continue;
-    seen.add(canon);
-    out.push({ slug: canon });
+  try {
+    const docs = await getAllBlogPosts();
+    const out: { slug: string }[] = [];
+    const seen = new Set<string>();
+    for (const row of docs) {
+      const canon = canonicalBlogSlug(row.slug || "");
+      if (!canon || seen.has(canon)) continue;
+      seen.add(canon);
+      out.push({ slug: canon });
+    }
+    return out;
+  } catch (err) {
+    console.warn("Build: could not load blog slugs from MongoDB — pages will render on demand.", err);
+    return [];
   }
-  return out;
 }
 
 export const revalidate = 60; // refresh detail pages periodically
