@@ -61,6 +61,12 @@ export interface CollectionConfig {
   fields: FieldDef[]
 }
 
+const SECTION_HEADING_FIELDS: FieldDef[] = [
+  { name: 'eyebrow', label: 'Eyebrow', type: 'text', placeholder: 'e.g. About Us' },
+  { name: 'title', label: 'Title', type: 'text', placeholder: 'Section heading' },
+  { name: 'description', label: 'Description', type: 'textarea', fullWidth: true },
+]
+
 const STATUS = {
   enrollment: [
     { value: 'pending', label: 'Pending', color: 'yellow' },
@@ -475,6 +481,97 @@ export const collections: CollectionConfig[] = [
     ],
   },
   {
+    slug: 'homeservices',
+    label: 'Home Services',
+    singular: 'Home Service',
+    group: 'Content',
+    icon: 'sparkles',
+    searchFields: ['title', 'description'],
+    defaultSort: 'order',
+    columns: [
+      { key: 'title', label: 'Title' },
+      { key: 'href', label: 'Link' },
+      { key: 'order', label: 'Order' },
+    ],
+    fields: [
+      { name: 'title', label: 'Title', type: 'text', required: true },
+      { name: 'description', label: 'Description', type: 'textarea', fullWidth: true },
+      { name: 'href', label: 'Link URL', type: 'text', placeholder: '/services/stem-education' },
+      { name: 'iconKey', label: 'Icon', type: 'select', options: [
+        { value: 'stem', label: 'STEM / Education' },
+        { value: 'lab', label: 'Lab Setup' },
+        { value: 'software', label: 'Software / Code' },
+        { value: 'research', label: 'Research / Innovation' },
+      ] },
+      { name: 'colorClass', label: 'Icon Color Class', type: 'select', options: [
+        { value: 'text-blue-600', label: 'Blue' },
+        { value: 'text-red-600', label: 'Red' },
+        { value: 'text-emerald-600', label: 'Green' },
+        { value: 'text-purple-600', label: 'Purple' },
+      ] },
+      { name: 'order', label: 'Display Order', type: 'number' },
+    ],
+  },
+  {
+    slug: 'accreditations',
+    label: 'Accreditations',
+    singular: 'Accreditation',
+    group: 'Content',
+    icon: 'award',
+    searchFields: ['title', 'badge'],
+    defaultSort: 'order',
+    columns: [
+      { key: 'logo', label: '', type: 'image' },
+      { key: 'title', label: 'Title' },
+      { key: 'badge', label: 'Badge' },
+    ],
+    fields: [
+      { name: 'title', label: 'Title', type: 'text', required: true },
+      { name: 'badge', label: 'Badge Label', type: 'text', placeholder: 'Academic accreditation' },
+      { name: 'description', label: 'Description', type: 'textarea', fullWidth: true },
+      { name: 'logo', label: 'Logo', type: 'image' },
+      { name: 'badgeTone', label: 'Badge Color', type: 'select', options: [
+        { value: 'blue', label: 'Blue' }, { value: 'emerald', label: 'Green' } ] },
+      { name: 'order', label: 'Display Order', type: 'number' },
+    ],
+  },
+  {
+    slug: 'incubators',
+    label: 'Incubators',
+    singular: 'Incubator',
+    group: 'Content',
+    icon: 'handshake',
+    searchFields: ['name'],
+    defaultSort: 'order',
+    columns: [
+      { key: 'logo', label: '', type: 'image' },
+      { key: 'name', label: 'Name' },
+    ],
+    fields: [
+      { name: 'name', label: 'Name', type: 'text', required: true },
+      { name: 'logo', label: 'Logo', type: 'image' },
+      { name: 'order', label: 'Display Order', type: 'number' },
+    ],
+  },
+  {
+    slug: 'portfolioitems',
+    label: 'Portfolio',
+    singular: 'Portfolio Item',
+    group: 'Content',
+    icon: 'globe',
+    searchFields: ['name', 'url'],
+    defaultSort: 'order',
+    columns: [
+      { key: 'name', label: 'Name' },
+      { key: 'url', label: 'URL' },
+    ],
+    fields: [
+      { name: 'name', label: 'Project Name', type: 'text', required: true },
+      { name: 'url', label: 'Website URL', type: 'text', required: true, placeholder: 'https://example.com' },
+      { name: 'order', label: 'Display Order', type: 'number' },
+    ],
+  },
+  {
     slug: 'coursepdfs',
     label: 'Course PDFs',
     singular: 'Course PDF',
@@ -527,6 +624,36 @@ export const collections: CollectionConfig[] = [
   },
 
   /* ───────── Site Settings (singletons) ───────── */
+  {
+    slug: 'homepage',
+    label: 'Homepage',
+    singular: 'Homepage',
+    group: 'Site Settings',
+    icon: 'layout',
+    singleton: true,
+    columns: [],
+    fields: [
+      { name: 'about', label: 'About Section', type: 'group', object: true, fullWidth: true, fields: [
+        { name: 'eyebrow', label: 'Eyebrow', type: 'text' },
+        { name: 'title', label: 'Title', type: 'text' },
+        { name: 'description', label: 'Description', type: 'textarea', fullWidth: true },
+        { name: 'paragraph1', label: 'Paragraph 1', type: 'textarea', fullWidth: true },
+        { name: 'paragraph2', label: 'Paragraph 2', type: 'textarea', fullWidth: true },
+        { name: 'tagline', label: 'Tagline', type: 'text' },
+        { name: 'foundedYear', label: 'Founded Year', type: 'text' },
+        { name: 'vision', label: 'Vision Quote', type: 'textarea', fullWidth: true },
+        { name: 'mission', label: 'Mission Quote', type: 'textarea', fullWidth: true },
+      ] },
+      { name: 'recognition', label: 'Recognition Section', type: 'group', object: true, fields: SECTION_HEADING_FIELDS },
+      { name: 'certification', label: 'Certification Section', type: 'group', object: true, fields: SECTION_HEADING_FIELDS },
+      { name: 'incubation', label: 'Incubation Section', type: 'group', object: true, fields: SECTION_HEADING_FIELDS },
+      { name: 'services', label: 'Services Section', type: 'group', object: true, fields: SECTION_HEADING_FIELDS },
+      { name: 'partners', label: 'Partners Section', type: 'group', object: true, fields: SECTION_HEADING_FIELDS },
+      { name: 'portfolio', label: 'Portfolio Section', type: 'group', object: true, fields: SECTION_HEADING_FIELDS },
+      { name: 'schools', label: 'Schools Section', type: 'group', object: true, fields: SECTION_HEADING_FIELDS },
+      { name: 'testimonials', label: 'Testimonials Section', type: 'group', object: true, fields: SECTION_HEADING_FIELDS },
+    ],
+  },
   {
     slug: 'footer',
     label: 'Footer',
@@ -631,6 +758,11 @@ export const EDITOR_COLLECTIONS = new Set<string>([
   'stats',
   'features',
   'heroslides',
+  'homeservices',
+  'accreditations',
+  'incubators',
+  'portfolioitems',
+  'homepage',
   'coursepdfs',
   'contactpage',
   'enrollments',

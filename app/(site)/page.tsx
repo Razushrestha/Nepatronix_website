@@ -1,14 +1,14 @@
-import Image from "next/image";
 import type { Metadata } from "next";
-import fs from "fs";
-import path from "path";
-import Link from "next/link";
 import { SectionHeading } from "./components/SectionHeading";
 import SchoolCollaborations from "./components/SchoolCollaborations";
 import { StatsBar } from "./components/StatsBar";
 import { HeroSection } from "./components/HeroSection";
 import { RecognitionGrid } from "./components/RecognitionGrid";
 import { PartnersGrid } from "./components/PartnersGrid";
+import { HomeServicesGrid } from "./components/HomeServicesGrid";
+import { AccreditationCards } from "./components/AccreditationCards";
+import { IncubatorsGrid } from "./components/IncubatorsGrid";
+import { PortfolioMarquee } from "./components/PortfolioMarquee";
 import { getHomePageContent } from "@/lib/site-content";
 import {
   STEM_EDUCATION_SEO_KEYWORDS,
@@ -57,6 +57,7 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   const homeContent = await getHomePageContent();
+  const { settings } = homeContent;
   const clientReviews = homeContent.testimonials;
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -112,20 +113,20 @@ export default async function Home() {
 
       <section className="mx-auto mt-8 max-w-6xl space-y-12 px-6" id="about">
         <SectionHeading
-          eyebrow="About Us"
-          title="Our Mission & Vision"
-          description="Driving innovation through education and technology."
+          eyebrow={settings.about.eyebrow}
+          title={settings.about.title}
+          description={settings.about.description}
           align="center"
         />
         <div className="mx-auto max-w-4xl text-center space-y-2">
           <p className="text-xl leading-relaxed text-[#6B7280]">
-            Founded in <span className="font-semibold text-[#2563EB]">2021</span>, <span className="font-semibold text-[#020617]">NepaTronix</span> is a leading Nepal-based IoT, STEM EdTech, and software company committed to closing the gap between education and innovation.
+            {settings.about.paragraph1}
           </p>
           <p className="text-xl leading-relaxed text-[#6B7280]">
-            Built on the belief that education should inspire creativity, cultivate practical skills, and lead to meaningful invention, <span className="font-semibold text-[#020617]">NepaTronix</span> operates at the intersection of engineering, education, and social impact. Through smart technology solutions and engaging, hands-on learning programs, we empower students, teachers, and institutions to create real-world change.
+            {settings.about.paragraph2}
           </p>
           <p className="text-xl font-bold text-[#020617] mt-2">
-            NepaTronix - Excellence Through Innovation.
+            {settings.about.tagline}
           </p>
         </div>
         <div className="grid gap-8 md:grid-cols-2">
@@ -141,8 +142,7 @@ export default async function Home() {
               </span>
             </div>
             <p className="text-lg leading-relaxed text-slate-700">
-              &ldquo;Tech-driven learning that inspires innovation at every
-              level.&rdquo;
+              &ldquo;{settings.about.vision}&rdquo;
             </p>
           </div>
           <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm hover:shadow-[0_4px_20px_rgba(193,18,31,0.15)] transition-all hover:border-[#C1121F]/20">
@@ -158,9 +158,7 @@ export default async function Home() {
               </span>
             </div>
             <p className="text-lg leading-relaxed text-slate-700">
-              &ldquo;To simplify and amplify IoT, STEM education through
-              impactful tools, creative content, and innovating real-world
-              technology.&rdquo;
+              &ldquo;{settings.about.mission}&rdquo;
             </p>
           </div>
         </div>
@@ -169,9 +167,9 @@ export default async function Home() {
       <section className="mx-auto mt-8 max-w-6xl px-6" id="recognition">
         <div className="text-center">
           <SectionHeading
-            eyebrow="Recognition"
-            title="Trusted by Leading Institutions"
-            description="We are proud to be recognized and supported by prestigious organizations across Nepal and India."
+            eyebrow={settings.recognition.eyebrow}
+            title={settings.recognition.title}
+            description={settings.recognition.description}
             align="center"
           />
         </div>
@@ -184,213 +182,44 @@ export default async function Home() {
         id="programs"
       >
         <SectionHeading
-          eyebrow="Certification"
-          title="Certified and Accreditation"
-          description="Our STEAM with IoT and Robotics course is accredited by Kathmandu University, with professional pathways through IIT Madras Pravartak."
+          eyebrow={settings.certification.eyebrow}
+          title={settings.certification.title}
+          description={settings.certification.description}
           align="center"
         />
 
-        <div className="mx-auto mt-14 grid max-w-4xl gap-12 sm:gap-14 md:grid-cols-2 md:gap-10">
-          <div className="flex flex-col items-center border-t border-slate-200 pt-10 text-center md:border-t-0 md:border-r md:border-slate-200 md:pr-8 md:pt-0">
-            <div className="mb-6 flex h-28 w-full items-center justify-center">
-              <Image
-                src="/recognition/KU.png"
-                alt="Kathmandu University"
-                width={180}
-                height={180}
-                loading="lazy"
-                sizes="(max-width: 768px) 140px, 180px"
-                className="h-auto max-h-24 w-auto max-w-full object-contain"
-              />
-            </div>
-            <span className="mb-3 rounded-full bg-[#1e88e5]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#1e88e5]">
-              Academic accreditation
-            </span>
-            <h3 className="mb-3 text-xl font-bold text-[#020617]">
-              Kathmandu University
-            </h3>
-            <p className="max-w-sm text-base leading-relaxed text-[#64748b]">
-              Official university accreditation for our comprehensive STEAM curriculum.
-            </p>
-          </div>
-
-          <div className="flex flex-col items-center border-t border-slate-200 pt-10 text-center md:border-t-0 md:pl-8 md:pt-0">
-            <div className="mb-6 flex h-28 w-full items-center justify-center">
-              <Image
-                src="/pravartak.png"
-                alt="IIT Madras Pravartak"
-                width={220}
-                height={120}
-                loading="lazy"
-                sizes="(max-width: 768px) 200px, 220px"
-                className="h-auto max-h-20 w-auto max-w-full object-contain"
-              />
-            </div>
-            <span className="mb-3 rounded-full bg-emerald-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-emerald-700">
-              Professional certification
-            </span>
-            <h3 className="mb-3 text-xl font-bold text-[#020617]">
-              IIT Madras Pravartak
-            </h3>
-            <p className="max-w-sm text-base leading-relaxed text-[#64748b]">
-              Industry-aligned programmes on SWAYAM Plus, including NCrF-aligned intensive training.
-            </p>
-          </div>
-        </div>
+        <AccreditationCards items={homeContent.accreditations} />
       </section>
 
       <section className="mx-auto mt-8 max-w-6xl px-6" id="incubated-by">
         <div className="text-center">
           <SectionHeading
-            eyebrow="Incubation"
-            title="Incubated By"
-            description="Nepatronix is incubated and supported by leading organizations driving innovation, education, and entrepreneurship across India and Nepal."
+            eyebrow={settings.incubation.eyebrow}
+            title={settings.incubation.title}
+            description={settings.incubation.description}
             align="center"
           />
         </div>
 
-        {(() => {
-          const incubators = [
-            { name: "IIT Madras", file: "iit-madras.png" },
-            { name: "IITM Pravartak", file: "iitm-pravartak.png" },
-            { name: "Future Front", file: "future-front.png" },
-            { name: "IEDI", file: "iedi.png" },
-            { name: "Glocal After School", file: "glocal-after-school.png" },
-          ];
-          const dir = path.join(process.cwd(), "public", "incubated");
-          return (
-            <div className="mx-auto mt-14 grid max-w-5xl grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
-              {incubators.map((org) => {
-                const exists = fs.existsSync(path.join(dir, org.file));
-                return (
-                  <div
-                    key={org.name}
-                    className="flex h-44 flex-col items-center justify-center p-4 text-center transition-transform duration-300 hover:scale-105"
-                  >
-                    {exists ? (
-                      <Image
-                        src={`/incubated/${org.file}`}
-                        alt={`${org.name} logo`}
-                        width={260}
-                        height={130}
-                        className="h-auto max-h-36 w-auto max-w-full object-contain opacity-80 transition-opacity duration-300 hover:opacity-100"
-                      />
-                    ) : (
-                      <span className="text-sm font-bold text-[#020617]">
-                        {org.name}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })()}
+        <IncubatorsGrid items={homeContent.incubators} />
       </section>
 
       <section className="mx-auto mt-8 max-w-6xl space-y-12 px-6" id="mentors">
         <SectionHeading
-          eyebrow="Our Services"
-          title="Comprehensive STEM Solutions"
-          description="From education to innovation, we provide end-to-end STEM services for institutions, students, and businesses."
+          eyebrow={settings.services.eyebrow}
+          title={settings.services.title}
+          description={settings.services.description}
           align="center"
         />
 
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          {[
-            {
-              name: "STEM Tutor Program",
-              href: "/services/stem-education",
-              icon: (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-                  <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
-                </svg>
-              ),
-              description:
-                "Personalized STEM education with expert tutors for students at all levels",
-              color: "text-blue-600",
-            },
-            {
-              name: "STEM Lab Setup",
-              href: "/services/stem-lab-setup",
-              icon: (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M6 18h8" />
-                  <path d="M3 22h18" />
-                  <circle cx="14" cy="5" r="2" />
-                  <path d="M12 14l3-3" />
-                  <path d="M7 14l4-4 3 3 4-4" />
-                  <path d="M12 21V11" />
-                </svg>
-              ),
-              description:
-                "Complete laboratory setup and equipment for schools and educational institutions",
-              color: "text-red-600",
-            },
-            {
-              name: "Software and APP Development",
-              href: "/services/product-engineering",
-              icon: (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="16 18 22 12 16 6" />
-                  <polyline points="8 6 2 12 8 18" />
-                  <line x1="14" y1="4" x2="10" y2="20" />
-                </svg>
-              ),
-              description:
-                "Custom software solutions and mobile applications for educational and business needs",
-              color: "text-emerald-600",
-            },
-            {
-              name: "Research and Innovations",
-              href: "/services/institutional-programs",
-              icon: (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 7 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5" />
-                  <path d="M9 18h6" />
-                  <path d="M10 22h4" />
-                </svg>
-              ),
-              description:
-                "Cutting-edge research projects and innovative solutions for real-world challenges",
-              color: "text-purple-600",
-            },
-          ].map((service) => (
-            <Link
-              href={service.href}
-              key={service.name}
-              className="group flex flex-col items-center rounded-2xl border border-slate-100 bg-white p-8 shadow-sm transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.05)] hover:-translate-y-2 hover:border-[#C1121F]/20"
-            >
-              <div className={`mb-8 flex h-16 w-16 items-center justify-center rounded-2xl transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3 ${service.color}`}>
-                <div className="w-10 h-10">
-                  {service.icon}
-                </div>
-              </div>
-              <h3 className="mb-4 text-center text-lg font-bold text-[#020617] group-hover:text-[#C1121F] transition-colors">
-                {service.name}
-              </h3>
-              <p className="text-center text-sm leading-relaxed text-slate-500 font-medium">
-                {service.description}
-              </p>
-              <div className="mt-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#C1121F] flex items-center gap-2">
-                  Learn More 
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <HomeServicesGrid services={homeContent.services} />
       </section>
 
       <section className="mx-auto mt-8 max-w-6xl space-y-12 px-6" id="stories">
         <SectionHeading
-          eyebrow="Partnership Organizations"
-          title="Trusted Partners & Collaborators"
-          description="Building a strong ecosystem through strategic partnerships with leading organizations across technology, education, and financial sectors."
+          eyebrow={settings.partners.eyebrow}
+          title={settings.partners.title}
+          description={settings.partners.description}
           align="center"
         />
 
@@ -402,84 +231,20 @@ export default async function Home() {
         id="portfolio"
       >
         <SectionHeading
-          eyebrow="Our Portfolio"
-          title="Websites We've Built"
-          description="Explore some of the professional websites and digital solutions we've created for our clients."
+          eyebrow={settings.portfolio.eyebrow}
+          title={settings.portfolio.title}
+          description={settings.portfolio.description}
           align="center"
         />
 
-        <div className="mt-16 overflow-hidden">
-          <div className="animate-marquee flex gap-6">
-            {[
-              {
-                name: "Suryodaya Inc",
-                url: "https://www.suryodayainc.com/",
-              },
-              {
-                name: "EU Nepal Business Forum",
-                url: "https://eunepalbusinessforum.eu/",
-              },
-              {
-                name: "Campsite Nepal",
-                url: "https://campsitenepal.com/",
-              },
-              {
-                name: "Event Solutions",
-                url: "https://eventsolutions.com/",
-              },
-              {
-                name: "Karnorr",
-                url: "https://karnorr.com/",
-              },
-              // Duplicate for seamless scroll
-              {
-                name: "Suryodaya Inc",
-                url: "https://www.suryodayainc.com/",
-              },
-              {
-                name: "EU Nepal Business Forum",
-                url: "https://eunepalbusinessforum.eu/",
-              },
-              {
-                name: "Campsite Nepal",
-                url: "https://campsitenepal.com/",
-              },
-              {
-                name: "Event Solutions",
-                url: "https://eventsolutions.com/",
-              },
-              {
-                name: "Karnorr",
-                url: "https://karnorr.com/",
-              },
-            ].map((project, index) => (
-              <div
-                key={`${project.name}-${index}`}
-                className="flex w-72 flex-shrink-0 flex-col items-center rounded-xl border border-[#e3f2fd] bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md"
-              >
-                <div className="mb-4 text-4xl">🌐</div>
-                <h3 className="mb-3 text-center text-lg font-semibold text-[#1f2933]">
-                  {project.name}
-                </h3>
-                <a
-                  href={project.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-full bg-[#1e88e5] px-4 py-2 text-sm font-medium text-white transition-colors duration-300 hover:bg-[#1565c0]"
-                >
-                  Visit Website
-                </a>
-              </div>
-            ))}
-          </div>
-        </div>
+        <PortfolioMarquee items={homeContent.portfolio} />
       </section>
 
       <section className="mx-auto mt-8 max-w-6xl space-y-12 px-6" id="schools">
         <SectionHeading
-          eyebrow="Educational Partners"
-          title="School & College Collaborations"
-          description="Partnering with leading educational institutions to transform STEM education across Nepal and beyond."
+          eyebrow={settings.schools.eyebrow}
+          title={settings.schools.title}
+          description={settings.schools.description}
           align="center"
         />
 
@@ -491,9 +256,9 @@ export default async function Home() {
         id="testimonials"
       >
         <SectionHeading
-          eyebrow="Client Reviews"
-          title="What Our Clients Say"
-          description="Real feedback from our satisfied clients and partners across various projects."
+          eyebrow={settings.testimonials.eyebrow}
+          title={settings.testimonials.title}
+          description={settings.testimonials.description}
           align="center"
         />
 

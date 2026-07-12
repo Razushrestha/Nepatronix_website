@@ -268,6 +268,97 @@ const FeatureSchema = new Schema(
 )
 export const Feature = makeModel('Feature', FeatureSchema)
 
+/* ───────────────────────── Home services (homepage cards) ─────── */
+const HomeServiceSchema = new Schema(
+  {
+    title: { type: String, required: true, trim: true },
+    description: String,
+    href: { type: String, default: '/services' },
+    iconKey: {
+      type: String,
+      enum: ['stem', 'lab', 'software', 'research'],
+      default: 'stem',
+    },
+    colorClass: { type: String, default: 'text-blue-600' },
+    order: { type: Number, default: 0 },
+  },
+  { timestamps: true }
+)
+export const HomeService = makeModel('HomeService', HomeServiceSchema)
+
+/* ───────────────────────── Accreditations ────────────────────── */
+const AccreditationSchema = new Schema(
+  {
+    title: { type: String, required: true, trim: true },
+    badge: String,
+    description: String,
+    logo: { type: ImageSchema, default: undefined },
+    badgeTone: { type: String, enum: ['blue', 'emerald'], default: 'blue' },
+    order: { type: Number, default: 0 },
+  },
+  { timestamps: true }
+)
+export const Accreditation = makeModel('Accreditation', AccreditationSchema)
+
+/* ───────────────────────── Incubators ────────────────────────── */
+const IncubatorSchema = new Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    logo: { type: ImageSchema, default: undefined },
+    order: { type: Number, default: 0 },
+  },
+  { timestamps: true }
+)
+export const Incubator = makeModel('Incubator', IncubatorSchema)
+
+/* ───────────────────────── Portfolio items ───────────────────── */
+const PortfolioItemSchema = new Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    url: { type: String, required: true, trim: true },
+    order: { type: Number, default: 0 },
+  },
+  { timestamps: true }
+)
+export const PortfolioItem = makeModel('PortfolioItem', PortfolioItemSchema)
+
+/* ───────────────────────── Homepage (singleton) ───────────────── */
+const SectionHeadingSchema = new Schema(
+  {
+    eyebrow: String,
+    title: String,
+    description: String,
+  },
+  { _id: false }
+)
+
+const HomePageSchema = new Schema(
+  {
+    key: { type: String, default: 'home', unique: true },
+    about: {
+      eyebrow: { type: String, default: 'About Us' },
+      title: { type: String, default: 'Our Mission & Vision' },
+      description: { type: String, default: 'Driving innovation through education and technology.' },
+      paragraph1: String,
+      paragraph2: String,
+      tagline: String,
+      foundedYear: { type: String, default: '2021' },
+      vision: String,
+      mission: String,
+    },
+    recognition: { type: SectionHeadingSchema, default: () => ({}) },
+    certification: { type: SectionHeadingSchema, default: () => ({}) },
+    incubation: { type: SectionHeadingSchema, default: () => ({}) },
+    services: { type: SectionHeadingSchema, default: () => ({}) },
+    partners: { type: SectionHeadingSchema, default: () => ({}) },
+    portfolio: { type: SectionHeadingSchema, default: () => ({}) },
+    schools: { type: SectionHeadingSchema, default: () => ({}) },
+    testimonials: { type: SectionHeadingSchema, default: () => ({}) },
+  },
+  { timestamps: true }
+)
+export const HomePage = makeModel('HomePage', HomePageSchema)
+
 /* ───────────────────────── Stats ─────────────────────────────── */
 const StatSchema = new Schema(
   {

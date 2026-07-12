@@ -8,6 +8,11 @@ import {
   Feature,
   Course,
   HeroSlide,
+  HomeService,
+  Accreditation,
+  Incubator,
+  PortfolioItem,
+  HomePage,
 } from '@/lib/models'
 import { resolveImageUrl } from '@/lib/content-image'
 import {
@@ -45,6 +50,211 @@ export interface HeroSlideContent {
   primaryCtaHref: string
   secondaryCtaLabel: string
   secondaryCtaHref: string
+}
+
+export interface SectionHeading {
+  eyebrow: string
+  title: string
+  description: string
+}
+
+export interface HomeAboutContent {
+  eyebrow: string
+  title: string
+  description: string
+  paragraph1: string
+  paragraph2: string
+  tagline: string
+  foundedYear: string
+  vision: string
+  mission: string
+}
+
+export interface HomeServiceItem {
+  title: string
+  description: string
+  href: string
+  iconKey: string
+  colorClass: string
+}
+
+export interface AccreditationItem {
+  title: string
+  badge: string
+  description: string
+  logoUrl?: string
+  badgeTone: 'blue' | 'emerald'
+}
+
+export interface IncubatorItem {
+  name: string
+  logoUrl?: string
+}
+
+export interface PortfolioItemContent {
+  name: string
+  url: string
+}
+
+export interface HomePageSettings {
+  about: HomeAboutContent
+  recognition: SectionHeading
+  certification: SectionHeading
+  incubation: SectionHeading
+  services: SectionHeading
+  partners: SectionHeading
+  portfolio: SectionHeading
+  schools: SectionHeading
+  testimonials: SectionHeading
+}
+
+function defaultHomePageSettings(): HomePageSettings {
+  return {
+    about: {
+      eyebrow: 'About Us',
+      title: 'Our Mission & Vision',
+      description: 'Driving innovation through education and technology.',
+      paragraph1:
+        'Founded in 2021, NepaTronix is a leading Nepal-based IoT, STEM EdTech, and software company committed to closing the gap between education and innovation.',
+      paragraph2:
+        'Built on the belief that education should inspire creativity, cultivate practical skills, and lead to meaningful invention, NepaTronix operates at the intersection of engineering, education, and social impact. Through smart technology solutions and engaging, hands-on learning programs, we empower students, teachers, and institutions to create real-world change.',
+      tagline: 'NepaTronix - Excellence Through Innovation.',
+      foundedYear: '2021',
+      vision: 'Tech-driven learning that inspires innovation at every level.',
+      mission:
+        'To simplify and amplify IoT, STEM education through impactful tools, creative content, and innovating real-world technology.',
+    },
+    recognition: {
+      eyebrow: 'Recognition',
+      title: 'Trusted by Leading Institutions',
+      description:
+        'We are proud to be recognized and supported by prestigious organizations across Nepal and India.',
+    },
+    certification: {
+      eyebrow: 'Certification',
+      title: 'Certified and Accreditation',
+      description:
+        'Our STEAM with IoT and Robotics course is accredited by Kathmandu University, with professional pathways through IIT Madras Pravartak.',
+    },
+    incubation: {
+      eyebrow: 'Incubation',
+      title: 'Incubated By',
+      description:
+        'Nepatronix is incubated and supported by leading organizations driving innovation, education, and entrepreneurship across India and Nepal.',
+    },
+    services: {
+      eyebrow: 'Our Services',
+      title: 'Comprehensive STEM Solutions',
+      description:
+        'From education to innovation, we provide end-to-end STEM services for institutions, students, and businesses.',
+    },
+    partners: {
+      eyebrow: 'Partnership Organizations',
+      title: 'Trusted Partners & Collaborators',
+      description:
+        'Building a strong ecosystem through strategic partnerships with leading organizations across technology, education, and financial sectors.',
+    },
+    portfolio: {
+      eyebrow: 'Our Portfolio',
+      title: "Websites We've Built",
+      description:
+        "Explore some of the professional websites and digital solutions we've created for our clients.",
+    },
+    schools: {
+      eyebrow: 'Educational Partners',
+      title: 'School & College Collaborations',
+      description:
+        'Partnering with leading educational institutions to transform STEM education across Nepal and beyond.',
+    },
+    testimonials: {
+      eyebrow: 'Client Reviews',
+      title: 'What Our Clients Say',
+      description: 'Real feedback from our satisfied clients and partners across various projects.',
+    },
+  }
+}
+
+function defaultHomeServices(): HomeServiceItem[] {
+  return [
+    {
+      title: 'STEM Tutor Program',
+      href: '/services/stem-education',
+      iconKey: 'stem',
+      description: 'Personalized STEM education with expert tutors for students at all levels',
+      colorClass: 'text-blue-600',
+    },
+    {
+      title: 'STEM Lab Setup',
+      href: '/services/stem-lab-setup',
+      iconKey: 'lab',
+      description: 'Complete laboratory setup and equipment for schools and educational institutions',
+      colorClass: 'text-red-600',
+    },
+    {
+      title: 'Software and APP Development',
+      href: '/services/product-engineering',
+      iconKey: 'software',
+      description: 'Custom software solutions and mobile applications for educational and business needs',
+      colorClass: 'text-emerald-600',
+    },
+    {
+      title: 'Research and Innovations',
+      href: '/services/institutional-programs',
+      iconKey: 'research',
+      description: 'Cutting-edge research projects and innovative solutions for real-world challenges',
+      colorClass: 'text-purple-600',
+    },
+  ]
+}
+
+function defaultAccreditations(): AccreditationItem[] {
+  return [
+    {
+      title: 'Kathmandu University',
+      badge: 'Academic accreditation',
+      description: 'Official university accreditation for our comprehensive STEAM curriculum.',
+      logoUrl: '/recognition/KU.png',
+      badgeTone: 'blue',
+    },
+    {
+      title: 'IIT Madras Pravartak',
+      badge: 'Professional certification',
+      description: 'Industry-aligned programmes on SWAYAM Plus, including NCrF-aligned intensive training.',
+      logoUrl: '/pravartak.png',
+      badgeTone: 'emerald',
+    },
+  ]
+}
+
+function defaultIncubators(): IncubatorItem[] {
+  return [
+    { name: 'IIT Madras', logoUrl: '/incubated/iit-madras.png' },
+    { name: 'IITM Pravartak', logoUrl: '/incubated/iitm-pravartak.png' },
+    { name: 'Future Front', logoUrl: '/incubated/future-front.png' },
+    { name: 'IEDI', logoUrl: '/incubated/iedi.png' },
+    { name: 'Glocal After School', logoUrl: '/incubated/glocal-after-school.png' },
+  ]
+}
+
+function defaultPortfolio(): PortfolioItemContent[] {
+  return [
+    { name: 'Suryodaya Inc', url: 'https://www.suryodayainc.com/' },
+    { name: 'EU Nepal Business Forum', url: 'https://eunepalbusinessforum.eu/' },
+    { name: 'Campsite Nepal', url: 'https://campsitenepal.com/' },
+    { name: 'Event Solutions', url: 'https://eventsolutions.com/' },
+    { name: 'Karnorr', url: 'https://karnorr.com/' },
+  ]
+}
+
+function mergeSectionHeading(
+  defaults: SectionHeading,
+  source?: Partial<SectionHeading> | null
+): SectionHeading {
+  return {
+    eyebrow: source?.eyebrow?.trim() || defaults.eyebrow,
+    title: source?.title?.trim() || defaults.title,
+    description: source?.description?.trim() || defaults.description,
+  }
 }
 
 export async function getPartnerLogos(type?: string): Promise<LogoItem[]> {
@@ -186,17 +396,131 @@ export async function getHeroSlide(): Promise<HeroSlideContent | null> {
   }
 }
 
+export async function getHomePageSettings(): Promise<HomePageSettings> {
+  const defaults = defaultHomePageSettings()
+  await connectToDatabase()
+  const doc = await HomePage.findOne({ key: 'home' }).lean()
+  if (!doc) return defaults
+
+  const about = doc.about || {}
+  return {
+    about: {
+      eyebrow: about.eyebrow?.trim() || defaults.about.eyebrow,
+      title: about.title?.trim() || defaults.about.title,
+      description: about.description?.trim() || defaults.about.description,
+      paragraph1: about.paragraph1?.trim() || defaults.about.paragraph1,
+      paragraph2: about.paragraph2?.trim() || defaults.about.paragraph2,
+      tagline: about.tagline?.trim() || defaults.about.tagline,
+      foundedYear: about.foundedYear?.trim() || defaults.about.foundedYear,
+      vision: about.vision?.trim() || defaults.about.vision,
+      mission: about.mission?.trim() || defaults.about.mission,
+    },
+    recognition: mergeSectionHeading(defaults.recognition, doc.recognition),
+    certification: mergeSectionHeading(defaults.certification, doc.certification),
+    incubation: mergeSectionHeading(defaults.incubation, doc.incubation),
+    services: mergeSectionHeading(defaults.services, doc.services),
+    partners: mergeSectionHeading(defaults.partners, doc.partners),
+    portfolio: mergeSectionHeading(defaults.portfolio, doc.portfolio),
+    schools: mergeSectionHeading(defaults.schools, doc.schools),
+    testimonials: mergeSectionHeading(defaults.testimonials, doc.testimonials),
+  }
+}
+
+export async function getHomeServices(): Promise<HomeServiceItem[]> {
+  await connectToDatabase()
+  const docs = await HomeService.find().sort({ order: 1, createdAt: 1 }).lean()
+  const items = docs
+    .filter((d) => d.title?.trim())
+    .map((d) => ({
+      title: d.title || '',
+      description: d.description || '',
+      href: d.href || '/services',
+      iconKey: d.iconKey || 'stem',
+      colorClass: d.colorClass || 'text-blue-600',
+    }))
+  return items.length ? items : defaultHomeServices()
+}
+
+export async function getAccreditations(): Promise<AccreditationItem[]> {
+  await connectToDatabase()
+  const docs = await Accreditation.find().sort({ order: 1, createdAt: 1 }).lean()
+  const items = docs
+    .filter((d) => d.title?.trim())
+    .map((d) => ({
+      title: d.title || '',
+      badge: d.badge || '',
+      description: d.description || '',
+      logoUrl: resolveImageUrl(d.logo) || undefined,
+      badgeTone: (d.badgeTone === 'emerald' ? 'emerald' : 'blue') as 'blue' | 'emerald',
+    }))
+  return items.length ? items : defaultAccreditations()
+}
+
+export async function getIncubators(): Promise<IncubatorItem[]> {
+  await connectToDatabase()
+  const docs = await Incubator.find().sort({ order: 1, createdAt: 1 }).lean()
+  const items = docs
+    .filter((d) => d.name?.trim())
+    .map((d) => ({
+      name: d.name || '',
+      logoUrl: resolveImageUrl(d.logo) || undefined,
+    }))
+  return items.length ? items : defaultIncubators()
+}
+
+export async function getPortfolioItems(): Promise<PortfolioItemContent[]> {
+  await connectToDatabase()
+  const docs = await PortfolioItem.find().sort({ order: 1, createdAt: 1 }).lean()
+  const items = docs
+    .filter((d) => d.name?.trim() && d.url?.trim())
+    .map((d) => ({
+      name: d.name || '',
+      url: d.url || '',
+    }))
+  return items.length ? items : defaultPortfolio()
+}
+
 export async function getHomePageContent() {
+  const defaults = defaultHomePageSettings()
   try {
-    const [stats, partners, recognitions, schools, testimonials, hero] = await Promise.all([
+    const [
+      stats,
+      partners,
+      recognitions,
+      schools,
+      testimonials,
+      hero,
+      settings,
+      services,
+      accreditations,
+      incubators,
+      portfolio,
+    ] = await Promise.all([
       getHomeStats(),
       getPartnerLogos('trusted'),
       getRecognitionLogos(),
       getSchoolLogos(),
       getHomeTestimonials(),
       getHeroSlide(),
+      getHomePageSettings(),
+      getHomeServices(),
+      getAccreditations(),
+      getIncubators(),
+      getPortfolioItems(),
     ])
-    return { stats, partners, recognitions, schools, testimonials, hero }
+    return {
+      stats,
+      partners,
+      recognitions,
+      schools,
+      testimonials,
+      hero,
+      settings,
+      services,
+      accreditations,
+      incubators,
+      portfolio,
+    }
   } catch (err) {
     console.warn('Homepage: MongoDB unavailable, using static fallbacks.', err)
     return {
@@ -211,6 +535,11 @@ export async function getHomePageContent() {
         review: t.quote,
       })),
       hero: null as HeroSlideContent | null,
+      settings: defaults,
+      services: defaultHomeServices(),
+      accreditations: defaultAccreditations(),
+      incubators: defaultIncubators(),
+      portfolio: defaultPortfolio(),
     }
   }
 }

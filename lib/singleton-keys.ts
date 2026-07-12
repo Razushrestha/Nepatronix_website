@@ -2,6 +2,7 @@
 export const SINGLETON_KEYS: Record<string, string> = {
   footer: 'footer',
   contactpage: 'contact',
+  homepage: 'home',
 }
 
 export function singletonKey(slug: string): string | undefined {
