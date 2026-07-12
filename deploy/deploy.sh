@@ -12,9 +12,9 @@ git pull origin main
 echo "==> Installing dependencies..."
 npm ci
 
-echo "==> Building..."
-export NODE_OPTIONS="--max-old-space-size=8192"
-npm run build
+echo "==> Building (VPS fast build — skips heavy TypeScript check)..."
+export NODE_OPTIONS="--max-old-space-size=4096"
+npm run build:vps
 
 echo "==> Restarting app..."
 pm2 restart nepatronix || pm2 start ecosystem.config.js

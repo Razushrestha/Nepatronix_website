@@ -149,7 +149,8 @@ npm run verify -- https://nepatronix.org
 | `cd nepatronix: No such file` | Run `git clone` first |
 | `npm ci` fails | Must run inside `/var/www/nepatronix` |
 | Build fails `find requires authentication` | Fix MongoDB URI or create DB user (see below) |
-| Build fails `eslint` config warning | Pull latest `next.config.ts` (eslint key removed) |
+| Build stuck on `Running TypeScript` | Use `npm run build:vps` instead of `npm run build` |
+| `git pull` blocked on `next.config.ts` | Run `git checkout -- next.config.ts && git pull origin main` |
 | Admin login fails | Run `npm run seed:admin`, check `JWT_SECRET` |
 | Empty site | Run `npm run seed:content` or restore mongodump |
 | 502 Bad Gateway | `pm2 restart nepatronix`, check `pm2 logs` |
