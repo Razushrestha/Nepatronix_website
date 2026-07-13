@@ -11,7 +11,7 @@
 import { readFileSync, existsSync } from 'fs'
 import { resolve, join } from 'path'
 import { spawnSync } from 'child_process'
-import { CONTENT_COLLECTIONS } from './db-collections.mjs'
+import { CONTENT_COLLECTIONS, BLOG_MEDIA_COLLECTIONS } from './db-collections.mjs'
 
 const envPath = resolve(process.cwd(), '.env.local')
 if (existsSync(envPath)) {
@@ -46,6 +46,7 @@ const args = Object.fromEntries(
 
 const FROM_DIR = resolve(process.cwd(), args.from || 'data/nepatronix-dump')
 const DRY_RUN = !!args['dry-run']
+const REPLACE = !!args.replace || !!args['replace-collections']
 
 function dbNameFromUri(uri) {
   const path = uri.split('?')[0].split('/').pop()
@@ -93,11 +94,24 @@ async function main() {
       console.warn(`  skip ${coll} — no dump file`)
       continue
     }
-    console.log(`\n→ Restoring ${dbName}.${coll}...`)
-    runMongorestore(['--db', dbName, '--collection', coll, collPath])
+    console.log(`\n→ Restoring ${dbName}.${coll}${REPLACE ? ' (replace)' : ''}...`)
+    const restoreArgs = ['--db', dbName, '--collection', coll]
+    if (REPLACE) restoreArgs.push('--drop')
+    restoreArgs.push(collPath)
+    runMongorestore(restoreArgs)
   }
 
   console.log('\nImport complete. Restart the app: pm2 restart nepatronix')
+
+  const importsBlogMedia = only.some((c) => BLOG_MEDIA_COLLECTIONS.includes(c))
+  if (importsBlogMedia && !DRY_RUN) {
+    console.log('\n→ Verifying blog and images...')
+    const verify = spawnSync(process.execPath, ['scripts/verify-blog-media.mjs'], {
+      stdio: 'inherit',
+      shell: false,
+    })
+    if (verify.status !== 0) process.exit(verify.status || 1)
+  }
 }
 
 main().catch((e) => {

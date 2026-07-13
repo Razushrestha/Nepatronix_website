@@ -13,7 +13,11 @@
     "seed:admin": "node scripts/seed-admin.mjs",
     "seed:content": "node scripts/seed-static-content.mjs",
     "db:export": "node scripts/db-export.mjs",
+    "db:export:blog": "node scripts/db-export.mjs --collections=posts,galleries,uploads.files,uploads.chunks",
     "db:import": "node scripts/db-import.mjs",
+    "db:import:blog": "node scripts/db-import.mjs --collections=posts,galleries,uploads.files,uploads.chunks --replace",
+    "db:verify:blog": "node scripts/verify-blog-media.mjs",
+    "publish:blog": "node scripts/publish-blog-media.mjs",
     "db:sync": "node scripts/sync-db-direct.mjs"
   },
   "dependencies": {
