@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import CertificatePreview from './CertificatePreview'
+import { adminCard } from './ui'
 
 type AnyObj = Record<string, unknown>
 
@@ -48,10 +49,10 @@ export default function CertificateActions({ item, onChanged }: { item: AnyObj; 
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-5">
+    <div className={`${adminCard} p-6 space-y-5`}>
       <div className="flex items-center justify-between">
-        <h2 className="text-white font-semibold">Certificate Workflow</h2>
-        {status === 'rejected' && <span className="text-red-400 text-xs font-medium">Rejected</span>}
+        <h2 className="text-slate-900 font-semibold">Certificate Workflow</h2>
+        {status === 'rejected' && <span className="text-red-600 text-xs font-medium">Rejected</span>}
       </div>
 
       {/* Progress */}
@@ -59,12 +60,12 @@ export default function CertificateActions({ item, onChanged }: { item: AnyObj; 
         {STEPS.map((s, i) => (
           <div key={s.key} className="flex items-center flex-1 last:flex-none">
             <div className="flex flex-col items-center">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${i <= stepIndex ? 'bg-[#C1121F] text-white' : 'bg-gray-800 text-gray-500'}`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${i <= stepIndex ? 'bg-[#C1121F] text-white' : 'bg-slate-200 text-slate-500'}`}>
                 {i + 1}
               </div>
-              <span className={`text-[10px] mt-1 text-center w-20 ${i <= stepIndex ? 'text-gray-300' : 'text-gray-600'}`}>{s.label}</span>
+              <span className={`text-[10px] mt-1 text-center w-20 ${i <= stepIndex ? 'text-slate-700' : 'text-slate-400'}`}>{s.label}</span>
             </div>
-            {i < STEPS.length - 1 && <div className={`h-0.5 flex-1 mx-1 ${i < stepIndex ? 'bg-[#C1121F]' : 'bg-gray-800'}`} />}
+            {i < STEPS.length - 1 && <div className={`h-0.5 flex-1 mx-1 ${i < stepIndex ? 'bg-[#C1121F]' : 'bg-slate-200'}`} />}
           </div>
         ))}
       </div>
@@ -72,22 +73,22 @@ export default function CertificateActions({ item, onChanged }: { item: AnyObj; 
       {/* Actions */}
       <div className="flex flex-wrap gap-2">
         {status === 'pending' && (
-          <button onClick={() => act('verify')} disabled={!!busy} className="px-4 py-2 text-sm rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 disabled:opacity-50">
+          <button onClick={() => act('verify')} disabled={!!busy} className="px-4 py-2 text-sm rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 disabled:opacity-50">
             {busy === 'verify' ? 'Verifying…' : 'Verify Payment'}
           </button>
         )}
         {(status === 'payment_verified' || status === 'pending') && (
-          <button onClick={() => act('approve')} disabled={!!busy} className="px-4 py-2 text-sm rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 disabled:opacity-50">
+          <button onClick={() => act('approve')} disabled={!!busy} className="px-4 py-2 text-sm rounded-lg bg-green-50 border border-green-200 text-green-700 hover:bg-green-100 disabled:opacity-50">
             {busy === 'approve' ? 'Approving…' : 'Approve'}
           </button>
         )}
         {(status === 'approved' || status === 'certificate_generated') && (
-          <button onClick={() => act('generate')} disabled={!!busy} className="px-4 py-2 text-sm rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20 disabled:opacity-50">
+          <button onClick={() => act('generate')} disabled={!!busy} className="px-4 py-2 text-sm rounded-lg bg-purple-50 border border-purple-200 text-purple-700 hover:bg-purple-100 disabled:opacity-50">
             {busy === 'generate' ? 'Generating…' : status === 'certificate_generated' ? 'Regenerate Certificate' : 'Generate Certificate'}
           </button>
         )}
         {status !== 'rejected' && (
-          <button onClick={() => act('reject')} disabled={!!busy} className="px-4 py-2 text-sm rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 disabled:opacity-50 ml-auto">
+          <button onClick={() => act('reject')} disabled={!!busy} className="px-4 py-2 text-sm rounded-lg bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 disabled:opacity-50 ml-auto">
             Reject
           </button>
         )}
@@ -95,15 +96,15 @@ export default function CertificateActions({ item, onChanged }: { item: AnyObj; 
 
       {/* Certificate info */}
       {cert.certificateUID && (
-        <div className="flex items-start gap-4 pt-4 border-t border-gray-800">
+        <div className="flex items-start gap-4 pt-4 border-t border-slate-200">
           {qr && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={qr} alt="QR" className="w-24 h-24 rounded-lg bg-white p-1" />
+            <img src={qr} alt="QR" className="w-24 h-24 rounded-lg bg-white p-1 border border-slate-200" />
           )}
           <div className="text-sm space-y-2 flex-1">
-            <p className="text-gray-400">UID: <span className="text-white font-mono">{String(cert.certificateUID)}</span></p>
+            <p className="text-slate-500">UID: <span className="text-slate-900 font-mono">{String(cert.certificateUID)}</span></p>
             {cert.certificateUrl && (
-              <a href={String(cert.certificateUrl)} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline break-all block">
+              <a href={String(cert.certificateUrl)} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline break-all block">
                 {String(cert.certificateUrl)}
               </a>
             )}

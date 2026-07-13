@@ -5,7 +5,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   PieChart, Pie, Cell, Legend,
 } from 'recharts'
-import { fetcher, StatusBadge, timeAgo, Spinner } from '@/app/(admin)/components/ui'
+import { fetcher, StatusBadge, timeAgo, Spinner, adminCard } from '@/app/(admin)/components/ui'
 import { collectionMap } from '@/lib/admin-collections'
 
 const PIE_COLORS = ['#eab308', '#3b82f6', '#22c55e', '#a855f7', '#ef4444', '#64748b']
@@ -22,12 +22,14 @@ interface Stats {
   }
 }
 
+const chartTooltip = { background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 12, fontSize: 12, color: '#0f172a' }
+
 function KpiCard({ label, value, sub, href, accent }: { label: string; value: number; sub?: string; href?: string; accent: string }) {
   const inner = (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-gray-700 transition-colors h-full">
-      <p className="text-gray-400 text-xs">{label}</p>
+    <div className={`${adminCard} p-5 hover:border-slate-300 transition-colors h-full`}>
+      <p className="text-slate-500 text-xs">{label}</p>
       <p className={`text-3xl font-bold mt-2 ${accent}`}>{value ?? 0}</p>
-      {sub && <p className="text-gray-500 text-xs mt-1">{sub}</p>}
+      {sub && <p className="text-slate-400 text-xs mt-1">{sub}</p>}
     </div>
   )
   return href ? <Link href={href}>{inner}</Link> : inner
@@ -42,26 +44,26 @@ export default function AdminDashboard() {
   return (
     <div className="p-6 lg:p-8 space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="text-gray-400 text-sm mt-1">Live overview of your website and operations</p>
+        <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
+        <p className="text-slate-500 text-sm mt-1">Live overview of your website and operations</p>
       </div>
 
       {/* KPI grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
-        <KpiCard label="Enrollments" value={k.totalEnrollments} sub={`${k.pendingEnrollments} pending`} href="/admin/c/enrollments" accent="text-blue-400" />
-        <KpiCard label="Certifications" value={k.totalCertifications} sub={`${k.pendingCertifications} pending`} href="/admin/c/certifications" accent="text-purple-400" />
-        <KpiCard label="Courses" value={k.totalCourses} href="/admin/c/courses" accent="text-emerald-400" />
-        <KpiCard label="Blog Posts" value={k.totalPosts} href="/admin/c/posts" accent="text-orange-400" />
-        <KpiCard label="Homepage Stats" value={k.totalHomeStats} href="/admin/c/stats" accent="text-cyan-400" />
-        <KpiCard label="Subscribers" value={k.totalSubscribers} href="/admin/c/subscribers" accent="text-pink-400" />
-        <KpiCard label="New Messages" value={k.newMessages} href="/admin/c/contactforms" accent="text-yellow-400" />
+        <KpiCard label="Enrollments" value={k.totalEnrollments} sub={`${k.pendingEnrollments} pending`} href="/admin/c/enrollments" accent="text-blue-600" />
+        <KpiCard label="Certifications" value={k.totalCertifications} sub={`${k.pendingCertifications} pending`} href="/admin/c/certifications" accent="text-purple-600" />
+        <KpiCard label="Courses" value={k.totalCourses} href="/admin/c/courses" accent="text-emerald-600" />
+        <KpiCard label="Blog Posts" value={k.totalPosts} href="/admin/c/posts" accent="text-orange-600" />
+        <KpiCard label="Homepage Stats" value={k.totalHomeStats} href="/admin/c/stats" accent="text-cyan-600" />
+        <KpiCard label="Subscribers" value={k.totalSubscribers} href="/admin/c/subscribers" accent="text-pink-600" />
+        <KpiCard label="New Messages" value={k.newMessages} href="/admin/c/contactforms" accent="text-amber-600" />
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 bg-gray-900 border border-gray-800 rounded-2xl p-6">
-          <h2 className="text-white font-semibold mb-1">Activity — last 30 days</h2>
-          <p className="text-gray-500 text-xs mb-4">New enrollments and certification applications per day</p>
+        <div className={`xl:col-span-2 ${adminCard} p-6`}>
+          <h2 className="text-slate-900 font-semibold mb-1">Activity — last 30 days</h2>
+          <p className="text-slate-500 text-xs mb-4">New enrollments and certification applications per day</p>
           <ResponsiveContainer width="100%" height={280}>
             <AreaChart data={data.series} margin={{ left: -20, right: 10, top: 10 }}>
               <defs>
@@ -74,18 +76,18 @@ export default function AdminDashboard() {
                   <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
-              <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} tickFormatter={(d) => d.slice(5)} interval={4} />
-              <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} allowDecimals={false} />
-              <Tooltip contentStyle={{ background: '#0a0a0f', border: '1px solid #1f2937', borderRadius: 12, fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+              <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 10 }} tickFormatter={(d) => d.slice(5)} interval={4} />
+              <YAxis tick={{ fill: '#64748b', fontSize: 10 }} allowDecimals={false} />
+              <Tooltip contentStyle={chartTooltip} />
               <Area type="monotone" dataKey="enrollments" stroke="#3b82f6" fill="url(#gEnroll)" strokeWidth={2} />
               <Area type="monotone" dataKey="certifications" stroke="#a855f7" fill="url(#gCert)" strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-          <h2 className="text-white font-semibold mb-4">Enrollment status</h2>
+        <div className={`${adminCard} p-6`}>
+          <h2 className="text-slate-900 font-semibold mb-4">Enrollment status</h2>
           <ResponsiveContainer width="100%" height={240}>
             <PieChart>
               <Pie data={data.enrollmentStatus} dataKey="count" nameKey="status" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3}>
@@ -94,7 +96,7 @@ export default function AdminDashboard() {
                 ))}
               </Pie>
               <Legend wrapperStyle={{ fontSize: 11, textTransform: 'capitalize' }} />
-              <Tooltip contentStyle={{ background: '#0a0a0f', border: '1px solid #1f2937', borderRadius: 12, fontSize: 12 }} />
+              <Tooltip contentStyle={chartTooltip} />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -144,25 +146,25 @@ function RecentPanel({
   items: { id: string; title: string; sub: string; status: string; time: string; statusOptions?: { value: string; label: string; color: string }[]; link: string }[]
 }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+    <div className={`${adminCard} p-6`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full ${dot}`} />
-          <h2 className="text-white font-semibold text-sm">{title}</h2>
+          <h2 className="text-slate-900 font-semibold text-sm">{title}</h2>
         </div>
         <Link href={href} className="text-xs text-[#C1121F] hover:underline">View all →</Link>
       </div>
       <div className="space-y-2">
-        {items.length === 0 && <p className="text-gray-500 text-sm">Nothing yet.</p>}
+        {items.length === 0 && <p className="text-slate-500 text-sm">Nothing yet.</p>}
         {items.map((it) => (
-          <Link key={it.id} href={it.link} className="flex items-center justify-between p-3 bg-gray-800 rounded-xl hover:bg-gray-800/70 transition-colors">
+          <Link key={it.id} href={it.link} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100 transition-colors">
             <div className="min-w-0 flex-1">
-              <p className="text-white text-sm font-medium truncate">{it.title}</p>
-              <p className="text-gray-500 text-xs truncate">{it.sub}</p>
+              <p className="text-slate-900 text-sm font-medium truncate">{it.title}</p>
+              <p className="text-slate-500 text-xs truncate">{it.sub}</p>
             </div>
             <div className="flex flex-col items-end gap-1 ml-3 shrink-0">
               <StatusBadge value={it.status} options={it.statusOptions} />
-              <span className="text-gray-600 text-[10px]">{timeAgo(it.time)}</span>
+              <span className="text-slate-400 text-[10px]">{timeAgo(it.time)}</span>
             </div>
           </Link>
         ))}

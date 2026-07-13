@@ -23,18 +23,18 @@ export default function TopBar() {
   const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 
   return (
-    <header className="h-14 border-b border-white/5 bg-[#0a0a0f]/80 backdrop-blur-sm flex items-center px-6 gap-4 sticky top-0 z-20">
+    <header className="h-14 border-b border-slate-200 bg-white/95 backdrop-blur-sm flex items-center px-6 gap-4 sticky top-0 z-20">
       <div className="flex items-center gap-3 flex-1 pl-10 lg:pl-0">
         <div>
-          <h2 className="text-white text-sm font-semibold leading-tight">{title}</h2>
-          {description && <p className="text-gray-500 text-[11px] leading-tight mt-0.5">{description}</p>}
+          <h2 className="text-slate-900 text-sm font-semibold leading-tight">{title}</h2>
+          {description && <p className="text-slate-500 text-[11px] leading-tight mt-0.5">{description}</p>}
         </div>
       </div>
       <div className="flex items-center gap-4">
-        <span className="text-gray-600 text-xs hidden md:block">{dateStr}</span>
-        <div className="h-5 w-px bg-white/5" />
-        <div className="flex items-center gap-1.5 text-xs text-gray-400">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+        <span className="text-slate-500 text-xs hidden md:block">{dateStr}</span>
+        <div className="h-5 w-px bg-slate-200" />
+        <div className="flex items-center gap-1.5 text-xs text-slate-500">
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
           Live
         </div>
       </div>

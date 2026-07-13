@@ -36,7 +36,7 @@ function Btn({
       onClick={onClick}
       disabled={disabled}
       className={`min-w-8 h-8 px-2 rounded-md text-sm flex items-center justify-center transition-colors ${
-        active ? 'bg-[#C1121F] text-white' : 'text-gray-300 hover:bg-gray-700'
+        active ? 'bg-[#C1121F] text-white' : 'text-slate-600 hover:bg-slate-100'
       } disabled:opacity-40`}
     >
       {children}
@@ -69,10 +69,10 @@ function Toolbar({ editor }: { editor: Editor }) {
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
   }
 
-  const divider = <span className="w-px h-5 bg-gray-700 mx-1" />
+  const divider = <span className="w-px h-5 bg-slate-300 mx-1" />
 
   return (
-    <div className="flex flex-wrap items-center gap-1 border-b border-gray-700 bg-gray-800/60 px-2 py-1.5 sticky top-0 z-10 rounded-t-lg">
+    <div className="flex flex-wrap items-center gap-1 border-b border-slate-200 bg-slate-50 px-2 py-1.5 sticky top-0 z-10 rounded-t-lg">
       <Btn title="Bold" onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')}><b>B</b></Btn>
       <Btn title="Italic" onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')}><i>I</i></Btn>
       <Btn title="Underline" onClick={() => editor.chain().focus().toggleUnderline().run()} active={editor.isActive('underline')}><u>U</u></Btn>
@@ -122,10 +122,10 @@ export default function RichTextEditor({
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
   })
 
-  if (!editor) return <div className="bg-gray-800 border border-gray-700 rounded-lg h-40 animate-pulse" />
+  if (!editor) return <div className="bg-slate-100 border border-slate-200 rounded-lg h-40 animate-pulse" />
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+    <div className="bg-white border border-slate-300 rounded-lg overflow-hidden">
       <Toolbar editor={editor} />
       <EditorContent editor={editor} />
     </div>

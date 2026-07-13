@@ -8,4 +8,5 @@ build/
 *.sst
 *.node
 .github/
+data/nepatronix-dump/
 

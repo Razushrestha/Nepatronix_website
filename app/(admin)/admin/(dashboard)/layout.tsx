@@ -8,7 +8,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
   if (!user) redirect('/admin/login')
 
   return (
-    <div className="flex min-h-screen bg-[#0d0d14]">
+    <div className="flex min-h-screen bg-slate-100 admin-theme">
       <Sidebar user={{ name: user.name, email: user.email, role: user.role }} />
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar />

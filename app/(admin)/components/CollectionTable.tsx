@@ -4,7 +4,7 @@ import useSWR from 'swr'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { CollectionConfig } from '@/lib/admin-collections'
-import { fetcher, StatusBadge, formatDate, Spinner } from './ui'
+import { fetcher, StatusBadge, formatDate, Spinner, adminInput, adminCard, adminHeading, adminSubtext } from './ui'
 
 type Row = Record<string, unknown>
 
@@ -25,7 +25,7 @@ export default function CollectionTable({ config }: { config: CollectionConfig }
   const items = data?.items || []
 
   if (error) {
-    return <div className="p-8 text-gray-400">You don&apos;t have access to this section.</div>
+    return <div className="p-8 text-slate-500">You don&apos;t have access to this section.</div>
   }
 
   function toggle(id: string) {
@@ -80,11 +80,11 @@ export default function CollectionTable({ config }: { config: CollectionConfig }
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white">{config.label}</h1>
-          <p className="text-gray-400 text-sm mt-0.5">{data?.total ?? 0} total</p>
+          <h1 className={adminHeading}>{config.label}</h1>
+          <p className={`${adminSubtext} mt-0.5`}>{data?.total ?? 0} total</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={exportCsv} className="px-3 py-2 text-sm rounded-lg bg-gray-800 border border-gray-700 text-gray-200 hover:bg-gray-700 transition-colors">
+          <button onClick={exportCsv} className="px-3 py-2 text-sm rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors">
             Export CSV
           </button>
           {!config.noCreate && (
@@ -102,12 +102,12 @@ export default function CollectionTable({ config }: { config: CollectionConfig }
             value={q}
             onChange={(e) => { setQ(e.target.value); setPage(1) }}
             placeholder={`Search ${config.label.toLowerCase()}…`}
-            className="w-full bg-gray-900 border border-gray-800 text-white rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-[#C1121F]"
+            className={`${adminInput} pl-9`}
           />
-          <svg className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          <svg className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
         </div>
         {config.statusOptions && (
-          <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1) }} className="bg-gray-900 border border-gray-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#C1121F]">
+          <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1) }} className={adminInput}>
             <option value="">All statuses</option>
             {config.statusOptions.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
@@ -116,29 +116,29 @@ export default function CollectionTable({ config }: { config: CollectionConfig }
 
       {/* Bulk bar */}
       {selected.size > 0 && (
-        <div className="flex items-center gap-3 bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5">
-          <span className="text-sm text-gray-300">{selected.size} selected</span>
+        <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5">
+          <span className="text-sm text-slate-700">{selected.size} selected</span>
           {config.statusOptions && (
-            <select onChange={(e) => e.target.value && bulk('status', e.target.value)} defaultValue="" className="bg-gray-800 border border-gray-700 text-white rounded-lg px-2 py-1.5 text-xs">
+            <select onChange={(e) => e.target.value && bulk('status', e.target.value)} defaultValue="" className={`${adminInput} !py-1.5 !text-xs !px-2 w-auto`}>
               <option value="">Set status…</option>
               {config.statusOptions.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
           )}
-          <button onClick={() => bulk('delete')} className="text-xs text-red-400 hover:text-red-300 ml-auto">Delete selected</button>
+          <button onClick={() => bulk('delete')} className="text-xs text-red-600 hover:text-red-700 ml-auto">Delete selected</button>
         </div>
       )}
 
       {/* Table */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+      <div className={`${adminCard} overflow-hidden`}>
         {isLoading && !data ? (
           <Spinner />
         ) : items.length === 0 ? (
-          <p className="text-gray-500 text-sm text-center py-16">No {config.label.toLowerCase()} found.</p>
+          <p className="text-slate-500 text-sm text-center py-16">No {config.label.toLowerCase()} found.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-800 text-gray-500 text-left text-xs uppercase tracking-wider">
+                <tr className="border-b border-slate-200 bg-slate-50 text-slate-500 text-left text-xs uppercase tracking-wider">
                   <th className="px-4 py-3 w-10">
                     <input type="checkbox" checked={selected.size === items.length && items.length > 0} onChange={toggleAll} className="accent-[#C1121F]" />
                   </th>
@@ -153,7 +153,7 @@ export default function CollectionTable({ config }: { config: CollectionConfig }
                     <tr
                       key={id}
                       onClick={() => router.push(`/admin/c/${config.slug}/${id}`)}
-                      className="border-b border-gray-800/60 hover:bg-gray-800/40 transition-colors cursor-pointer"
+                      className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
                     >
                       <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                         <input type="checkbox" checked={selected.has(id)} onChange={() => toggle(id)} className="accent-[#C1121F]" />
@@ -161,29 +161,29 @@ export default function CollectionTable({ config }: { config: CollectionConfig }
                       {config.columns.map((c) => {
                         const v = getVal(row, c.key)
                         return (
-                          <td key={c.key} className="px-4 py-3 text-gray-300">
+                          <td key={c.key} className="px-4 py-3 text-slate-700">
                             {c.type === 'image' ? (
                               (v as { url?: string })?.url ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={(v as { url: string }).url} alt="" className="w-9 h-9 rounded-lg object-cover" />
                               ) : (
-                                <div className="w-9 h-9 rounded-lg bg-gray-800" />
+                                <div className="w-9 h-9 rounded-lg bg-slate-100" />
                               )
                             ) : c.type === 'badge' ? (
                               <StatusBadge value={v as string} options={config.statusOptions} />
                             ) : c.type === 'date' ? (
-                              <span className="text-gray-400">{formatDate(v as string)}</span>
+                              <span className="text-slate-500">{formatDate(v as string)}</span>
                             ) : c.type === 'boolean' ? (
-                              <span className={v ? 'text-green-400' : 'text-gray-600'}>{v ? 'Yes' : 'No'}</span>
+                              <span className={v ? 'text-green-600' : 'text-slate-400'}>{v ? 'Yes' : 'No'}</span>
                             ) : c.type === 'email' ? (
-                              <span className="text-gray-400">{(v as string) || '—'}</span>
+                              <span className="text-slate-500">{(v as string) || '—'}</span>
                             ) : (
                               <span className="truncate">{v == null || v === '' ? '—' : String(v)}</span>
                             )}
                           </td>
                         )
                       })}
-                      <td className="px-4 py-3 text-right text-gray-600">→</td>
+                      <td className="px-4 py-3 text-right text-slate-400">→</td>
                     </tr>
                   )
                 })}
@@ -196,9 +196,9 @@ export default function CollectionTable({ config }: { config: CollectionConfig }
       {/* Pagination */}
       {data && data.pages > 1 && (
         <div className="flex items-center justify-center gap-2">
-          <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="px-3 py-1.5 text-sm rounded-lg bg-gray-900 border border-gray-800 text-gray-300 disabled:opacity-40">Prev</button>
-          <span className="text-gray-400 text-sm">Page {page} of {data.pages}</span>
-          <button disabled={page >= data.pages} onClick={() => setPage((p) => p + 1)} className="px-3 py-1.5 text-sm rounded-lg bg-gray-900 border border-gray-800 text-gray-300 disabled:opacity-40">Next</button>
+          <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="px-3 py-1.5 text-sm rounded-lg bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 disabled:opacity-40">Prev</button>
+          <span className="text-slate-500 text-sm">Page {page} of {data.pages}</span>
+          <button disabled={page >= data.pages} onClick={() => setPage((p) => p + 1)} className="px-3 py-1.5 text-sm rounded-lg bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 disabled:opacity-40">Next</button>
         </div>
       )}
     </div>

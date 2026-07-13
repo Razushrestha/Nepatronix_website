@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { adminInput } from './ui'
 
 type AnyObj = Record<string, unknown>
 
@@ -12,16 +13,16 @@ function str(v: unknown): string {
 function Meter({ value, min, max, label }: { value: number; min: number; max: number; label: string }) {
   const ok = value >= min && value <= max
   const near = value > 0 && !ok
-  const color = ok ? 'text-green-400' : near ? 'text-yellow-400' : 'text-gray-500'
-  const bar = ok ? 'bg-green-500' : near ? 'bg-yellow-500' : 'bg-gray-600'
+  const color = ok ? 'text-green-600' : near ? 'text-amber-600' : 'text-slate-400'
+  const bar = ok ? 'bg-green-500' : near ? 'bg-amber-500' : 'bg-slate-300'
   const pct = Math.min(100, (value / max) * 100)
   return (
     <div className="mt-1">
       <div className="flex justify-between text-[11px]">
-        <span className="text-gray-500">{label}</span>
+        <span className="text-slate-500">{label}</span>
         <span className={color}>{value} / {min}–{max}</span>
       </div>
-      <div className="h-1 bg-gray-700 rounded-full mt-1 overflow-hidden">
+      <div className="h-1 bg-slate-200 rounded-full mt-1 overflow-hidden">
         <div className={`h-full ${bar} transition-all`} style={{ width: `${pct}%` }} />
       </div>
     </div>
@@ -31,10 +32,10 @@ function Meter({ value, min, max, label }: { value: number; min: number; max: nu
 function Check({ ok, children }: { ok: boolean; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 text-sm">
-      <span className={`inline-flex w-4 h-4 rounded-full items-center justify-center text-[10px] ${ok ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-500'}`}>
+      <span className={`inline-flex w-4 h-4 rounded-full items-center justify-center text-[10px] ${ok ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-400'}`}>
         {ok ? '✓' : '·'}
       </span>
-      <span className={ok ? 'text-gray-300' : 'text-gray-500'}>{children}</span>
+      <span className={ok ? 'text-slate-700' : 'text-slate-500'}>{children}</span>
     </div>
   )
 }
@@ -69,10 +70,10 @@ export default function SeoPanel({
   // Rough SEO score
   const checks = [Boolean(focus), inTitle, inDesc, inSlug, effTitle.length >= 40 && effTitle.length <= 60, effDesc.length >= 120 && effDesc.length <= 160, keywords.length >= 3, hasImage]
   const score = Math.round((checks.filter(Boolean).length / checks.length) * 100)
-  const scoreColor = score >= 80 ? 'text-green-400' : score >= 50 ? 'text-yellow-400' : 'text-red-400'
-  const scoreRing = score >= 80 ? 'border-green-500' : score >= 50 ? 'border-yellow-500' : 'border-red-500'
+  const scoreColor = score >= 80 ? 'text-green-600' : score >= 50 ? 'text-amber-600' : 'text-red-600'
+  const scoreRing = score >= 80 ? 'border-green-500' : score >= 50 ? 'border-amber-500' : 'border-red-500'
 
-  const inputCls = 'w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#C1121F]'
+  const inputCls = adminInput
 
   function addKeyword(k: string) {
     const v = k.trim()
@@ -89,22 +90,22 @@ export default function SeoPanel({
   }
 
   return (
-    <div className="rounded-2xl border border-gray-700 bg-gray-800/40 p-5 space-y-5">
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-5">
       {/* Header + score */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-white font-semibold">SEO</h3>
-          <p className="text-gray-500 text-xs">Optimize how this post appears in Google &amp; social media.</p>
+          <h3 className="text-slate-900 font-semibold">SEO</h3>
+          <p className="text-slate-500 text-xs">Optimize how this post appears in Google &amp; social media.</p>
         </div>
-        <div className={`w-14 h-14 rounded-full border-2 ${scoreRing} flex flex-col items-center justify-center`}>
+        <div className={`w-14 h-14 rounded-full border-2 ${scoreRing} flex flex-col items-center justify-center bg-white`}>
           <span className={`text-lg font-bold ${scoreColor}`}>{score}</span>
-          <span className="text-[9px] text-gray-500 -mt-1">score</span>
+          <span className="text-[9px] text-slate-400 -mt-1">score</span>
         </div>
       </div>
 
       {/* Focus keyword */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">Focus Keyword</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1.5">Focus Keyword</label>
         <input
           value={str(data.focusKeyword)}
           onChange={(e) => onChange('focusKeyword', e.target.value)}
@@ -116,7 +117,7 @@ export default function SeoPanel({
 
       {/* Meta title */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">Meta Title</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1.5">Meta Title</label>
         <input
           value={seoTitle}
           onChange={(e) => onChange('seoTitle', e.target.value)}
@@ -128,7 +129,7 @@ export default function SeoPanel({
 
       {/* Meta description */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">Meta Description</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1.5">Meta Description</label>
         <textarea
           rows={3}
           value={seoDescription}
@@ -142,14 +143,14 @@ export default function SeoPanel({
       {/* Keywords */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <label className="block text-sm font-medium text-gray-300">Keywords</label>
+          <label className="block text-sm font-medium text-slate-700">Keywords</label>
           <button type="button" onClick={suggestFromTitle} className="text-xs text-[#C1121F] hover:underline">Suggest from title</button>
         </div>
-        <div className="bg-gray-800 border border-gray-700 rounded-lg px-2 py-2 flex flex-wrap gap-2">
+        <div className="bg-white border border-slate-300 rounded-lg px-2 py-2 flex flex-wrap gap-2">
           {keywords.map((k, i) => (
-            <span key={i} className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md ${focus && k.toLowerCase() === focus ? 'bg-[#C1121F] text-white' : 'bg-gray-700 text-white'}`}>
+            <span key={i} className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md ${focus && k.toLowerCase() === focus ? 'bg-[#C1121F] text-white' : 'bg-slate-100 text-slate-800'}`}>
               {k}
-              <button type="button" onClick={() => onChange('keywords', keywords.filter((_, j) => j !== i))} className="text-gray-300 hover:text-red-300">×</button>
+              <button type="button" onClick={() => onChange('keywords', keywords.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-600">×</button>
             </span>
           ))}
           <input
@@ -165,16 +166,16 @@ export default function SeoPanel({
               }
             }}
             placeholder="Type a keyword, press Enter"
-            className="flex-1 min-w-[140px] bg-transparent text-white text-sm focus:outline-none px-1"
+            className="flex-1 min-w-[140px] bg-transparent text-slate-900 text-sm focus:outline-none px-1"
           />
         </div>
-        <p className="text-gray-500 text-xs mt-1">{keywords.length} keyword{keywords.length === 1 ? '' : 's'} · aim for 3–8 relevant ones.</p>
+        <p className="text-slate-500 text-xs mt-1">{keywords.length} keyword{keywords.length === 1 ? '' : 's'} · aim for 3–8 relevant ones.</p>
       </div>
 
       {/* Google preview */}
       <div>
-        <p className="text-xs text-gray-500 mb-2">Search result preview</p>
-        <div className="bg-white rounded-lg p-4">
+        <p className="text-xs text-slate-500 mb-2">Search result preview</p>
+        <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
           <p className="text-[#1a0dab] text-lg leading-tight truncate">{effTitle || 'Your post title appears here'}</p>
           <p className="text-[#006621] text-xs mt-0.5 truncate">{previewUrl}</p>
           <p className="text-[#545454] text-sm mt-1 line-clamp-2">{effDesc || 'Your meta description appears here. Write a compelling 120–160 character summary.'}</p>

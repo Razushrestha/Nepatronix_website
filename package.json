@@ -11,7 +11,10 @@
     "lint": "eslint",
     "sync:facebook": "node scripts/sync-facebook-gallery.mjs",
     "seed:admin": "node scripts/seed-admin.mjs",
-    "seed:content": "node scripts/seed-static-content.mjs"
+    "seed:content": "node scripts/seed-static-content.mjs",
+    "db:export": "node scripts/db-export.mjs",
+    "db:import": "node scripts/db-import.mjs",
+    "db:sync": "node scripts/sync-db-direct.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

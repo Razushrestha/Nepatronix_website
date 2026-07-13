@@ -11,6 +11,12 @@ interface SidebarUser {
   role: string
 }
 
+function navLinkClass(active: boolean) {
+  return active
+    ? 'bg-[#C1121F]/10 text-slate-900'
+    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+}
+
 export default function Sidebar({ user }: { user: SidebarUser }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -31,50 +37,40 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
       <div className="px-5 pt-6 pb-5">
         <div className="flex items-center gap-3">
           <div className="relative flex-shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#C1121F] to-[#8B0D15] flex items-center justify-center shadow-lg shadow-red-900/30">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#C1121F] to-[#8B0D15] flex items-center justify-center shadow-lg shadow-red-900/20">
               <span className="text-white font-black text-base tracking-tight">N</span>
             </div>
-            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-[#0a0a0f]" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white" />
           </div>
           <div>
-            <p className="text-white font-bold text-sm leading-tight tracking-wide">Nepatronix</p>
-            <p className="text-gray-500 text-[11px] mt-0.5">Admin Console</p>
+            <p className="text-slate-900 font-bold text-sm leading-tight tracking-wide">Nepatronix</p>
+            <p className="text-slate-500 text-[11px] mt-0.5">Admin Console</p>
           </div>
         </div>
       </div>
 
-      <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      <div className="mx-5 h-px bg-slate-200" />
 
       <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
-        {/* Dashboard */}
         <Link
           href="/admin"
           onClick={() => setOpen(false)}
-          className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-            pathname === '/admin'
-              ? 'bg-gradient-to-r from-[#C1121F]/20 to-[#C1121F]/5 text-white'
-              : 'text-gray-500 hover:text-gray-200 hover:bg-white/5'
-          }`}
+          className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${navLinkClass(pathname === '/admin')}`}
         >
           {pathname === '/admin' && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#C1121F] rounded-full" />}
-          <span className={pathname === '/admin' ? 'text-[#C1121F]' : 'text-gray-600 group-hover:text-gray-400'}>
+          <span className={pathname === '/admin' ? 'text-[#C1121F]' : 'text-slate-500 group-hover:text-slate-700'}>
             <Icon name="dashboard" />
           </span>
           Dashboard
         </Link>
 
-        {/* Analytics */}
         <Link
           href="/admin/analytics"
           onClick={() => setOpen(false)}
-          className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-            pathname === '/admin/analytics'
-              ? 'bg-gradient-to-r from-[#C1121F]/20 to-[#C1121F]/5 text-white'
-              : 'text-gray-500 hover:text-gray-200 hover:bg-white/5'
-          }`}
+          className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${navLinkClass(pathname === '/admin/analytics')}`}
         >
           {pathname === '/admin/analytics' && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#C1121F] rounded-full" />}
-          <span className={pathname === '/admin/analytics' ? 'text-[#C1121F]' : 'text-gray-600 group-hover:text-gray-400'}>
+          <span className={pathname === '/admin/analytics' ? 'text-[#C1121F]' : 'text-slate-500 group-hover:text-slate-700'}>
             <Icon name="chart" />
           </span>
           Statistics
@@ -82,7 +78,7 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
 
         {grouped.map(({ group, items }) => (
           <div key={group}>
-            <p className="px-3 pb-1.5 text-[10px] font-semibold text-gray-600 uppercase tracking-widest">{group}</p>
+            <p className="px-3 pb-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-widest">{group}</p>
             <div className="space-y-0.5">
               {items.map((item) => {
                 const href = `/admin/c/${item.slug}`
@@ -92,14 +88,10 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
                     key={item.slug}
                     href={href}
                     onClick={() => setOpen(false)}
-                    className={`group relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
-                      active
-                        ? 'bg-gradient-to-r from-[#C1121F]/20 to-[#C1121F]/5 text-white'
-                        : 'text-gray-500 hover:text-gray-200 hover:bg-white/5'
-                    }`}
+                    className={`group relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${navLinkClass(active)}`}
                   >
                     {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#C1121F] rounded-full" />}
-                    <span className={active ? 'text-[#C1121F]' : 'text-gray-600 group-hover:text-gray-400'}>
+                    <span className={active ? 'text-[#C1121F]' : 'text-slate-500 group-hover:text-slate-700'}>
                       <Icon name={item.icon} />
                     </span>
                     {item.label}
@@ -111,24 +103,24 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
         ))}
       </nav>
 
-      <div className="mx-5 mb-3 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      <div className="mx-5 mb-3 h-px bg-slate-200" />
       <div className="px-4 pb-3">
-        <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl bg-white/5">
+        <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl bg-slate-50 border border-slate-200">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#C1121F] to-[#8B0D15] flex items-center justify-center text-white text-xs font-bold">
             {user.name?.[0]?.toUpperCase() || user.email[0]?.toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-white text-xs font-semibold truncate">{user.name || 'Admin'}</p>
-            <p className="text-gray-500 text-[10px] capitalize">{user.role}</p>
+            <p className="text-slate-900 text-xs font-semibold truncate">{user.name || 'Admin'}</p>
+            <p className="text-slate-500 text-[10px] capitalize">{user.role}</p>
           </div>
         </div>
       </div>
       <div className="px-3 pb-5 space-y-0.5">
-        <a href="/" target="_blank" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-500 hover:text-gray-200 hover:bg-white/5 transition-all">
+        <a href="/" target="_blank" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
           View Site
         </a>
-        <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-500 hover:text-red-400 hover:bg-red-500/5 w-full transition-all">
+        <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-slate-600 hover:text-red-600 hover:bg-red-50 w-full transition-all">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
           Sign Out
         </button>
@@ -138,17 +130,16 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
 
   return (
     <>
-      {/* Mobile toggle */}
       <button
         onClick={() => setOpen(true)}
-        className="lg:hidden fixed top-3 left-3 z-30 w-9 h-9 rounded-lg bg-[#0a0a0f] border border-white/10 flex items-center justify-center text-gray-300"
+        className="lg:hidden fixed top-3 left-3 z-30 w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-600 shadow-sm"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
       </button>
 
-      {open && <div className="lg:hidden fixed inset-0 bg-black/60 z-30" onClick={() => setOpen(false)} />}
+      {open && <div className="lg:hidden fixed inset-0 bg-black/30 z-30" onClick={() => setOpen(false)} />}
 
-      <aside className={`w-64 flex flex-col bg-[#0a0a0f] border-r border-white/5 z-40 fixed lg:sticky top-0 h-screen transition-transform ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`w-64 flex flex-col bg-white border-r border-slate-200 z-40 fixed lg:sticky top-0 h-screen transition-transform shadow-sm ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {content}
       </aside>
     </>

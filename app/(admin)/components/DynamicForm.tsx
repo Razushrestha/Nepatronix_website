@@ -5,6 +5,7 @@ import type { CollectionConfig, FieldDef } from '@/lib/admin-collections'
 import { ImageField, ImagesField, FileField } from './Uploader'
 import RichTextEditor from './RichTextEditor'
 import SeoPanel from './SeoPanel'
+import { adminInput } from './ui'
 
 type AnyObj = Record<string, unknown>
 
@@ -88,8 +89,7 @@ export default function DynamicForm({
     const rawVal = parent ? ((data[parent] as AnyObj) || {})[f.name] : data[f.name]
     const change = (v: unknown) => (parent ? setNested(parent, f.name, v) : set(f.name, v))
 
-    const inputCls =
-      'w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#C1121F] transition-colors'
+    const inputCls = adminInput
 
     switch (f.type) {
       case 'text':
@@ -135,7 +135,7 @@ export default function DynamicForm({
           <button
             type="button"
             onClick={() => change(!rawVal)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${rawVal ? 'bg-[#C1121F]' : 'bg-gray-700'}`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${rawVal ? 'bg-[#C1121F]' : 'bg-slate-300'}`}
           >
             <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${rawVal ? 'translate-x-6' : 'translate-x-1'}`} />
           </button>
@@ -166,10 +166,10 @@ export default function DynamicForm({
       case 'group':
         if (f.object) {
           return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-gray-800/40 border border-gray-700">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
               {f.fields?.map((sf) => (
                 <div key={sf.name} className={sf.type === 'image' ? 'sm:col-span-2' : ''}>
-                  <label className="block text-xs text-gray-400 mb-1">{sf.label}</label>
+                  <label className="block text-xs text-slate-500 mb-1">{sf.label}</label>
                   {renderField(sf, f.name)}
                 </div>
               ))}
@@ -188,20 +188,20 @@ export default function DynamicForm({
         {config.fields.map((f) => (
           <div key={f.name} className={f.fullWidth || f.type === 'group' || f.type === 'images' || f.type === 'richtext' || f.type === 'seo' ? 'md:col-span-2' : ''}>
             {f.type !== 'seo' && (
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 {f.label}
                 {f.required && <span className="text-[#C1121F]"> *</span>}
               </label>
             )}
             {renderField(f)}
-            {f.type !== 'seo' && f.help && <p className="text-gray-500 text-xs mt-1">{f.help}</p>}
+            {f.type !== 'seo' && f.help && <p className="text-slate-500 text-xs mt-1">{f.help}</p>}
           </div>
         ))}
       </div>
 
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && <p className="text-red-600 text-sm">{error}</p>}
 
-      <div className="flex items-center gap-3 pt-2 border-t border-gray-800">
+      <div className="flex items-center gap-3 pt-2 border-t border-slate-200">
         <button
           type="submit"
           disabled={saving}
@@ -210,7 +210,7 @@ export default function DynamicForm({
           {saving ? 'Saving…' : config.singleton ? 'Save changes' : mode === 'new' ? 'Create' : 'Save changes'}
         </button>
         {!config.singleton && (
-          <button type="button" onClick={() => router.push(`/admin/c/${config.slug}`)} className="text-gray-400 hover:text-white px-4 py-2.5 text-sm">
+          <button type="button" onClick={() => router.push(`/admin/c/${config.slug}`)} className="text-slate-500 hover:text-slate-900 px-4 py-2.5 text-sm">
             Cancel
           </button>
         )}
@@ -222,11 +222,11 @@ export default function DynamicForm({
 function TagsInput({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
   const [input, setInput] = useState('')
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-lg px-2 py-2 flex flex-wrap gap-2">
+    <div className="bg-white border border-slate-300 rounded-lg px-2 py-2 flex flex-wrap gap-2">
       {value.map((t, i) => (
-        <span key={i} className="inline-flex items-center gap-1 bg-gray-700 text-white text-xs px-2 py-1 rounded-md">
+        <span key={i} className="inline-flex items-center gap-1 bg-slate-100 text-slate-800 text-xs px-2 py-1 rounded-md">
           {t}
-          <button type="button" onClick={() => onChange(value.filter((_, j) => j !== i))} className="text-gray-400 hover:text-red-400">×</button>
+          <button type="button" onClick={() => onChange(value.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-600">×</button>
         </span>
       ))}
       <input
@@ -242,22 +242,22 @@ function TagsInput({ value, onChange }: { value: string[]; onChange: (v: string[
           }
         }}
         placeholder="Type and press Enter"
-        className="flex-1 min-w-[120px] bg-transparent text-white text-sm focus:outline-none px-1"
+        className="flex-1 min-w-[120px] bg-transparent text-slate-900 text-sm focus:outline-none px-1"
       />
     </div>
   )
 }
 
 function RepeatableGroup({ field, value, onChange }: { field: FieldDef; value: AnyObj[]; onChange: (v: AnyObj[]) => void }) {
-  const inputCls = 'w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#C1121F]'
+  const inputCls = adminInput
   return (
     <div className="space-y-3">
       {value.map((row, i) => (
-        <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-gray-800/40 border border-gray-700">
+        <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
             {field.fields?.map((sf) => (
               <div key={sf.name}>
-                <label className="block text-xs text-gray-400 mb-1">{sf.label}</label>
+                <label className="block text-xs text-slate-500 mb-1">{sf.label}</label>
                 <input
                   type="text"
                   value={(row[sf.name] as string) || ''}
@@ -271,7 +271,7 @@ function RepeatableGroup({ field, value, onChange }: { field: FieldDef; value: A
               </div>
             ))}
           </div>
-          <button type="button" onClick={() => onChange(value.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-300 mt-6 text-lg">×</button>
+          <button type="button" onClick={() => onChange(value.filter((_, j) => j !== i))} className="text-red-600 hover:text-red-700 mt-6 text-lg">×</button>
         </div>
       ))}
       <button type="button" onClick={() => onChange([...value, {}])} className="text-sm text-[#C1121F] hover:underline">

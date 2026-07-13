@@ -8,13 +8,22 @@ export const fetcher = (url: string) =>
   })
 
 export const COLOR_CLASSES: Record<string, string> = {
-  yellow: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-  blue: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  green: 'bg-green-500/10 text-green-400 border-green-500/20',
-  red: 'bg-red-500/10 text-red-400 border-red-500/20',
-  purple: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  gray: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+  yellow: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+  blue: 'bg-blue-50 text-blue-700 border-blue-200',
+  green: 'bg-green-50 text-green-700 border-green-200',
+  red: 'bg-red-50 text-red-700 border-red-200',
+  purple: 'bg-purple-50 text-purple-700 border-purple-200',
+  gray: 'bg-slate-100 text-slate-600 border-slate-200',
 }
+
+export const adminInput =
+  'w-full bg-white border border-slate-300 text-slate-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#C1121F] focus:ring-1 focus:ring-[#C1121F]/20 transition-colors placeholder:text-slate-400'
+
+export const adminCard = 'bg-white border border-slate-200 rounded-2xl shadow-sm'
+
+export const adminHeading = 'text-2xl font-bold text-slate-900'
+
+export const adminSubtext = 'text-slate-500 text-sm'
 
 export function StatusBadge({
   value,
@@ -23,7 +32,7 @@ export function StatusBadge({
   value?: string
   options?: { value: string; label: string; color: string }[]
 }) {
-  if (!value) return <span className="text-gray-600 text-xs">—</span>
+  if (!value) return <span className="text-slate-400 text-xs">—</span>
   const opt = options?.find((o) => o.value === value)
   const color = opt?.color || 'gray'
   return (
@@ -56,7 +65,7 @@ export function timeAgo(v?: string) {
 export function Spinner() {
   return (
     <div className="flex items-center justify-center py-20">
-      <div className="w-8 h-8 border-2 border-white/10 border-t-[#C1121F] rounded-full animate-spin" />
+      <div className="w-8 h-8 border-2 border-slate-200 border-t-[#C1121F] rounded-full animate-spin" />
     </div>
   )
 }

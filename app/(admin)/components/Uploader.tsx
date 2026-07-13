@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { adminInput } from './ui'
 
 async function upload(file: File): Promise<{ id: string; url: string; name: string }> {
   const fd = new FormData()
@@ -45,21 +46,21 @@ export function ImageField({
   return (
     <div className="space-y-2">
       <div className="flex items-start gap-3">
-        <div className="w-24 h-24 rounded-xl bg-gray-800 border border-gray-700 overflow-hidden flex items-center justify-center shrink-0">
+        <div className="w-24 h-24 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
           {value?.url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={value.url} alt={value.alt || ''} className="w-full h-full object-cover" />
           ) : (
-            <span className="text-gray-600 text-xs">No image</span>
+            <span className="text-slate-400 text-xs">No image</span>
           )}
         </div>
         <div className="space-y-2 flex-1">
-          <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-gray-200 text-xs cursor-pointer hover:bg-gray-700 transition-colors">
+          <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 text-xs cursor-pointer hover:bg-slate-50 transition-colors">
             {busy ? 'Uploading…' : value?.url ? 'Replace' : 'Upload image'}
             <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={busy} />
           </label>
           {value?.url && (
-            <button type="button" onClick={() => onChange(undefined)} className="ml-2 text-xs text-red-400 hover:underline">
+            <button type="button" onClick={() => onChange(undefined)} className="ml-2 text-xs text-red-600 hover:underline">
               Remove
             </button>
           )}
@@ -68,7 +69,7 @@ export function ImageField({
             placeholder="Alt text"
             value={value?.alt || ''}
             onChange={(e) => onChange({ ...value, alt: e.target.value })}
-            className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#C1121F]"
+            className={`${adminInput} !py-1.5`}
           />
           {withCaption && (
             <input
@@ -76,12 +77,12 @@ export function ImageField({
               placeholder="Caption"
               value={value?.caption || ''}
               onChange={(e) => onChange({ ...value, caption: e.target.value })}
-              className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#C1121F]"
+              className={`${adminInput} !py-1.5`}
             />
           )}
         </div>
       </div>
-      {error && <p className="text-red-400 text-xs">{error}</p>}
+      {error && <p className="text-red-600 text-xs">{error}</p>}
     </div>
   )
 }
@@ -97,7 +98,7 @@ export function ImagesField({
     <div className="space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {value.map((img, i) => (
-          <div key={i} className="p-3 bg-gray-800/50 border border-gray-700 rounded-xl">
+          <div key={i} className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
             <ImageField
               value={img}
               withCaption
@@ -157,22 +158,22 @@ export function FileField({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-3">
-        <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-gray-200 text-xs cursor-pointer hover:bg-gray-700 transition-colors">
+        <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 text-xs cursor-pointer hover:bg-slate-50 transition-colors">
           {busy ? 'Uploading…' : value?.url ? 'Replace file' : 'Upload file'}
           <input type="file" accept={accept} className="hidden" onChange={handleFile} disabled={busy} />
         </label>
         {value?.url && (
-          <a href={value.url} target="_blank" rel="noreferrer" className="text-xs text-blue-400 hover:underline truncate max-w-[200px]">
+          <a href={value.url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline truncate max-w-[200px]">
             {value.name || 'View file'}
           </a>
         )}
         {value?.url && (
-          <button type="button" onClick={() => onChange(undefined)} className="text-xs text-red-400 hover:underline">
+          <button type="button" onClick={() => onChange(undefined)} className="text-xs text-red-600 hover:underline">
             Remove
           </button>
         )}
       </div>
-      {error && <p className="text-red-400 text-xs">{error}</p>}
+      {error && <p className="text-red-600 text-xs">{error}</p>}
     </div>
   )
 }
