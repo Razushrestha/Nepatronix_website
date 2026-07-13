@@ -1,5 +1,7 @@
+import type { ReactNode } from "react";
+import Link from "next/link";
 import { connectToDatabase } from "@/lib/mongodb";
-import { Footer as FooterModel, ContactPage } from "@/lib/models";
+import { Footer as FooterModel, ContactPage, Course } from "@/lib/models";
 
 interface FooterData {
   companyName: string;
@@ -113,16 +115,68 @@ const DEFAULT_FOOTER: FooterData = {
   copyrightText: "Nepatronix Engineering Solutions",
 };
 
+function FooterContactCard({
+  label,
+  primary,
+  secondary,
+  href,
+  icon,
+}: {
+  label: string;
+  primary: string;
+  secondary?: string;
+  href?: string;
+  icon: ReactNode;
+}) {
+  const valueClass =
+    "text-sm font-semibold text-white leading-snug tracking-tight group-hover:text-[#C1121F] transition-colors";
+
+  return (
+    <div className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition-all duration-300 hover:border-[#C1121F]/25 hover:bg-white/[0.06]">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#C1121F]/10 text-[#C1121F] ring-1 ring-[#C1121F]/20 transition-all duration-300 group-hover:bg-[#C1121F] group-hover:text-white group-hover:ring-[#C1121F]">
+        {icon}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">
+          {label}
+        </p>
+        {href ? (
+          <a href={href} className={`block ${valueClass}`}>
+            {primary}
+          </a>
+        ) : (
+          <p className={valueClass}>{primary}</p>
+        )}
+        {secondary ? (
+          <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            {secondary}
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export async function Footer() {
   let footerDoc: FooterData | null = null;
   let contactData: ContactData | null = null;
+  let courseItems: { id: number; title: string }[] = [];
 
   try {
     await connectToDatabase();
-    [footerDoc, contactData] = await Promise.all([
+    const [footer, contact, courses] = await Promise.all([
       FooterModel.findOne({ key: "footer" }).lean<FooterData | null>(),
       ContactPage.findOne({ key: "contact" }).lean<ContactData | null>(),
+      Course.find().sort({ order: 1, createdAt: -1 }).select("title").lean<{ title?: string }[]>(),
     ]);
+    footerDoc = footer;
+    contactData = contact;
+    courseItems = courses
+      .map((course, index) => ({
+        id: index + 1,
+        title: course.title?.trim() || "",
+      }))
+      .filter((course) => course.title);
   } catch (err) {
     console.warn("Footer: MongoDB unavailable, using defaults.", err);
   }
@@ -181,7 +235,7 @@ export async function Footer() {
         <div className="grid gap-x-12 gap-y-16 py-24 grid-cols-2 lg:grid-cols-4">
           
           {/* Company Brand */}
-          <div className="col-span-2 md:col-span-1 space-y-10">
+          <div className="col-span-2 space-y-10 lg:col-span-1">
             <div className="space-y-6">
               <div className="space-y-2">
                 <h3 className="text-3xl font-black text-white tracking-tighter">
@@ -198,54 +252,60 @@ export async function Footer() {
             </div>
             
             {/* Contact Info */}
-            <div className="grid grid-cols-2 gap-x-6 gap-y-6">
-              <div className="flex items-start gap-4 group">
-                 <div className="mt-1 w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[#C1121F] border border-white/10 transition-all group-hover:bg-[#C1121F] group-hover:text-white group-hover:-translate-y-1">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                 </div>
-                 <div className="space-y-1">
-                    <p className="text-sm font-bold text-white tracking-tight">{footerData.contactInfo?.address}</p>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">{footerData.contactInfo?.postalCode}</p>
-                 </div>
-              </div>
-              
-              <div className="flex items-start gap-4 group">
-                 <div className="mt-1 w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[#C1121F] border border-white/10 transition-all group-hover:bg-[#C1121F] group-hover:text-white group-hover:-translate-y-1">
-                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                 </div>
-                 <div className="space-y-1">
-                    <p className="text-sm font-bold text-white tracking-tight">{footerData.contactInfo?.weekdayHours}</p>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">{footerData.contactInfo?.weekendHours}</p>
-                 </div>
-              </div>
+            <div className="space-y-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-slate-500">
+                Get in touch
+              </p>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                <FooterContactCard
+                  label="Visit us"
+                  primary={footerData.contactInfo?.address || ""}
+                  secondary={footerData.contactInfo?.postalCode}
+                  icon={
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  }
+                />
 
-              {email && (
-                <div className="flex items-start gap-4 group">
-                  <div className="mt-1 w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[#C1121F] border border-white/10 transition-all group-hover:bg-[#C1121F] group-hover:text-white group-hover:-translate-y-1">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Email Us</p>
-                    <a href={`mailto:${email}`} className="block text-sm font-bold text-white tracking-tight hover:text-[#C1121F] transition-colors break-all">
-                      {email}
-                    </a>
-                  </div>
-                </div>
-              )}
+                <FooterContactCard
+                  label="Office hours"
+                  primary={footerData.contactInfo?.weekdayHours || ""}
+                  secondary={footerData.contactInfo?.weekendHours}
+                  icon={
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  }
+                />
 
-              {phone && (
-                <div className="flex items-start gap-4 group">
-                  <div className="mt-1 w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[#C1121F] border border-white/10 transition-all group-hover:bg-[#C1121F] group-hover:text-white group-hover:-translate-y-1">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Call Us</p>
-                    <a href={`tel:${phone.replace(/\s+/g, "")}`} className="block text-sm font-bold text-white tracking-tight hover:text-[#C1121F] transition-colors">
-                      {phone}
-                    </a>
-                  </div>
-                </div>
-              )}
+                {email ? (
+                  <FooterContactCard
+                    label="Email us"
+                    primary={email}
+                    href={`mailto:${email}`}
+                    icon={
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    }
+                  />
+                ) : null}
+
+                {phone ? (
+                  <FooterContactCard
+                    label="Call us"
+                    primary={phone}
+                    href={`tel:${phone.replace(/\s+/g, "")}`}
+                    icon={
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                    }
+                  />
+                ) : null}
+              </div>
             </div>
           </div>
 
@@ -270,25 +330,50 @@ export async function Footer() {
             </nav>
           </div>
 
-          {/* Services Showcase */}
+          {/* Courses We Offer */}
           <div className="col-span-1 space-y-8">
             <h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] relative inline-block">
-              Our Expertise
+              Courses We Offer
               <span className="absolute -bottom-3 left-0 w-8 h-1 bg-[#C1121F] rounded-full"></span>
             </h4>
-            
-            <div className="space-y-6">
-              {footerData.expertise?.map((service, i) => (
-                <div key={i} className="group cursor-default space-y-1">
-                  <h5 className="text-sm font-bold text-white group-hover:text-[#C1121F] transition-colors leading-tight tracking-tight">
-                    {service.name}
-                  </h5>
-                  <p className="text-[11px] text-slate-500 leading-relaxed font-medium line-clamp-1">
-                    {service.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
+
+            <nav className="flex flex-col gap-3.5">
+              {courseItems.length > 0 ? (
+                courseItems.map((course) => (
+                  <Link
+                    key={course.id}
+                    href={`/services/courses/view/${course.id}`}
+                    className="group flex items-start gap-3 text-sm font-bold text-slate-400 hover:text-white transition-all"
+                  >
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-700 group-hover:bg-[#C1121F] transition-all" />
+                    <span className="leading-snug tracking-tight group-hover:text-[#C1121F] transition-colors">
+                      {course.title}
+                    </span>
+                  </Link>
+                ))
+              ) : (
+                footerData.expertise?.map((service, i) => (
+                  <div key={i} className="group space-y-1">
+                    <h5 className="text-sm font-bold text-white group-hover:text-[#C1121F] transition-colors leading-tight tracking-tight">
+                      {service.name}
+                    </h5>
+                    <p className="text-[11px] text-slate-500 leading-relaxed font-medium line-clamp-2">
+                      {service.desc}
+                    </p>
+                  </div>
+                ))
+              )}
+            </nav>
+
+            <Link
+              href="/services/courses"
+              className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#C1121F] hover:text-white transition-colors"
+            >
+              View all courses
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </Link>
           </div>
 
           {/* Connect & Socials */}
