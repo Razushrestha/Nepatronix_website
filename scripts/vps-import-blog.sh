@@ -35,7 +35,7 @@ fi
 node scripts/check-dump.mjs
 
 echo ""
-echo "Importing blog, gallery, team, and images..."
+echo "Importing blog, gallery, team, courses, and images..."
 npm run db:import:site
 
 echo ""

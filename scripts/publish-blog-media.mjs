@@ -62,7 +62,7 @@ async function writeManifest() {
 }
 
 async function main() {
-  console.log('Publishing blog + gallery + team + images from:', MONGODB_URI)
+  console.log('Publishing site content (blog, gallery, team, courses, images) from:', MONGODB_URI)
 
   run(process.execPath, ['scripts/verify-blog-media.mjs'], 'Verify local blog/media')
   run(process.execPath, [

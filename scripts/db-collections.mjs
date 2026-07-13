@@ -1,8 +1,11 @@
-/** Blog, gallery, team, and GridFS image binaries — sync as one bundle to VPS. */
+/** All public site content synced from local dev to VPS (blog, gallery, team, courses, images). */
 export const SITE_SYNC_COLLECTIONS = [
   'posts',
   'galleries',
   'teammembers',
+  'courses',
+  'coursepdfs',
+  'coursevideos',
   'uploads.files',
   'uploads.chunks',
 ]
@@ -10,12 +13,9 @@ export const SITE_SYNC_COLLECTIONS = [
 /** @deprecated use SITE_SYNC_COLLECTIONS */
 export const BLOG_MEDIA_COLLECTIONS = SITE_SYNC_COLLECTIONS
 
-/** All site CMS content (homepage, partners, courses, etc.). */
+/** All site CMS content (homepage, partners, enrollments, etc.). */
 export const CONTENT_COLLECTIONS = [
   ...SITE_SYNC_COLLECTIONS,
-  'courses',
-  'coursepdfs',
-  'coursevideos',
   'schools',
   'partners',
   'recognitions',

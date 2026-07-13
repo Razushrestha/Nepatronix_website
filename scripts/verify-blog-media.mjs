@@ -50,15 +50,24 @@ async function main() {
   const posts = await db.collection('posts').countDocuments()
   const galleries = await db.collection('galleries').countDocuments()
   const teammembers = await db.collection('teammembers').countDocuments()
+  const courses = await db.collection('courses').countDocuments()
+  const coursepdfs = await db.collection('coursepdfs').countDocuments()
+  const coursevideos = await db.collection('coursevideos').countDocuments()
+  const upcomingCourses = await db.collection('courses').countDocuments({ isUpcoming: true })
   const files = await db.collection('uploads.files').countDocuments()
   const chunks = await db.collection('uploads.chunks').countDocuments()
 
   const postDocs = await db.collection('posts').find({}).project({ title: 1, slug: 1, mainImage: 1, ogImage: 1, body: 1 }).toArray()
   const galleryDocs = await db.collection('galleries').find({}).project({ title: 1, images: 1 }).toArray()
   const teamDocs = await db.collection('teammembers').find({}).project({ name: 1, role: 1, image: 1 }).toArray()
+  const courseDocs = await db.collection('courses').find({}).project({ title: 1, slug: 1, isUpcoming: 1, coursePdf: 1 }).toArray()
+  const pdfDocs = await db.collection('coursepdfs').find({}).project({ title: 1, pdfFile: 1 }).toArray()
+  const videoDocs = await db.collection('coursevideos').find({}).project({ title: 1, videoFile: 1 }).toArray()
 
   const referencedIds = new Set()
-  for (const doc of [...postDocs, ...galleryDocs, ...teamDocs]) collectFileIds(doc, referencedIds)
+  for (const doc of [...postDocs, ...galleryDocs, ...teamDocs, ...courseDocs, ...pdfDocs, ...videoDocs]) {
+    collectFileIds(doc, referencedIds)
+  }
 
   const existingIds = new Set(
     (await db.collection('uploads.files').find({}, { projection: { _id: 1 } }).toArray()).map((f) =>
@@ -72,6 +81,10 @@ async function main() {
   console.log(`  posts:           ${posts}`)
   console.log(`  galleries:       ${galleries}`)
   console.log(`  teammembers:     ${teammembers}`)
+  console.log(`  courses:         ${courses}`)
+  console.log(`  coursepdfs:      ${coursepdfs}`)
+  console.log(`  coursevideos:    ${coursevideos}`)
+  console.log(`  upcoming courses:${upcomingCourses}`)
   console.log(`  uploads.files:   ${files}`)
   console.log(`  uploads.chunks:  ${chunks}`)
   console.log(`  image refs:      ${referencedIds.size}`)
@@ -81,6 +94,14 @@ async function main() {
     console.log('\nBlog posts:')
     for (const p of postDocs) {
       console.log(`  - ${p.slug || '(no slug)'} — ${p.title || '(untitled)'}`)
+    }
+  }
+
+  if (courseDocs.length) {
+    console.log('\nCourses:')
+    for (const c of courseDocs) {
+      const tag = c.isUpcoming ? ' [upcoming]' : ''
+      console.log(`  - ${c.slug || c.title || '(untitled)'}${tag}`)
     }
   }
 
@@ -98,7 +119,7 @@ async function main() {
     process.exit(1)
   }
 
-  console.log('\nOK — blog, gallery, team, and image references look complete.')
+  console.log('\nOK — blog, gallery, team, courses, and image references look complete.')
   await mongoose.disconnect()
 }
 
