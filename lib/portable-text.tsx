@@ -200,3 +200,112 @@ export function PortableBody({ value }: { value: unknown }) {
   flushList()
   return <>{nodes}</>
 }
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+function spanToHtml(span: PortableSpan, markDefs: PortableBlock['markDefs']): string {
+  let html = escapeHtml(span.text || '')
+  for (const mark of span.marks || []) {
+    if (mark === 'strong') html = `<strong>${html}</strong>`
+    else if (mark === 'em') html = `<em>${html}</em>`
+    else if (mark === 'code') html = `<code>${html}</code>`
+    else {
+      const def = markDefs?.find((item) => item._key === mark)
+      if (def?.href) {
+        html = `<a href="${escapeHtml(def.href)}" target="_blank" rel="noopener noreferrer">${html}</a>`
+      }
+    }
+  }
+  return html
+}
+
+/** Convert migrated Sanity portable text to HTML for the admin TipTap editor. */
+export function portableTextToHtml(value: unknown): string {
+  if (typeof value === 'string') return value
+  if (!Array.isArray(value) || !value.length) return ''
+
+  const blocks = value as PortableBlock[]
+  const parts: string[] = []
+  let listItems: string[] = []
+  let listType: 'bullet' | 'number' | null = null
+
+  const flushList = () => {
+    if (!listItems.length || !listType) return
+    const tag = listType === 'bullet' ? 'ul' : 'ol'
+    parts.push(`<${tag}>${listItems.join('')}</${tag}>`)
+    listItems = []
+    listType = null
+  }
+
+  for (const block of blocks) {
+    if (block._type === 'image') {
+      flushList()
+      const src = resolveImageUrl(block as ContentImage)
+      if (src) parts.push(`<img src="${src}" alt="${escapeHtml(block.alt || '')}" />`)
+      continue
+    }
+    if (block._type !== 'block' || !block.children?.length) continue
+
+    const inner = block.children.map((child) => spanToHtml(child, block.markDefs)).join('')
+
+    if (block.listItem === 'bullet' || block.listItem === 'number') {
+      if (listType && listType !== block.listItem) flushList()
+      listType = block.listItem
+      listItems.push(`<li>${inner}</li>`)
+      continue
+    }
+
+    flushList()
+    switch (block.style) {
+      case 'h1':
+        parts.push(`<h1>${inner}</h1>`)
+        break
+      case 'h2':
+        parts.push(`<h2>${inner}</h2>`)
+        break
+      case 'h3':
+        parts.push(`<h3>${inner}</h3>`)
+        break
+      case 'h4':
+        parts.push(`<h4>${inner}</h4>`)
+        break
+      case 'blockquote':
+        parts.push(`<blockquote>${inner}</blockquote>`)
+        break
+      default:
+        parts.push(`<p>${inner}</p>`)
+    }
+  }
+
+  flushList()
+  return parts.join('')
+}
+
+export function hasBlogBody(value: unknown): boolean {
+  if (typeof value === 'string') {
+    return value.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim().length > 0
+  }
+  return Array.isArray(value) && value.length > 0
+}
+
+/** Render blog body from admin HTML or migrated portable text blocks. */
+export function BlogBody({ value }: { value: unknown }) {
+  if (typeof value === 'string') {
+    const html = value.trim()
+    if (!hasBlogBody(html)) return null
+    return (
+      <div
+        className="blog-html-body"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    )
+  }
+
+  return <PortableBody value={value} />
+}

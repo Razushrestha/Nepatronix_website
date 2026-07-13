@@ -5,7 +5,7 @@ import type { CollectionConfig, FieldDef } from '@/lib/admin-collections'
 import { ImageField, ImagesField, FileField } from './Uploader'
 import RichTextEditor from './RichTextEditor'
 import SeoPanel from './SeoPanel'
-import { adminInput } from './ui'
+import { portableTextToHtml } from '@/lib/portable-text'
 
 type AnyObj = Record<string, unknown>
 
@@ -114,13 +114,20 @@ export default function DynamicForm({
             className={inputCls}
           />
         )
-      case 'richtext':
+      case 'richtext': {
+        const editorValue =
+          typeof rawVal === 'string'
+            ? rawVal
+            : Array.isArray(rawVal)
+            ? portableTextToHtml(rawVal)
+            : ''
         return (
           <RichTextEditor
-            value={typeof rawVal === 'string' ? rawVal : ''}
+            value={editorValue}
             onChange={(html) => change(html)}
           />
         )
+      }
       case 'number':
         return (
           <input

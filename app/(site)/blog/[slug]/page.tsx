@@ -13,7 +13,7 @@ import {
   type BlogPostDoc,
 } from "@/lib/blog/queries";
 import { resolveImageUrl } from "@/lib/content-image";
-import { PortableBody } from "@/lib/portable-text";
+import { BlogBody, hasBlogBody } from "@/lib/portable-text";
 
 const SITE = "https://nepatronix.org";
 const OG_FALLBACK = `${SITE}/og-banner.png`;
@@ -29,7 +29,7 @@ interface BlogPost {
   tags: string[];
   mainImage?: BlogPostDoc["mainImage"];
   author: string;
-  body: unknown[];
+  body: unknown;
   seoTitle?: string;
   seoDescription?: string;
   keywords?: string[];
@@ -49,7 +49,7 @@ function mapPostDoc(doc: BlogPostDoc): BlogPost {
     tags: doc.tags || [],
     mainImage: doc.mainImage,
     author: doc.author || "",
-    body: Array.isArray(doc.body) ? doc.body : [],
+    body: doc.body ?? null,
     seoTitle: doc.seoTitle,
     seoDescription: doc.seoDescription,
     keywords: doc.keywords,
@@ -402,7 +402,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
 
           {/* Blog Content */}
           <div className="p-6 sm:p-10 md:p-14 lg:p-16">
-          {post.body ? (
+          {hasBlogBody(post.body) ? (
             <div className="prose prose-lg prose-slate max-w-none 
               prose-headings:text-slate-900 prose-headings:font-bold
               prose-p:text-slate-700 prose-p:leading-relaxed
@@ -413,8 +413,17 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
               prose-blockquote:border-l-[#C1121F] prose-blockquote:bg-slate-50 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-lg
               prose-code:text-[#C1121F] prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
               prose-pre:bg-slate-900
-              prose-img:rounded-xl prose-img:shadow-lg">
-              <PortableBody value={post.body} />
+              prose-img:rounded-xl prose-img:shadow-lg
+              [&_.blog-html-body_h2]:text-2xl [&_.blog-html-body_h2]:font-bold [&_.blog-html-body_h2]:text-slate-900 [&_.blog-html-body_h2]:mt-8 [&_.blog-html-body_h2]:mb-3
+              [&_.blog-html-body_h3]:text-xl [&_.blog-html-body_h3]:font-bold [&_.blog-html-body_h3]:text-slate-900 [&_.blog-html-body_h3]:mt-6 [&_.blog-html-body_h3]:mb-2
+              [&_.blog-html-body_p]:text-slate-700 [&_.blog-html-body_p]:leading-relaxed [&_.blog-html-body_p]:mb-4
+              [&_.blog-html-body_ul]:list-disc [&_.blog-html-body_ul]:ml-6 [&_.blog-html-body_ul]:my-4
+              [&_.blog-html-body_ol]:list-decimal [&_.blog-html-body_ol]:ml-6 [&_.blog-html-body_ol]:my-4
+              [&_.blog-html-body_li]:text-slate-700 [&_.blog-html-body_li]:mb-1
+              [&_.blog-html-body_blockquote]:border-l-4 [&_.blog-html-body_blockquote]:border-[#C1121F] [&_.blog-html-body_blockquote]:bg-slate-50 [&_.blog-html-body_blockquote]:pl-6 [&_.blog-html-body_blockquote]:py-4 [&_.blog-html-body_blockquote]:my-6
+              [&_.blog-html-body_img]:rounded-xl [&_.blog-html-body_img]:shadow-lg [&_.blog-html-body_img]:my-8
+              [&_.blog-html-body_a]:text-[#C1121F] [&_.blog-html-body_a]:font-medium hover:[&_.blog-html-body_a]:underline">
+              <BlogBody value={post.body} />
             </div>
           ) : (
             <p className="text-slate-500 text-center py-8">No content available for this post.</p>
