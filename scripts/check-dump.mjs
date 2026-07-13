@@ -7,7 +7,7 @@
  */
 import { readFileSync, existsSync, statSync } from 'fs'
 import { resolve, join } from 'path'
-import { BLOG_MEDIA_COLLECTIONS } from './db-collections.mjs'
+import { SITE_SYNC_COLLECTIONS } from './db-collections.mjs'
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((a) => {
@@ -48,7 +48,7 @@ function main() {
 
   console.log('\nDump files on disk:')
   let ok = true
-  for (const coll of BLOG_MEDIA_COLLECTIONS) {
+  for (const coll of SITE_SYNC_COLLECTIONS) {
     const bson = join(DB_DIR, `${coll}.bson`)
     const meta = join(DB_DIR, `${coll}.metadata.json`)
     if (!existsSync(bson)) {
@@ -73,7 +73,7 @@ function main() {
     process.exit(1)
   }
 
-  console.log('\nDump looks good. Run on VPS: npm run db:import:blog')
+  console.log('\nDump looks good. Run on VPS: npm run db:import:site')
 }
 
 main()

@@ -49,14 +49,16 @@ async function main() {
 
   const posts = await db.collection('posts').countDocuments()
   const galleries = await db.collection('galleries').countDocuments()
+  const teammembers = await db.collection('teammembers').countDocuments()
   const files = await db.collection('uploads.files').countDocuments()
   const chunks = await db.collection('uploads.chunks').countDocuments()
 
   const postDocs = await db.collection('posts').find({}).project({ title: 1, slug: 1, mainImage: 1, ogImage: 1, body: 1 }).toArray()
   const galleryDocs = await db.collection('galleries').find({}).project({ title: 1, images: 1 }).toArray()
+  const teamDocs = await db.collection('teammembers').find({}).project({ name: 1, role: 1, image: 1 }).toArray()
 
   const referencedIds = new Set()
-  for (const doc of [...postDocs, ...galleryDocs]) collectFileIds(doc, referencedIds)
+  for (const doc of [...postDocs, ...galleryDocs, ...teamDocs]) collectFileIds(doc, referencedIds)
 
   const existingIds = new Set(
     (await db.collection('uploads.files').find({}, { projection: { _id: 1 } }).toArray()).map((f) =>
@@ -66,9 +68,10 @@ async function main() {
 
   const missing = [...referencedIds].filter((id) => !existingIds.has(id))
 
-  console.log('\n--- Blog & media summary ---')
+  console.log('\n--- Site content summary ---')
   console.log(`  posts:           ${posts}`)
   console.log(`  galleries:       ${galleries}`)
+  console.log(`  teammembers:     ${teammembers}`)
   console.log(`  uploads.files:   ${files}`)
   console.log(`  uploads.chunks:  ${chunks}`)
   console.log(`  image refs:      ${referencedIds.size}`)
@@ -81,14 +84,21 @@ async function main() {
     }
   }
 
+  if (teamDocs.length) {
+    console.log('\nTeam members:')
+    for (const m of teamDocs) {
+      console.log(`  - ${m.name || '(no name)'} (${m.role || 'Team'})`)
+    }
+  }
+
   if (missing.length) {
-    console.log('\nMissing GridFS file IDs referenced in blog/gallery:')
+    console.log('\nMissing GridFS file IDs referenced in blog/gallery/team:')
     for (const id of missing) console.log(`  - ${id}`)
     await mongoose.disconnect()
     process.exit(1)
   }
 
-  console.log('\nOK — blog and gallery image references look complete.')
+  console.log('\nOK — blog, gallery, team, and image references look complete.')
   await mongoose.disconnect()
 }
 

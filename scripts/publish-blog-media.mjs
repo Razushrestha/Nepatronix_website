@@ -8,7 +8,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 import { resolve, join } from 'path'
 import { spawnSync } from 'child_process'
 import mongoose from 'mongoose'
-import { BLOG_MEDIA_COLLECTIONS } from './db-collections.mjs'
+import { SITE_SYNC_COLLECTIONS } from './db-collections.mjs'
 
 const envPath = resolve(process.cwd(), '.env.local')
 if (existsSync(envPath)) {
@@ -45,7 +45,7 @@ async function writeManifest() {
   const db = mongoose.connection.db
   const dbName = db.databaseName
   const counts = {}
-  for (const coll of BLOG_MEDIA_COLLECTIONS) {
+  for (const coll of SITE_SYNC_COLLECTIONS) {
     counts[coll] = await db.collection(coll).countDocuments()
   }
   await mongoose.disconnect()
@@ -53,7 +53,7 @@ async function writeManifest() {
   const manifest = {
     exportedAt: new Date().toISOString(),
     database: dbName,
-    collections: BLOG_MEDIA_COLLECTIONS,
+    collections: SITE_SYNC_COLLECTIONS,
     counts,
   }
   mkdirSync(OUT_DIR, { recursive: true })
@@ -62,13 +62,13 @@ async function writeManifest() {
 }
 
 async function main() {
-  console.log('Publishing blog + gallery + images from:', MONGODB_URI)
+  console.log('Publishing blog + gallery + team + images from:', MONGODB_URI)
 
   run(process.execPath, ['scripts/verify-blog-media.mjs'], 'Verify local blog/media')
   run(process.execPath, [
     'scripts/db-export.mjs',
-    `--collections=${BLOG_MEDIA_COLLECTIONS.join(',')}`,
-  ], 'Export blog/media collections')
+    `--collections=${SITE_SYNC_COLLECTIONS.join(',')}`,
+  ], 'Export site content collections')
   await writeManifest()
 
   if (process.platform === 'win32') {
@@ -83,7 +83,7 @@ async function main() {
 
   console.log('\nDone.')
   console.log('Upload to VPS:', ZIP_PATH)
-  console.log('Then on VPS: unzip, npm run db:import:blog, npm run build:vps, pm2 restart nepatronix')
+  console.log('Then on VPS: unzip, npm run db:import:site, npm run build:vps, pm2 restart nepatronix')
 }
 
 main().catch((e) => {

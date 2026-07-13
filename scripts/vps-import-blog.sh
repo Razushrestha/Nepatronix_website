@@ -35,8 +35,8 @@ fi
 node scripts/check-dump.mjs
 
 echo ""
-echo "Importing blog posts, gallery, and images..."
-npm run db:import:blog
+echo "Importing blog, gallery, team, and images..."
+npm run db:import:site
 
 echo ""
 echo "Rebuilding site..."

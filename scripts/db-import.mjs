@@ -11,7 +11,7 @@
 import { readFileSync, existsSync } from 'fs'
 import { resolve, join } from 'path'
 import { spawnSync } from 'child_process'
-import { CONTENT_COLLECTIONS, BLOG_MEDIA_COLLECTIONS } from './db-collections.mjs'
+import { CONTENT_COLLECTIONS, SITE_SYNC_COLLECTIONS } from './db-collections.mjs'
 
 const envPath = resolve(process.cwd(), '.env.local')
 if (existsSync(envPath)) {
@@ -103,7 +103,7 @@ async function main() {
 
   console.log('\nImport complete. Restart the app: pm2 restart nepatronix')
 
-  const importsBlogMedia = only.some((c) => BLOG_MEDIA_COLLECTIONS.includes(c))
+  const importsBlogMedia = only.some((c) => SITE_SYNC_COLLECTIONS.includes(c))
   if (importsBlogMedia && !DRY_RUN) {
     console.log('\n→ Verifying blog and images...')
     const verify = spawnSync(process.execPath, ['scripts/verify-blog-media.mjs'], {
