@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Footer as FooterModel, ContactPage, Course } from "@/lib/models";
+import { getFooterQuickLinks } from "@/lib/site-nav";
 
 interface FooterData {
   companyName: string;
@@ -99,8 +100,17 @@ const DEFAULT_FOOTER: FooterData = {
   },
   quickLinks: [
     { name: "Home", href: "/" },
+    { name: "About Us", href: "/partners" },
+    { name: "Teams", href: "/teams" },
+    { name: "All Services", href: "/services" },
+    { name: "STEM Education", href: "/services/stem-education" },
+    { name: "STEM Lab Setup", href: "/services/stem-lab-setup" },
+    { name: "Government & CSR", href: "/services/institutional-programs" },
     { name: "Courses", href: "/services/courses" },
+    { name: "Apply Certificate", href: "/services/apply-certificate" },
+    { name: "Upcoming Sessions", href: "/services/upcoming-sessions" },
     { name: "Blog", href: "/blog" },
+    { name: "Images", href: "/image" },
     { name: "Contact", href: "/contact" },
   ],
   expertise: [
@@ -128,33 +138,42 @@ function FooterContactCard({
   href?: string;
   icon: ReactNode;
 }) {
-  const valueClass =
-    "text-sm font-semibold text-white leading-snug tracking-tight group-hover:text-[#C1121F] transition-colors";
-
   return (
-    <div className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition-all duration-300 hover:border-[#C1121F]/25 hover:bg-white/[0.06]">
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#C1121F]/10 text-[#C1121F] ring-1 ring-[#C1121F]/20 transition-all duration-300 group-hover:bg-[#C1121F] group-hover:text-white group-hover:ring-[#C1121F]">
+    <div className="flex items-start gap-3.5 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3.5 transition-colors hover:border-white/20 hover:bg-white/[0.06]">
+      <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#C1121F]/15 text-[#C1121F] ring-1 ring-inset ring-[#C1121F]/25">
         {icon}
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">
+      <div className="min-w-0 flex-1 pt-0.5">
+        <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
           {label}
         </p>
         {href ? (
-          <a href={href} className={`block ${valueClass}`}>
+          <a
+            href={href}
+            className="block text-[13px] font-semibold leading-snug text-white transition-colors hover:text-[#C1121F] break-words"
+          >
             {primary}
           </a>
         ) : (
-          <p className={valueClass}>{primary}</p>
+          <p className="text-[13px] font-semibold leading-snug text-white break-words">{primary}</p>
         )}
         {secondary ? (
-          <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-            {secondary}
-          </p>
+          <p className="mt-1 text-[11px] font-medium leading-snug text-slate-400">{secondary}</p>
         ) : null}
       </div>
     </div>
   );
+}
+
+function splitOfficeHours(weekdayHours: string, weekendHours?: string) {
+  const match = weekdayHours.match(/^([^:]+):\s*(.+)$/);
+  if (match) {
+    return {
+      primary: `${match[1].trim()}, ${match[2].trim()}`,
+      secondary: weekendHours,
+    };
+  }
+  return { primary: weekdayHours, secondary: weekendHours };
 }
 
 export async function Footer() {
@@ -182,6 +201,11 @@ export async function Footer() {
   }
 
   const footerData = footerDoc || DEFAULT_FOOTER;
+  const quickLinks = getFooterQuickLinks();
+  const officeHours = splitOfficeHours(
+    footerData.contactInfo?.weekdayHours || "",
+    footerData.contactInfo?.weekendHours
+  );
 
   const email = contactData?.contactDetails?.email;
   const phone = contactData?.contactDetails?.phone;
@@ -251,18 +275,18 @@ export async function Footer() {
               </p>
             </div>
             
-            {/* Contact Info */}
-            <div className="space-y-3">
+            {/* Contact Info — single column so text never crushes in a narrow grid cell */}
+            <div className="space-y-3 max-w-sm">
               <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-slate-500">
                 Get in touch
               </p>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+              <div className="flex flex-col gap-2.5">
                 <FooterContactCard
                   label="Visit us"
                   primary={footerData.contactInfo?.address || ""}
-                  secondary={footerData.contactInfo?.postalCode}
+                  secondary={`Postal code ${footerData.contactInfo?.postalCode || ""}`}
                   icon={
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+                    <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
@@ -271,10 +295,10 @@ export async function Footer() {
 
                 <FooterContactCard
                   label="Office hours"
-                  primary={footerData.contactInfo?.weekdayHours || ""}
-                  secondary={footerData.contactInfo?.weekendHours}
+                  primary={officeHours.primary}
+                  secondary={officeHours.secondary}
                   icon={
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+                    <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   }
@@ -286,7 +310,7 @@ export async function Footer() {
                     primary={email}
                     href={`mailto:${email}`}
                     icon={
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+                      <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
                     }
@@ -299,7 +323,7 @@ export async function Footer() {
                     primary={phone}
                     href={`tel:${phone.replace(/\s+/g, "")}`}
                     icon={
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+                      <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                       </svg>
                     }
@@ -316,16 +340,16 @@ export async function Footer() {
               <span className="absolute -bottom-3 left-0 w-8 h-1 bg-[#C1121F] rounded-full"></span>
             </h4>
 
-            <nav className="flex flex-col gap-4">
-              {footerData.quickLinks?.map((link, i) => (
-                <a
-                  key={i}
+            <nav className="flex flex-col gap-3">
+              {quickLinks.map((link) => (
+                <Link
+                  key={link.href}
                   href={link.href}
                   className="group flex items-center gap-3 text-sm font-bold text-slate-400 hover:text-white transition-all"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-700 group-hover:bg-[#C1121F] transition-all"></span>
-                  <span className="leading-tight tracking-tight">{link.name}</span>
-                </a>
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-700 group-hover:bg-[#C1121F] transition-all shrink-0" />
+                  <span className="leading-snug tracking-tight">{link.label}</span>
+                </Link>
               ))}
             </nav>
           </div>

@@ -101,8 +101,17 @@ const footerDoc = {
   },
   quickLinks: [
     { name: 'Home', href: '/' },
+    { name: 'About Us', href: '/partners' },
+    { name: 'Teams', href: '/teams' },
+    { name: 'All Services', href: '/services' },
+    { name: 'STEM Education', href: '/services/stem-education' },
+    { name: 'STEM Lab Setup', href: '/services/stem-lab-setup' },
+    { name: 'Government & CSR', href: '/services/institutional-programs' },
     { name: 'Courses', href: '/services/courses' },
+    { name: 'Apply Certificate', href: '/services/apply-certificate' },
+    { name: 'Upcoming Sessions', href: '/services/upcoming-sessions' },
     { name: 'Blog', href: '/blog' },
+    { name: 'Images', href: '/image' },
     { name: 'Contact', href: '/contact' },
   ],
   expertise: [
