@@ -2,10 +2,11 @@
 import { usePathname } from 'next/navigation'
 import { getCollection } from '@/lib/admin-collections'
 
-function useTitle(pathname: string) {
-  if (pathname === '/admin') return { title: 'Dashboard', description: 'Overview of all activity' }
-  if (pathname === '/admin/analytics') return { title: 'Statistics & Analytics', description: 'Visitor traffic and engagement' }
-  const m = pathname.match(/^\/admin\/c\/([^/]+)(\/(.+))?/)
+function useTitle(pathname: string | null) {
+  const path = pathname ?? ''
+  if (path === '/admin') return { title: 'Dashboard', description: 'Overview of all activity' }
+  if (path === '/admin/analytics') return { title: 'Statistics & Analytics', description: 'Visitor traffic and engagement' }
+  const m = path.match(/^\/admin\/c\/([^/]+)(\/(.+))?/)
   if (m) {
     const config = getCollection(m[1])
     if (config) {

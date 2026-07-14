@@ -6,6 +6,7 @@ import { ImageField, ImagesField, FileField } from './Uploader'
 import RichTextEditor from './RichTextEditor'
 import SeoPanel from './SeoPanel'
 import { portableTextToHtml } from '@/lib/portable-text'
+import { adminInput } from './ui'
 
 type AnyObj = Record<string, unknown>
 

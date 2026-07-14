@@ -6,6 +6,11 @@ export type ContentImage = {
   _migratedUrl?: string
 }
 
+/** True for same-origin paths served by this app (e.g. /api/files/…, /og-banner.png). */
+export function isLocalImageUrl(url: string): boolean {
+  return Boolean(url && url.startsWith('/') && !url.startsWith('//'))
+}
+
 /** Resolve a public image URL from MongoDB or migrated portable-text image blocks. */
 export function resolveImageUrl(
   image: ContentImage | null | undefined,

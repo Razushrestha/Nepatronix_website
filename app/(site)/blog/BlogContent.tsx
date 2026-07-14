@@ -2,8 +2,8 @@
 
 import { resolveImageUrl, type ContentImage } from "@/lib/content-image";
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import SafeImage from "../components/SafeImage";
 
 interface BlogPost {
   _id: string;
@@ -139,7 +139,7 @@ export default function BlogContent({ initialPosts }: BlogContentProps) {
           <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 mb-12">
             {/* Featured Bento Card */}
             <Link href={`/blog/${featuredPost.slug.current}`} className="lg:col-span-8 group relative block h-[450px] lg:h-[550px] rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_30px_60px_rgba(0,0,0,0.3)]">
-              <Image
+              <SafeImage
                 src={resolveImageUrl(featuredPost.mainImage, "/og-banner.png")}
                 alt={featuredPost.title}
                 fill
@@ -194,7 +194,7 @@ export default function BlogContent({ initialPosts }: BlogContentProps) {
                   {initialPosts.slice(1, 8).map((post) => (
                     <Link href={`/blog/${post.slug.current}`} key={post._id} className="group flex gap-3 items-center">
                       <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-lg transition-all duration-700 border border-gray-200">
-                        <Image src={resolveImageUrl(post.mainImage, "/og-banner.png")} alt={post.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
+                        <SafeImage src={resolveImageUrl(post.mainImage, "/og-banner.png")} alt={post.title} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
                       </div>
                       <div className="flex flex-col gap-1">
                         <span className="text-[8px] text-[#C1121F] font-black uppercase tracking-[0.2em] leading-none">
@@ -284,7 +284,7 @@ export default function BlogContent({ initialPosts }: BlogContentProps) {
                 style={{ animationDelay: `${idx * 100}ms` }}
               >
                 <div className="relative aspect-[16/10] w-full overflow-hidden bg-gray-100">
-                  <Image
+                  <SafeImage
                     src={post.mainImage ? resolveImageUrl(post.mainImage, "/og-banner.png") : "https://dummyimage.com/800x500/020617/334155"}
                     alt={post.title}
                     fill

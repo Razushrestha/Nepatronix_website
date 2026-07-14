@@ -18,7 +18,7 @@ function navLinkClass(active: boolean) {
 }
 
 export default function Sidebar({ user }: { user: SidebarUser }) {
-  const pathname = usePathname()
+  const pathname = usePathname() ?? ''
   const router = useRouter()
   const [open, setOpen] = useState(false)
 
@@ -107,7 +107,7 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
       <div className="px-4 pb-3">
         <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl bg-slate-50 border border-slate-200">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#C1121F] to-[#8B0D15] flex items-center justify-center text-white text-xs font-bold">
-            {user.name?.[0]?.toUpperCase() || user.email[0]?.toUpperCase()}
+            {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || 'A'}
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-slate-900 text-xs font-semibold truncate">{user.name || 'Admin'}</p>

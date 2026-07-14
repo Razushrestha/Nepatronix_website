@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import Image from 'next/image'
-import { resolveImageUrl, type ContentImage } from '@/lib/content-image'
+import { resolveImageUrl, isLocalImageUrl, type ContentImage } from '@/lib/content-image'
 
 type PortableBlock = {
   _type?: string
@@ -65,24 +65,34 @@ function renderBlock(block: PortableBlock, index: number) {
   if (block._type === 'image') {
     const src = resolveImageUrl(block as ContentImage)
     if (!src) return null
-    return (
+    const imageClass = 'w-full h-auto'
+    const wrapper = (children: ReactNode) => (
       <div
         key={block._key || `image-${index}`}
         className="my-8 overflow-hidden rounded-xl shadow-lg border border-slate-100"
       >
-        <Image
-          src={src}
-          alt={block.alt || 'Blog image'}
-          width={1200}
-          height={675}
-          className="w-full h-auto"
-        />
+        {children}
         {block.caption && (
           <p className="text-center text-sm text-slate-500 py-3 bg-slate-50 border-t border-slate-100">
             {block.caption}
           </p>
         )}
       </div>
+    )
+    if (isLocalImageUrl(src)) {
+      return wrapper(
+        <Image
+          src={src}
+          alt={block.alt || 'Blog image'}
+          width={1200}
+          height={675}
+          className={imageClass}
+        />
+      )
+    }
+    return wrapper(
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={src} alt={block.alt || 'Blog image'} className={imageClass} />
     )
   }
 

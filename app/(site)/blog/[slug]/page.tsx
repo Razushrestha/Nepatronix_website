@@ -1,9 +1,9 @@
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Metadata } from "next";
 import { cache } from "react";
 import ShareButtons from "./ShareButtons";
+import SafeImage from "@/app/(site)/components/SafeImage";
 import { canonicalBlogSlug } from "@/lib/blog/slugPath";
 import {
   getAllBlogPosts,
@@ -388,7 +388,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
           {post.mainImage && (
             <div className="relative -mt-12 mb-10 mx-auto max-w-3xl">
               <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl shadow-2xl border border-slate-200 bg-slate-100 group">
-              <Image
+              <SafeImage
                 src={blogPostImageUrl(post, OG_FALLBACK)}
                 alt={post.title}
                 fill
@@ -470,7 +470,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
                 return (
                 <Link href={`/blog/${hrefSlug}`} key={related._id} className="group flex flex-col h-full bg-white rounded-xl overflow-hidden shadow-md border border-slate-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-500">
                   <div className="relative aspect-[16/10] overflow-hidden">
-                    <Image
+                    <SafeImage
                       src={blogPostImageUrl(related, OG_FALLBACK)}
                       alt={related.title}
                       fill

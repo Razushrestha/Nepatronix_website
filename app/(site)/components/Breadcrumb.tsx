@@ -26,7 +26,12 @@ const LABEL_MAP: Record<string, string> = {
 /** Converts a URL segment to a readable label using the map or smart formatting. */
 function formatLabel(segment: string): string {
   if (LABEL_MAP[segment]) return LABEL_MAP[segment];
-  const raw = decodeURIComponent(segment.replace(/-/g, ' '));
+  let raw = segment.replace(/-/g, ' ');
+  try {
+    raw = decodeURIComponent(raw);
+  } catch {
+    // keep segment as-is if it contains invalid % sequences
+  }
   return raw
     .split(' ')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
