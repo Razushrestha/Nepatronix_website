@@ -66,6 +66,7 @@ export default function DynamicForm({
       const res = await fetch(finalUrl, {
         method: config.singleton ? 'PATCH' : method,
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify(data),
       })
       if (!res.ok) {

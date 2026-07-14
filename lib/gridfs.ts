@@ -8,7 +8,9 @@ const BUCKET_NAME = 'uploads'
 async function getBucket(): Promise<GridFSBucket> {
   await connectToDatabase()
   const db = mongoose.connection.db
-  if (!db) throw new Error('Database connection not ready')
+  if (!db) {
+    throw new Error('MongoDB is not connected — check MONGODB_URI on the server')
+  }
   return new GridFSBucket(db, { bucketName: BUCKET_NAME })
 }
 

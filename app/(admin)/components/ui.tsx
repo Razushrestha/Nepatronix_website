@@ -2,7 +2,7 @@
 import React from 'react'
 
 export const fetcher = (url: string) =>
-  fetch(url).then((r) => {
+  fetch(url, { credentials: 'same-origin' }).then((r) => {
     if (!r.ok) throw new Error('Request failed')
     return r.json()
   })

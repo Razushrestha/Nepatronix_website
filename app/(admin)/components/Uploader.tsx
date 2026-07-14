@@ -1,14 +1,7 @@
 'use client'
 import { useState } from 'react'
+import { adminUpload } from '@/lib/admin-upload'
 import { adminInput } from './ui'
-
-async function upload(file: File): Promise<{ id: string; url: string; name: string }> {
-  const fd = new FormData()
-  fd.append('file', file)
-  const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
-  if (!res.ok) throw new Error('Upload failed')
-  return res.json()
-}
 
 export interface ImageValue {
   url?: string
@@ -34,12 +27,13 @@ export function ImageField({
     setBusy(true)
     setError('')
     try {
-      const { url } = await upload(f)
+      const { url } = await adminUpload(f)
       onChange({ ...value, url })
-    } catch {
-      setError('Upload failed')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed')
     } finally {
       setBusy(false)
+      e.target.value = ''
     }
   }
 
@@ -146,12 +140,13 @@ export function FileField({
     setBusy(true)
     setError('')
     try {
-      const { url, name } = await upload(f)
+      const { url, name } = await adminUpload(f)
       onChange({ url, name })
-    } catch {
-      setError('Upload failed')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed')
     } finally {
       setBusy(false)
+      e.target.value = ''
     }
   }
 

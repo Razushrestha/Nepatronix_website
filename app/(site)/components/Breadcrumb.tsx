@@ -44,7 +44,7 @@ const LIGHT_BG_PREFIXES = [
 ];
 
 export default function Breadcrumb() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? '/';
   const pathSegments = pathname.split('/').filter(Boolean);
 
   // No breadcrumb on the homepage
