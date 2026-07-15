@@ -1,0 +1,69 @@
+.hr-theme {
+  color-scheme: light;
+}
+
+.hr-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  padding: 1.25rem;
+}
+
+.hr-input {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.hr-input:focus {
+  outline: none;
+  border-color: #c1121f;
+  box-shadow: 0 0 0 1px rgb(193 18 31 / 0.2);
+}
+
+.hr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #c1121f;
+  color: #fff;
+  font-weight: 600;
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.hr-btn:hover:not(:disabled) {
+  background: #a00f1a;
+}
+
+.hr-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.hr-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  font-weight: 500;
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.hr-btn-secondary:hover {
+  background: #f8fafc;
+}

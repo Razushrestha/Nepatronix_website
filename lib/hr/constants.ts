@@ -1,0 +1,73 @@
+export const HR_DEPARTMENTS = [
+  { value: 'nepatronix', label: 'Nepatronix', code: 'NPT' },
+  { value: 'stem-innovation-nepal', label: 'STEM Innovation Nepal', code: 'SIN' },
+  { value: 'metatronix', label: 'Metatronix', code: 'MTX' },
+] as const
+
+export type HrDepartment = (typeof HR_DEPARTMENTS)[number]['value']
+
+export const EMPLOYMENT_TYPES = [
+  { value: 'full_time', label: 'Full-time' },
+  { value: 'part_time', label: 'Part-time' },
+  { value: 'intern', label: 'Intern' },
+  { value: 'trainee', label: 'Trainee' },
+] as const
+
+export type EmploymentType = (typeof EMPLOYMENT_TYPES)[number]['value']
+
+export const HR_ROLES = [
+  { value: 'employee', label: 'Employee' },
+  { value: 'manager', label: 'Manager' },
+  { value: 'hr_staff', label: 'HR Staff' },
+  { value: 'super_hr_admin', label: 'Super HR Admin' },
+] as const
+
+export type HrRole = (typeof HR_ROLES)[number]['value']
+
+export const WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
+export type Weekday = (typeof WEEKDAYS)[number]
+
+export const LEAVE_TYPES = [
+  { value: 'annual', label: 'Annual Leave', defaultDays: 18 },
+  { value: 'sick', label: 'Sick Leave', defaultDays: 12 },
+  { value: 'casual', label: 'Casual Leave', defaultDays: 6 },
+  { value: 'unpaid', label: 'Unpaid Leave', defaultDays: 0 },
+] as const
+
+export type LeaveType = (typeof LEAVE_TYPES)[number]['value']
+
+export const LEAVE_STATUSES = [
+  'pending_manager',
+  'pending_hr',
+  'approved',
+  'rejected',
+  'cancelled',
+] as const
+
+export type LeaveStatus = (typeof LEAVE_STATUSES)[number]
+
+export const DEFAULT_OFFICE = {
+  startTime: '10:00',
+  endTime: '18:00',
+  graceMinutes: 0,
+  latitude: 27.6869,
+  longitude: 85.3462,
+  radiusMeters: 150,
+  allowedIps: ['127.0.0.1', '::1'],
+}
+
+export function departmentLabel(slug: string): string {
+  return HR_DEPARTMENTS.find((d) => d.value === slug)?.label || slug
+}
+
+export function departmentCode(slug: string): string {
+  return HR_DEPARTMENTS.find((d) => d.value === slug)?.code || 'EMP'
+}
+
+export function isHrManagerRole(role: string): boolean {
+  return role === 'manager' || role === 'hr_staff' || role === 'super_hr_admin'
+}
+
+export function isHrAdminRole(role: string): boolean {
+  return role === 'hr_staff' || role === 'super_hr_admin'
+}

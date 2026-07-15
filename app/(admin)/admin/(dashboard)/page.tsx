@@ -48,6 +48,18 @@ export default function AdminDashboard() {
         <p className="text-slate-500 text-sm mt-1">Live overview of your website and operations</p>
       </div>
 
+      <Link
+        href="/hr/login"
+        className={`${adminCard} flex flex-wrap items-center justify-between gap-4 p-5 border-[#C1121F]/20 bg-gradient-to-r from-[#C1121F]/5 to-transparent hover:border-[#C1121F]/40 transition-colors`}
+      >
+        <div>
+          <p className="text-xs font-bold text-[#C1121F] uppercase tracking-widest">Staff & HR</p>
+          <h2 className="text-slate-900 font-semibold mt-1">Open HR Portal</h2>
+          <p className="text-slate-500 text-sm mt-1">Manage employees, attendance, leave, and office settings — separate login at /hr</p>
+        </div>
+        <span className="text-sm font-semibold text-[#C1121F] shrink-0">Go to HR →</span>
+      </Link>
+
       {/* KPI grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
         <KpiCard label="Enrollments" value={k.totalEnrollments} sub={`${k.pendingEnrollments} pending`} href="/admin/c/enrollments" accent="text-blue-600" />

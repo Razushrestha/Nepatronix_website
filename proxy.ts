@@ -13,6 +13,13 @@ export function proxy(request: NextRequest) {
     }
   }
 
+  if (pathname.startsWith('/hr') && !pathname.startsWith('/hr/login')) {
+    const token = request.cookies.get('hr_token')
+    if (!token) {
+      return NextResponse.redirect(new URL('/hr/login', request.url))
+    }
+  }
+
   const res = NextResponse.next()
 
   if (host.endsWith('.vercel.app')) {
@@ -23,5 +30,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/hr/:path*'],
 }
