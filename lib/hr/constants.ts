@@ -50,10 +50,17 @@ export const DEFAULT_OFFICE = {
   startTime: '10:00',
   endTime: '18:00',
   graceMinutes: 0,
-  latitude: 27.6869,
-  longitude: 85.3462,
+  latitude: 27.6858125,
+  longitude: 85.3165781,
   radiusMeters: 150,
-  allowedIps: ['127.0.0.1', '::1'],
+  allowedIps: ['127.0.0.1', '::1', '192.168.1.*', '192.168.1.254'],
+}
+
+/** Departments that only need office Wi‑Fi — no GPS / geofence. */
+export const GPS_EXEMPT_DEPARTMENTS: readonly HrDepartment[] = ['stem-innovation-nepal']
+
+export function departmentRequiresGps(department: string): boolean {
+  return !GPS_EXEMPT_DEPARTMENTS.includes(department as HrDepartment)
 }
 
 export function departmentLabel(slug: string): string {

@@ -10,7 +10,7 @@ const ACCOUNTS = {
   employee: { department: 'nepatronix', email: 'employee@nepatronix.org', password: 'employeenepatronix' },
 }
 
-const OFFICE_GPS = { latitude: 27.6869, longitude: 85.3462, accuracy: 10 }
+const OFFICE_GPS = { latitude: 27.6858125, longitude: 85.3165781, accuracy: 10 }
 
 const results = []
 

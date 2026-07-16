@@ -53,12 +53,28 @@ export function validateAttendanceLocation(input: {
   officeLat: number
   officeLng: number
   radiusMeters: number
+  requireGps?: boolean
 }): LocationValidation {
-  const { clientIp, allowedIps, latitude, longitude, accuracy, officeLat, officeLng, radiusMeters } = input
+  const {
+    clientIp,
+    allowedIps,
+    latitude,
+    longitude,
+    accuracy,
+    officeLat,
+    officeLng,
+    radiusMeters,
+    requireGps = true,
+  } = input
 
   if (!isIpAllowed(clientIp, allowedIps)) {
     return { ok: false, error: `Not on office network (IP: ${clientIp || 'unknown'})` }
   }
+
+  if (!requireGps) {
+    return { ok: true }
+  }
+
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
     return { ok: false, error: 'GPS location is required — allow location access in your browser' }
   }

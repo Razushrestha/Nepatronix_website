@@ -135,10 +135,10 @@ const HrOfficeSettingsSchema = new Schema<HrOfficeSettingsDoc>(
     startTime: { type: String, default: '10:00' },
     endTime: { type: String, default: '18:00' },
     graceMinutes: { type: Number, default: 0 },
-    latitude: { type: Number, default: 27.6869 },
-    longitude: { type: Number, default: 85.3462 },
+    latitude: { type: Number, default: 27.6858125 },
+    longitude: { type: Number, default: 85.3165781 },
     radiusMeters: { type: Number, default: 150 },
-    allowedIps: { type: [String], default: ['127.0.0.1', '::1'] },
+    allowedIps: { type: [String], default: ['127.0.0.1', '::1', '192.168.1.*', '192.168.1.254'] },
     officeName: { type: String, default: 'Nepatronix Office — Tinkune' },
   },
   { timestamps: true }

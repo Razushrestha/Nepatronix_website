@@ -17,6 +17,7 @@ import {
   scheduledHoursForType,
 } from '@/lib/hr/attendance-utils'
 import { normalizeClientIp, validateAttendanceLocation } from '@/lib/hr/geo'
+import { departmentRequiresGps } from '@/lib/hr/constants'
 import { getEffectiveAllowedIps, getEffectiveOfficeCoords } from '@/lib/hr/service'
 import type { Weekday } from '@/lib/hr/constants'
 
@@ -30,21 +31,24 @@ function getRequestIp(req: NextRequest): string {
 
 async function validateLocation(
   req: NextRequest,
-  lat: number,
-  lng: number,
+  department: string,
+  lat: number | undefined,
+  lng: number | undefined,
   accuracy?: number
 ): Promise<{ ok: boolean; error?: string }> {
   const settings = await getOfficeSettings()
   const office = getEffectiveOfficeCoords(settings)
+  const requireGps = departmentRequiresGps(department)
   const result = validateAttendanceLocation({
     clientIp: getRequestIp(req),
     allowedIps: getEffectiveAllowedIps(settings),
-    latitude: lat,
-    longitude: lng,
+    latitude: lat ?? NaN,
+    longitude: lng ?? NaN,
     accuracy,
     officeLat: office.latitude,
     officeLng: office.longitude,
     radiusMeters: office.radiusMeters,
+    requireGps,
   })
   return result.ok ? { ok: true } : { ok: false, error: result.error }
 }
@@ -56,15 +60,15 @@ export async function POST(req: NextRequest) {
 
     await connectToDatabase()
     const body = await req.json()
-    const lat = Number(body.latitude)
-    const lng = Number(body.longitude)
+    const lat = body.latitude != null ? Number(body.latitude) : undefined
+    const lng = body.longitude != null ? Number(body.longitude) : undefined
     const accuracy = body.accuracy != null ? Number(body.accuracy) : undefined
-
-    const loc = await validateLocation(req, lat, lng, accuracy)
-    if (!loc.ok) return NextResponse.json({ error: loc.error }, { status: 403 })
 
     const emp = await HrEmployee.findById(session.id).lean()
     if (!emp) return NextResponse.json({ error: 'Employee not found' }, { status: 404 })
+
+    const loc = await validateLocation(req, emp.department, lat, lng, accuracy)
+    if (!loc.ok) return NextResponse.json({ error: loc.error }, { status: 403 })
 
     const now = new Date()
     const today = dateKey(now)

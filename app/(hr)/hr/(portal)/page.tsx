@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getBestGpsReading } from '@/lib/hr/client-gps'
+import { departmentRequiresGps } from '@/lib/hr/constants'
 
 type TodayAttendance = {
   status?: string
@@ -13,7 +14,7 @@ type TodayAttendance = {
 }
 
 export default function HrDashboardPage() {
-  const [user, setUser] = useState<{ fullName: string; employeeCode: string; role: string } | null>(null)
+  const [user, setUser] = useState<{ fullName: string; employeeCode: string; role: string; department: string } | null>(null)
   const [today, setToday] = useState<TodayAttendance | null>(null)
   const [settings, setSettings] = useState<{ startTime: string; endTime: string } | null>(null)
   const [openTasks, setOpenTasks] = useState(0)
@@ -47,17 +48,24 @@ export default function HrDashboardPage() {
     setErr('')
     setMsg('')
     try {
-      setMsg('Getting GPS location…')
-      const pos = await getPosition()
+      const needsGps = user ? departmentRequiresGps(user.department) : true
+      let payload: Record<string, number> = {}
+      if (needsGps) {
+        setMsg('Getting GPS location…')
+        const pos = await getPosition()
+        payload = {
+          latitude: pos.latitude,
+          longitude: pos.longitude,
+          accuracy: pos.accuracy,
+        }
+      } else {
+        setMsg('Verifying office Wi‑Fi…')
+      }
       const res = await fetch('/api/hr/attendance/check-in', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({
-          latitude: pos.latitude,
-          longitude: pos.longitude,
-          accuracy: pos.accuracy,
-        }),
+        body: JSON.stringify(payload),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Check-in failed')
@@ -75,16 +83,21 @@ export default function HrDashboardPage() {
     setErr('')
     setMsg('')
     try {
-      const pos = await getPosition()
+      const needsGps = user ? departmentRequiresGps(user.department) : true
+      let payload: Record<string, number> = {}
+      if (needsGps) {
+        const pos = await getPosition()
+        payload = {
+          latitude: pos.latitude,
+          longitude: pos.longitude,
+          accuracy: pos.accuracy,
+        }
+      }
       const res = await fetch('/api/hr/attendance/check-out', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({
-          latitude: pos.latitude,
-          longitude: pos.longitude,
-          accuracy: pos.accuracy,
-        }),
+        body: JSON.stringify(payload),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Check-out failed')

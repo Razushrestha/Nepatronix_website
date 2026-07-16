@@ -50,10 +50,10 @@ const HrOfficeSettingsSchema = new mongoose.Schema(
     startTime: { type: String, default: '10:00' },
     endTime: { type: String, default: '18:00' },
     graceMinutes: { type: Number, default: 0 },
-    latitude: { type: Number, default: 27.6869 },
-    longitude: { type: Number, default: 85.3462 },
+    latitude: { type: Number, default: 27.6858125 },
+    longitude: { type: Number, default: 85.3165781 },
     radiusMeters: { type: Number, default: 150 },
-    allowedIps: { type: [String], default: ['127.0.0.1', '::1'] },
+    allowedIps: { type: [String], default: ['127.0.0.1', '::1', '192.168.1.*', '192.168.1.254'] },
     officeName: String,
   },
   { timestamps: true }
@@ -92,14 +92,21 @@ async function main() {
     mongoose.models.HrLeaveBalance || mongoose.model('HrLeaveBalance', HrLeaveBalanceSchema)
   const HrTask = mongoose.models.HrTask || mongoose.model('HrTask', HrTaskSchema)
 
-  if (!(await HrOfficeSettings.findOne())) {
-    await HrOfficeSettings.create({
-      officeName: 'Nepatronix Office — Tinkune, Kathmandu',
-      graceMinutes: 0,
-      allowedIps: ['127.0.0.1', '::1'],
-    })
-    console.log('✓ Office settings created')
-  }
+  await HrOfficeSettings.findOneAndUpdate(
+    {},
+    {
+      $set: {
+        officeName: 'Nepatronix Office — Tinkune, Kathmandu',
+        graceMinutes: 0,
+        latitude: 27.6858125,
+        longitude: 85.3165781,
+        radiusMeters: 150,
+        allowedIps: ['127.0.0.1', '::1', '192.168.1.*', '192.168.1.254'],
+      },
+    },
+    { upsert: true }
+  )
+  console.log('✓ Office settings synced (GPS + office Wi‑Fi)')
 
   const hrEmail = process.env.HR_ADMIN_EMAIL || 'hr@nepatronix.org'
   const hrPassword = process.env.HR_ADMIN_PASSWORD || 'hradminnepatronix'
@@ -254,8 +261,55 @@ async function main() {
     }
   }
 
+  const stemEmail = process.env.HR_STEM_EMAIL || 'deepakstha00000@gmail.com'
+  const stemPassword = process.env.HR_STEM_PASSWORD || 'stememployeenepatronix'
+  let stemEmployee = await HrEmployee.findOne({ email: stemEmail })
+  if (!stemEmployee) {
+    const sinCount = await HrEmployee.countDocuments({ department: 'stem-innovation-nepal' })
+    stemEmployee = await HrEmployee.create({
+      employeeCode: `SIN-${String(sinCount + 1).padStart(3, '0')}`,
+      department: 'stem-innovation-nepal',
+      fullName: 'Deepak Shrestha',
+      email: stemEmail,
+      passwordHash: await bcrypt.hash(stemPassword, 10),
+      role: 'employee',
+      position: 'STEM Innovation Staff',
+      employmentType: 'full_time',
+      managerId: manager?._id,
+      monthlyPay: 35000,
+      scheduledDays: ['mon', 'tue', 'wed', 'thu', 'fri'],
+      paidLeaveEligible: true,
+      active: true,
+      status: 'active',
+    })
+    await HrLeaveBalance.create({
+      employeeId: stemEmployee._id,
+      year: new Date().getFullYear(),
+      annual: 18,
+      sick: 12,
+      casual: 6,
+    })
+    console.log(`✓ STEM employee created: ${stemEmail} (no GPS required)`)
+  } else {
+    await HrEmployee.updateOne(
+      { _id: stemEmployee._id },
+      {
+        $set: {
+          department: 'stem-innovation-nepal',
+          fullName: stemEmployee.fullName || 'Deepak Shrestha',
+          managerId: manager?._id,
+          passwordHash: await bcrypt.hash(stemPassword, 10),
+          active: true,
+          status: 'active',
+        },
+      }
+    )
+    console.log(`✓ STEM employee synced: ${stemEmail} → stem-innovation-nepal (no GPS)`)
+  }
+
   console.log('\nHR portal: http://localhost:3000/hr/login')
-  console.log('Department: Nepatronix for all seed users')
+  console.log('Attendance: http://localhost:3000/attendance')
+  console.log('STEM Innovation Nepal staff: office Wi‑Fi only — no GPS')
   await mongoose.disconnect()
 }
 

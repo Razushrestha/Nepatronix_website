@@ -3,6 +3,7 @@ import { connectToDatabase } from '@/lib/mongodb'
 import { requireHrAdmin, requireHrSession } from '@/lib/hr/auth'
 import { getOfficeSettings, HrOfficeSettings } from '@/lib/hr/models'
 import { getEffectiveAllowedIps, getEffectiveOfficeCoords } from '@/lib/hr/service'
+import { departmentRequiresGps, GPS_EXEMPT_DEPARTMENTS } from '@/lib/hr/constants'
 
 export const runtime = 'nodejs'
 
@@ -27,6 +28,8 @@ export async function GET() {
     allowedIpCount: ips.length,
     allowedIps: isAdmin ? ips : undefined,
     canEdit: isAdmin,
+    requiresGps: departmentRequiresGps(session.department),
+    gpsExemptDepartments: isAdmin ? [...GPS_EXEMPT_DEPARTMENTS] : undefined,
   })
 }
 
