@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { HR_DEPARTMENTS, isHrAdminRole, isHrManagerRole } from '@/lib/hr/constants'
 import type { HrSessionUser } from '@/lib/hr/auth'
 import { Icon } from '@/app/(admin)/components/icons'
+import NotificationBell from '@/app/(admin)/components/tasks/NotificationBell'
 
 const NAV = [
   { href: '/hr', label: 'Dashboard', icon: 'dashboard' },
@@ -42,10 +43,11 @@ export default function HrSidebar({ user }: { user: HrSessionUser }) {
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#C1121F] to-[#8B0D15] flex items-center justify-center shadow-lg shadow-red-900/20">
             <span className="text-white font-black text-base tracking-tight">N</span>
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <p className="text-slate-900 font-bold text-sm leading-tight tracking-wide">Nepatronix HR</p>
-            <p className="text-slate-500 text-[11px] mt-0.5">{dept}</p>
+            <p className="text-slate-500 text-[11px] mt-0.5 truncate">{dept}</p>
           </div>
+          <NotificationBell />
         </div>
       </div>
 

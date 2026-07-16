@@ -82,6 +82,7 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
             <div className="space-y-0.5">
               {[
                 { href: '/admin/hr', label: 'HR Overview', icon: 'dashboard', exact: true },
+                { href: '/admin/tasks', label: 'Tasks', icon: 'clipboard' },
                 { href: '/admin/hr/employees', label: 'Employees', icon: 'users' },
                 { href: '/admin/hr/attendance', label: 'Attendance', icon: 'clock' },
                 { href: '/admin/hr/leave', label: 'Leave', icon: 'calendar' },

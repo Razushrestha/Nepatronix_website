@@ -1,6 +1,7 @@
 'use client'
 import { usePathname } from 'next/navigation'
 import { getCollection } from '@/lib/admin-collections'
+import NotificationBell from '@/app/(admin)/components/tasks/NotificationBell'
 
 function useTitle(pathname: string | null) {
   const path = pathname ?? ''
@@ -33,6 +34,7 @@ export default function TopBar() {
       </div>
       <div className="flex items-center gap-4">
         <span className="text-slate-500 text-xs hidden md:block">{dateStr}</span>
+        <NotificationBell />
         <div className="h-5 w-px bg-slate-200" />
         <div className="flex items-center gap-1.5 text-xs text-slate-500">
           <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />

@@ -21,6 +21,7 @@ export type EmploymentType = (typeof EMPLOYMENT_TYPES)[number]['value']
 export const HR_ROLES = [
   { value: 'employee', label: 'Employee' },
   { value: 'manager', label: 'Manager' },
+  { value: 'ceo', label: 'CEO' },
   { value: 'hr_staff', label: 'HR Staff' },
   { value: 'super_hr_admin', label: 'Super HR Admin' },
 ] as const
@@ -95,7 +96,12 @@ export function departmentCode(slug: string): string {
 }
 
 export function isHrManagerRole(role: string): boolean {
-  return role === 'manager' || role === 'hr_staff' || role === 'super_hr_admin'
+  return (
+    role === 'manager' ||
+    role === 'ceo' ||
+    role === 'hr_staff' ||
+    role === 'super_hr_admin'
+  )
 }
 
 export function isHrAdminRole(role: string): boolean {

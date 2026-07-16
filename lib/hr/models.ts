@@ -78,7 +78,7 @@ const HrEmployeeSchema = new Schema<HrEmployeeDoc>(
     passwordHash: { type: String, required: true },
     role: {
       type: String,
-      enum: ['employee', 'manager', 'hr_staff', 'super_hr_admin'],
+      enum: ['employee', 'manager', 'ceo', 'hr_staff', 'super_hr_admin'],
       default: 'employee',
     },
     position: { type: String, default: '' },
