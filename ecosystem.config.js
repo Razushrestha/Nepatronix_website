@@ -4,8 +4,9 @@ module.exports = {
     {
       name: 'nepatronix',
       cwd: '/var/www/nepatronix',
-      script: 'node_modules/next/dist/bin/next',
-      args: 'start -p 3000',
+      script: 'scripts/start-prod.mjs',
+      interpreter: 'node',
+      args: '',
       instances: 1,
       autorestart: true,
       max_memory_restart: '1G',

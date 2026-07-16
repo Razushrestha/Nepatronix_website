@@ -72,6 +72,11 @@ try {
     process.exit(result.status ?? 1)
   }
 
+  if (!existsSync('.next/BUILD_ID')) {
+    console.error('\n❌ Build finished but .next/BUILD_ID is missing — build may have failed silently.')
+    process.exit(1)
+  }
+
   console.log('VPS build completed successfully.')
 } finally {
   restore()

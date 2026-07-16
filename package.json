@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "node --max-old-space-size=8192 node_modules/next/dist/bin/next build",
     "build:vps": "node scripts/build-vps.mjs",
+    "start:prod": "node scripts/start-prod.mjs",
     "verify": "node scripts/verify-site.mjs",
     "verify:hr": "node scripts/verify-hr.mjs",
     "start": "next start",
