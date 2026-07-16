@@ -5,7 +5,7 @@ import { requireHrAdmin } from '@/lib/hr/auth'
 import { HrEmployee, HrHoliday, sanitizeEmployee } from '@/lib/hr/models'
 import { createEmployeeWithDefaults } from '@/lib/hr/service'
 import { employeeMonthlyWorkload } from '@/lib/hr/attendance-utils'
-import { EMPLOYMENT_TYPES, HR_DEPARTMENTS, HR_ROLES, type EmploymentType, type HrDepartment, type HrRole } from '@/lib/hr/constants'
+import { EMPLOYMENT_TYPES, HR_DEPARTMENTS, HR_ROLES, TUTOR_CHOICE_OFF_DAYS, type EmploymentType, type HrDepartment, type HrRole, type Weekday } from '@/lib/hr/constants'
 
 export const runtime = 'nodejs'
 
@@ -115,6 +115,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid employment type' }, { status: 400 })
     }
 
+    let weeklyOffDay: Weekday | undefined
+    if (employmentType === 'tutor') {
+      weeklyOffDay = String(body.weeklyOffDay || '').trim() as Weekday
+      if (!weeklyOffDay || !TUTOR_CHOICE_OFF_DAYS.includes(weeklyOffDay)) {
+        return NextResponse.json(
+          { error: 'STEM tutors must pick a weekly off day (Sunday–Friday). Saturday is always off.' },
+          { status: 400 }
+        )
+      }
+    }
+
     const existing = await HrEmployee.findOne({ email: email.toLowerCase() })
     if (existing) {
       return NextResponse.json({ error: 'Email already registered' }, { status: 409 })
@@ -140,6 +151,7 @@ export async function POST(req: NextRequest) {
       contractEndDate: body.contractEndDate ? new Date(body.contractEndDate) : undefined,
       managerId,
       scheduledDays: body.scheduledDays,
+      weeklyOffDay,
       scheduledStart: body.scheduledStart,
       scheduledEnd: body.scheduledEnd,
       scheduledHoursPerDay: body.scheduledHoursPerDay,

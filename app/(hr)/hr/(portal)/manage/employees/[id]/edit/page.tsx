@@ -11,6 +11,11 @@ const WEEKDAYS = [
   { v: 'thu', l: 'Thu' }, { v: 'fri', l: 'Fri' },
 ]
 
+const TUTOR_OFF_OPTIONS = [
+  { v: 'sun', l: 'Sunday' }, { v: 'mon', l: 'Monday' }, { v: 'tue', l: 'Tuesday' },
+  { v: 'wed', l: 'Wednesday' }, { v: 'thu', l: 'Thursday' }, { v: 'fri', l: 'Friday' },
+]
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
@@ -183,6 +188,19 @@ export default function HrEditEmployeePage({ params }: { params: Promise<{ id: s
           <Field label="Bank account">
             <input className="hr-input" value={String(form.bankAccount || '')} onChange={(e) => set('bankAccount', e.target.value)} />
           </Field>
+          {form.employmentType === 'tutor' && (
+            <Field label="Tutor weekly off (Saturday is always off)">
+              <select
+                className="hr-input"
+                value={String(form.weeklyOffDay || 'fri')}
+                onChange={(e) => set('weeklyOffDay', e.target.value)}
+              >
+                {TUTOR_OFF_OPTIONS.map((d) => (
+                  <option key={d.v} value={d.v}>{d.l}</option>
+                ))}
+              </select>
+            </Field>
+          )}
           {form.employmentType === 'part_time' && (
             <div className="sm:col-span-2">
               <p className="text-xs font-medium text-slate-500 mb-2">Fixed work days</p>

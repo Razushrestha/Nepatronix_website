@@ -50,6 +50,7 @@ export interface HrEmployeeDoc {
   currentAddress?: { line1?: string; line2?: string; city?: string; district?: string; province?: string }
   emergencyContact?: { name?: string; relation?: string; phone?: string }
   scheduledDays: Weekday[]
+  weeklyOffDay?: Weekday
   scheduledStart: string
   scheduledEnd: string
   scheduledHoursPerDay: number
@@ -83,7 +84,7 @@ const HrEmployeeSchema = new Schema<HrEmployeeDoc>(
     position: { type: String, default: '' },
     employmentType: {
       type: String,
-      enum: ['full_time', 'part_time', 'intern', 'trainee'],
+      enum: ['full_time', 'part_time', 'tutor', 'intern', 'trainee'],
       default: 'full_time',
     },
     joinDate: Date,
@@ -102,6 +103,7 @@ const HrEmployeeSchema = new Schema<HrEmployeeDoc>(
       type: [String],
       default: ['mon', 'tue', 'wed', 'thu', 'fri'],
     },
+    weeklyOffDay: { type: String, enum: ['sun', 'mon', 'tue', 'wed', 'thu', 'fri'] },
     scheduledStart: { type: String, default: '10:00' },
     scheduledEnd: { type: String, default: '18:00' },
     scheduledHoursPerDay: { type: Number, default: 8 },
@@ -373,6 +375,7 @@ export function sanitizeEmployee(emp: HrEmployeeDoc, includePay = false) {
     managerId: emp.managerId ? String(emp.managerId) : undefined,
     status: emp.status,
     scheduledDays: emp.scheduledDays,
+    weeklyOffDay: emp.weeklyOffDay,
     scheduledStart: emp.scheduledStart,
     scheduledEnd: emp.scheduledEnd,
     scheduledHoursPerDay: emp.scheduledHoursPerDay,

@@ -15,11 +15,11 @@ import {
   dateKey,
   isScheduledWorkday,
   scheduledHoursForType,
+  toEmployeeSchedule,
 } from '@/lib/hr/attendance-utils'
 import { getClientIpFromHeaders, validateAttendanceLocation } from '@/lib/hr/geo'
 import { departmentRequiresGps } from '@/lib/hr/constants'
 import { getEffectiveAllowedIps, getEffectiveOfficeCoords, getEffectiveAttendanceStartDate, formatAttendanceStartLabel } from '@/lib/hr/service'
-import type { Weekday } from '@/lib/hr/constants'
 
 export const runtime = 'nodejs'
 
@@ -82,7 +82,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (!isScheduledWorkday(now, emp.employmentType, emp.scheduledDays as Weekday[])) {
+    const schedule = toEmployeeSchedule(emp)
+
+    if (!isScheduledWorkday(now, schedule)) {
       return NextResponse.json({ error: 'Today is not a scheduled work day for you' }, { status: 400 })
     }
 
@@ -117,8 +119,7 @@ export async function POST(req: NextRequest) {
     const workingDays = countWorkingDaysInMonth(
       year,
       month,
-      emp.employmentType,
-      emp.scheduledDays as Weekday[],
+      schedule,
       holidaySet,
       attendanceStartDate.slice(0, 7) === `${year}-${String(month + 1).padStart(2, '0')}` ? attendanceStartDate : undefined
     )

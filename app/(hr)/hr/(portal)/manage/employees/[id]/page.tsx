@@ -123,6 +123,12 @@ export default function HrViewEmployeePage({ params }: { params: Promise<{ id: s
           <h2 className="font-semibold text-slate-900 mb-3">Work details</h2>
           <Detail label="Department" value={dept} />
           <Detail label="Employment type" value={emp.employmentType?.replace(/_/g, ' ')} />
+          {emp.employmentType === 'tutor' && (
+            <Detail
+              label="Weekly off"
+              value={`Saturday + ${String(emp.weeklyOffDay || '—').replace(/^./, (c) => c.toUpperCase())}`}
+            />
+          )}
           <Detail label="Role" value={emp.role?.replace(/_/g, ' ')} />
           <Detail label="Schedule" value={emp.scheduledStart && emp.scheduledEnd ? `${emp.scheduledStart} – ${emp.scheduledEnd}` : undefined} />
           <Detail label="Status" value={emp.status} />

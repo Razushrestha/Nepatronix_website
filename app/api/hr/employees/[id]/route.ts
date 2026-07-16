@@ -3,7 +3,8 @@ import { connectToDatabase } from '@/lib/mongodb'
 import { hashPassword } from '@/lib/auth'
 import { requireHrAdmin } from '@/lib/hr/auth'
 import { HrEmployee, HrHoliday, sanitizeEmployee } from '@/lib/hr/models'
-import { employeeMonthlyWorkload } from '@/lib/hr/attendance-utils'
+import { employeeMonthlyWorkload, tutorScheduledDays } from '@/lib/hr/attendance-utils'
+import { TUTOR_CHOICE_OFF_DAYS, type Weekday } from '@/lib/hr/constants'
 
 export const runtime = 'nodejs'
 
@@ -49,6 +50,24 @@ export async function PATCH(req: NextRequest, { params }: RouteCtx) {
     if (body.password) {
       body.passwordHash = await hashPassword(String(body.password))
       delete body.password
+    }
+
+    const existing = await HrEmployee.findById(id).lean()
+    if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+    const employmentType = (body.employmentType ?? existing.employmentType) as string
+    if (employmentType === 'tutor') {
+      const weeklyOffDay = (body.weeklyOffDay ?? existing.weeklyOffDay) as Weekday
+      if (!weeklyOffDay || !TUTOR_CHOICE_OFF_DAYS.includes(weeklyOffDay)) {
+        return NextResponse.json(
+          { error: 'STEM tutors need a weekly off day (Sunday–Friday). Saturday is always off.' },
+          { status: 400 }
+        )
+      }
+      body.weeklyOffDay = weeklyOffDay
+      body.scheduledDays = tutorScheduledDays(weeklyOffDay)
+    } else if (body.employmentType && body.employmentType !== 'tutor') {
+      delete body.weeklyOffDay
     }
 
     const emp = await HrEmployee.findByIdAndUpdate(id, body, { new: true }).lean()

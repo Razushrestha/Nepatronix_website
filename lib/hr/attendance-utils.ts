@@ -1,4 +1,9 @@
 import type { EmploymentType, Weekday } from './constants'
+import {
+  STANDARD_WEEKLY_OFF,
+  TUTOR_CHOICE_OFF_DAYS,
+  TUTOR_FIXED_WEEKLY_OFF,
+} from './constants'
 
 const DAY_INDEX: Record<Weekday, number> = {
   sun: 0,
@@ -8,6 +13,24 @@ const DAY_INDEX: Record<Weekday, number> = {
   thu: 4,
   fri: 5,
   sat: 6,
+}
+
+export type EmployeeSchedule = {
+  employmentType: EmploymentType
+  scheduledDays?: Weekday[]
+  weeklyOffDay?: Weekday | null
+}
+
+export function toEmployeeSchedule(emp: {
+  employmentType: EmploymentType
+  scheduledDays?: Weekday[] | string[]
+  weeklyOffDay?: Weekday | string | null
+}): EmployeeSchedule {
+  return {
+    employmentType: emp.employmentType,
+    scheduledDays: emp.scheduledDays as Weekday[] | undefined,
+    weeklyOffDay: (emp.weeklyOffDay as Weekday | undefined) || undefined,
+  }
 }
 
 export function parseTimeToMinutes(time: string): number {
@@ -38,24 +61,43 @@ export function dateKey(date: Date): string {
   return `${y}-${m}-${d}`
 }
 
-export function isScheduledWorkday(
-  date: Date,
-  employmentType: EmploymentType,
-  scheduledDays: Weekday[]
-): boolean {
-  if (isWeekend(date)) return false
-  if (employmentType === 'full_time' || employmentType === 'intern' || employmentType === 'trainee') {
-    const wd = date.getDay()
-    return wd >= 1 && wd <= 5
+/** Scheduled weekly off (Sat+Sun for office; Sat + chosen day for STEM tutors). */
+export function isEmployeeWeeklyOff(date: Date, schedule: EmployeeSchedule): boolean {
+  const wd = weekdayKey(date)
+  if (schedule.employmentType === 'tutor') {
+    if (wd === TUTOR_FIXED_WEEKLY_OFF) return true
+    if (schedule.weeklyOffDay && wd === schedule.weeklyOffDay) return true
+    return false
   }
-  return scheduledDays.includes(weekdayKey(date))
+  return STANDARD_WEEKLY_OFF.includes(wd)
+}
+
+export function isScheduledWorkday(date: Date, schedule: EmployeeSchedule): boolean {
+  if (isEmployeeWeeklyOff(date, schedule)) return false
+
+  if (schedule.employmentType === 'tutor') {
+    return TUTOR_CHOICE_OFF_DAYS.includes(weekdayKey(date))
+  }
+
+  if (
+    schedule.employmentType === 'full_time' ||
+    schedule.employmentType === 'intern' ||
+    schedule.employmentType === 'trainee'
+  ) {
+    const d = date.getDay()
+    return d >= 1 && d <= 5
+  }
+
+  const days = schedule.scheduledDays?.length
+    ? schedule.scheduledDays
+    : defaultScheduledDays(schedule.employmentType)
+  return days.includes(weekdayKey(date))
 }
 
 export function countWorkingDaysInMonth(
   year: number,
   month: number,
-  employmentType: EmploymentType,
-  scheduledDays: Weekday[],
+  schedule: EmployeeSchedule,
   holidayDates: Set<string>,
   fromDateKey?: string | null
 ): number {
@@ -66,7 +108,7 @@ export function countWorkingDaysInMonth(
     const key = dateKey(date)
     if (fromDateKey && key < fromDateKey) continue
     if (holidayDates.has(key)) continue
-    if (isScheduledWorkday(date, employmentType, scheduledDays)) count++
+    if (isScheduledWorkday(date, schedule)) count++
   }
   return count
 }
@@ -75,8 +117,7 @@ export function countWorkingDaysInMonth(
 export function workingDaysFromStartInMonth(
   year: number,
   month: number,
-  employmentType: EmploymentType,
-  scheduledDays: Weekday[],
+  schedule: EmployeeSchedule,
   holidayDates: Set<string>,
   attendanceStartDate: string
 ): number {
@@ -84,7 +125,7 @@ export function workingDaysFromStartInMonth(
   const startMonth = attendanceStartDate.slice(0, 7)
   if (monthPrefix < startMonth) return 0
   const fromKey = monthPrefix === startMonth ? attendanceStartDate : undefined
-  return countWorkingDaysInMonth(year, month, employmentType, scheduledDays, holidayDates, fromKey)
+  return countWorkingDaysInMonth(year, month, schedule, holidayDates, fromKey)
 }
 
 /** Only dates on or after the official start date affect salary / deductions. */
@@ -117,13 +158,22 @@ export function scheduledHoursForType(
   employmentType: EmploymentType,
   scheduledHoursPerDay: number
 ): number {
-  if (employmentType === 'part_time') return scheduledHoursPerDay || 4
+  if (employmentType === 'part_time' || employmentType === 'tutor') {
+    return scheduledHoursPerDay || 4
+  }
   return 8
 }
 
 export function defaultScheduledDays(employmentType: EmploymentType): Weekday[] {
   if (employmentType === 'part_time') return ['mon', 'wed', 'fri']
+  if (employmentType === 'tutor') {
+    return ['sun', 'mon', 'tue', 'wed', 'thu']
+  }
   return ['mon', 'tue', 'wed', 'thu', 'fri']
+}
+
+export function tutorScheduledDays(weeklyOffDay: Weekday): Weekday[] {
+  return TUTOR_CHOICE_OFF_DAYS.filter((d) => d !== weeklyOffDay)
 }
 
 export function hoursPerDayFromSchedule(
@@ -143,6 +193,7 @@ export function employeeMonthlyWorkload(
   emp: {
     employmentType: EmploymentType
     scheduledDays?: Weekday[]
+    weeklyOffDay?: Weekday | null
     scheduledStart?: string
     scheduledEnd?: string
     scheduledHoursPerDay?: number
@@ -151,18 +202,26 @@ export function employeeMonthlyWorkload(
   refDate = new Date(),
   attendanceStartDate?: string
 ): { totalWorkingDays: number; totalWorkingHours: number; hoursPerDay: number } {
+  const schedule = toEmployeeSchedule(emp)
   const year = refDate.getFullYear()
   const month = refDate.getMonth()
-  const days = emp.scheduledDays?.length
-    ? emp.scheduledDays
-    : defaultScheduledDays(emp.employmentType)
   const totalWorkingDays = attendanceStartDate
-    ? workingDaysFromStartInMonth(year, month, emp.employmentType, days, holidayDates, attendanceStartDate)
-    : countWorkingDaysInMonth(year, month, emp.employmentType, days, holidayDates)
+    ? workingDaysFromStartInMonth(year, month, schedule, holidayDates, attendanceStartDate)
+    : countWorkingDaysInMonth(year, month, schedule, holidayDates)
   const hoursPerDay = hoursPerDayFromSchedule(emp.scheduledStart, emp.scheduledEnd, emp.scheduledHoursPerDay)
   return {
     totalWorkingDays,
     totalWorkingHours: Math.round(totalWorkingDays * hoursPerDay * 10) / 10,
     hoursPerDay,
   }
+}
+
+export function resolveDayAttendanceStatus(
+  date: Date,
+  schedule: EmployeeSchedule,
+  holidayDates: Set<string>
+): 'weekly_off' | 'holiday' | 'absent' {
+  if (holidayDates.has(dateKey(date))) return 'holiday'
+  if (isEmployeeWeeklyOff(date, schedule) || !isScheduledWorkday(date, schedule)) return 'weekly_off'
+  return 'absent'
 }

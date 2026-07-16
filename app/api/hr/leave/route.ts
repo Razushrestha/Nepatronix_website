@@ -311,7 +311,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No manager assigned — contact HR' }, { status: 400 })
     }
 
-    const totalDays = countLeaveDays(fromDate, toDate, halfDay)
+    const totalDays = countLeaveDays(fromDate, toDate, halfDay, emp)
     const year = new Date(fromDate).getFullYear() || new Date().getFullYear()
 
     if (leaveType !== 'unpaid' && emp.paidLeaveEligible) {

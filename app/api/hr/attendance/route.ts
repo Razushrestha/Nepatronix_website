@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/mongodb'
 import { requireHrSession, requireHrAdmin } from '@/lib/hr/auth'
 import { HrAttendance, HrEmployee, HrHoliday, getOfficeSettings } from '@/lib/hr/models'
-import { dateKey, filterCountableRecords, isScheduledWorkday, isWeekend } from '@/lib/hr/attendance-utils'
+import { dateKey, filterCountableRecords, resolveDayAttendanceStatus, toEmployeeSchedule } from '@/lib/hr/attendance-utils'
 import { getEffectiveAttendanceStartDate, formatAttendanceStartLabel } from '@/lib/hr/service'
-import type { Weekday } from '@/lib/hr/constants'
 
 export const runtime = 'nodejs'
 
@@ -26,6 +25,8 @@ export async function GET(req: NextRequest) {
 
   const settings = await getOfficeSettings()
   const attendanceStartDate = getEffectiveAttendanceStartDate(settings)
+
+  const schedule = toEmployeeSchedule(emp)
 
   const now = new Date()
   const [y, m] = month
@@ -57,15 +58,9 @@ export async function GET(req: NextRequest) {
         scheduledEnd: emp.scheduledEnd,
       } as (typeof records)[0]
     } else {
-      let status: 'weekly_off' | 'holiday' | 'absent' = 'absent'
-      if (isWeekend(d)) status = 'weekly_off'
-      else if (holidaySet.has(today)) status = 'holiday'
-      else if (!isScheduledWorkday(d, emp.employmentType, emp.scheduledDays as Weekday[])) {
-        status = 'weekly_off'
-      }
       todayRecord = {
         date: today,
-        status,
+        status: resolveDayAttendanceStatus(d, schedule, holidaySet),
         lateMinutes: 0,
         lateDeduction: 0,
         scheduledStart: emp.scheduledStart,

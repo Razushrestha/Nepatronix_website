@@ -32,6 +32,7 @@ const HrEmployeeSchema = new mongoose.Schema(
     position: String,
     managerId: mongoose.Schema.Types.ObjectId,
     employmentType: { type: String, default: 'full_time' },
+    weeklyOffDay: String,
     scheduledDays: [String],
     scheduledStart: { type: String, default: '10:00' },
     scheduledEnd: { type: String, default: '18:00' },
@@ -144,6 +145,32 @@ async function main() {
   if (removed.deletedCount) {
     console.log(`✓ Cleared ${removed.deletedCount} pre-start attendance record(s)`)
   }
+
+  const HrHoliday =
+    mongoose.models.HrHoliday ||
+    mongoose.model(
+      'HrHoliday',
+      new mongoose.Schema({
+        date: { type: String, unique: true },
+        name: String,
+        recurring: Boolean,
+      })
+    )
+
+  const publicHolidays = [
+    { date: '2026-01-15', name: 'Maghe Sankranti' },
+    { date: '2026-03-03', name: 'Holi' },
+    { date: '2026-04-14', name: 'Nepali New Year' },
+    { date: '2026-05-01', name: 'Labour Day' },
+    { date: '2026-05-29', name: 'Republic Day' },
+    { date: '2026-08-26', name: 'Janai Purnima' },
+    { date: '2026-10-20', name: 'Vijaya Dashami' },
+    { date: '2026-11-09', name: 'Laxmi Puja (Tihar)' },
+  ]
+  for (const h of publicHolidays) {
+    await HrHoliday.findOneAndUpdate({ date: h.date }, { $set: h }, { upsert: true })
+  }
+  console.log(`✓ ${publicHolidays.length} public holidays synced (Sat/Sun are weekly off)`)
 
   const hrEmail = process.env.HR_ADMIN_EMAIL || 'hr@nepatronix.org'
   const hrPassword = process.env.HR_ADMIN_PASSWORD || 'hradminnepatronix'
@@ -310,11 +337,13 @@ async function main() {
       email: stemEmail,
       passwordHash: await bcrypt.hash(stemPassword, 10),
       role: 'employee',
-      position: 'STEM Innovation Staff',
-      employmentType: 'full_time',
+      position: 'STEM Tutor',
+      employmentType: 'tutor',
+      weeklyOffDay: 'fri',
+      scheduledDays: ['sun', 'mon', 'tue', 'wed', 'thu'],
+      scheduledHoursPerDay: 4,
       managerId: manager?._id,
       monthlyPay: 35000,
-      scheduledDays: ['mon', 'tue', 'wed', 'thu', 'fri'],
       paidLeaveEligible: true,
       active: true,
       status: 'active',
@@ -334,6 +363,11 @@ async function main() {
         $set: {
           department: 'stem-innovation-nepal',
           fullName: stemEmployee.fullName || 'Deepak Shrestha',
+          position: 'STEM Tutor',
+          employmentType: 'tutor',
+          weeklyOffDay: 'fri',
+          scheduledDays: ['sun', 'mon', 'tue', 'wed', 'thu'],
+          scheduledHoursPerDay: 4,
           managerId: manager?._id,
           passwordHash: await bcrypt.hash(stemPassword, 10),
           active: true,
@@ -346,7 +380,7 @@ async function main() {
 
   console.log('\nHR portal: http://localhost:3000/hr/login')
   console.log('Attendance: http://localhost:3000/attendance')
-  console.log('STEM Innovation Nepal staff: office Wi‑Fi only — no GPS')
+  console.log('STEM Innovation Nepal tutors: Sat off + 1 chosen weekday · office Wi‑Fi only')
   await mongoose.disconnect()
 }
 

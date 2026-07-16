@@ -11,11 +11,12 @@ import {
   DEFAULT_ATTENDANCE_START_DATE,
   departmentCode,
   LEAVE_TYPES,
+  TUTOR_CHOICE_OFF_DAYS,
   type EmploymentType,
   type HrDepartment,
   type Weekday,
 } from './constants'
-import { defaultScheduledDays, scheduledHoursForType } from './attendance-utils'
+import { defaultScheduledDays, scheduledHoursForType, tutorScheduledDays, toEmployeeSchedule, isScheduledWorkday } from './attendance-utils'
 
 export async function nextEmployeeCode(department: HrDepartment): Promise<string> {
   await connectToDatabase()
@@ -100,9 +101,15 @@ export async function createEmployeeWithDefaults(
   await connectToDatabase()
   const settings = await getOfficeSettings()
   const employmentType = input.employmentType || 'full_time'
-  const scheduledDays = (input.scheduledDays?.length
-    ? input.scheduledDays
-    : defaultScheduledDays(employmentType)) as Weekday[]
+  const weeklyOffDay =
+    employmentType === 'tutor' && input.weeklyOffDay
+      ? (input.weeklyOffDay as Weekday)
+      : undefined
+  const scheduledDays = (employmentType === 'tutor' && weeklyOffDay
+    ? tutorScheduledDays(weeklyOffDay)
+    : input.scheduledDays?.length
+      ? input.scheduledDays
+      : defaultScheduledDays(employmentType)) as Weekday[]
   const isStipend = employmentType === 'intern' || employmentType === 'trainee'
   const code = input.employeeCode || (await nextEmployeeCode(input.department))
 
@@ -130,6 +137,7 @@ export async function createEmployeeWithDefaults(
     currentAddress: input.currentAddress,
     emergencyContact: input.emergencyContact,
     scheduledDays,
+    weeklyOffDay: weeklyOffDay || undefined,
     scheduledStart: input.scheduledStart || settings.startTime || '10:00',
     scheduledEnd: input.scheduledEnd || settings.endTime || '18:00',
     scheduledHoursPerDay:
@@ -160,16 +168,33 @@ export async function createEmployeeWithDefaults(
   return emp.toObject() as HrEmployeeDoc
 }
 
-export function countLeaveDays(fromDate: string, toDate: string, halfDay?: string): number {
+export function countLeaveDays(
+  fromDate: string,
+  toDate: string,
+  halfDay?: string,
+  schedule?: { employmentType: EmploymentType; scheduledDays?: Weekday[]; weeklyOffDay?: Weekday | null }
+): number {
   if (halfDay) return 0.5
   const start = new Date(fromDate)
   const end = new Date(toDate)
   if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) return 0
   let days = 0
   const cur = new Date(start)
+  const sched = schedule ? toEmployeeSchedule(schedule) : null
   while (cur <= end) {
-    const wd = cur.getDay()
-    if (wd !== 0 && wd !== 6) days++
+    if (sched) {
+      if (!isScheduledWorkday(cur, sched)) {
+        cur.setDate(cur.getDate() + 1)
+        continue
+      }
+    } else {
+      const wd = cur.getDay()
+      if (wd === 0 || wd === 6) {
+        cur.setDate(cur.getDate() + 1)
+        continue
+      }
+    }
+    days++
     cur.setDate(cur.getDate() + 1)
   }
   return days || 1

@@ -2,12 +2,17 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { EMPLOYMENT_TYPES, HR_DEPARTMENTS, HR_ROLES } from '@/lib/hr/constants'
+import { EMPLOYMENT_TYPES, HR_DEPARTMENTS, HR_ROLES, TUTOR_CHOICE_OFF_DAYS } from '@/lib/hr/constants'
 import { useHrPaths } from '@/lib/hr/ui-context'
 
 const WEEKDAYS = [
   { v: 'mon', l: 'Mon' }, { v: 'tue', l: 'Tue' }, { v: 'wed', l: 'Wed' },
   { v: 'thu', l: 'Thu' }, { v: 'fri', l: 'Fri' },
+]
+
+const TUTOR_OFF_OPTIONS = [
+  { v: 'sun', l: 'Sunday' }, { v: 'mon', l: 'Monday' }, { v: 'tue', l: 'Tuesday' },
+  { v: 'wed', l: 'Wednesday' }, { v: 'thu', l: 'Thursday' }, { v: 'fri', l: 'Friday' },
 ]
 
 export default function HrNewEmployeePage() {
@@ -19,6 +24,7 @@ export default function HrNewEmployeePage() {
     position: '', employmentType: 'full_time', role: 'employee', monthlyPay: '',
     citizenshipNumber: '', nidNumber: '', panNumber: '',
     managerId: '', scheduledDays: ['mon', 'tue', 'wed', 'thu', 'fri'] as string[],
+    weeklyOffDay: 'fri',
     scheduledHoursPerDay: '8', bankName: '', bankAccount: '',
   })
   const [error, setError] = useState('')
@@ -62,6 +68,7 @@ export default function HrNewEmployeePage() {
         role: form.role,
         monthlyPay: Number(form.monthlyPay) || 0,
         scheduledDays: form.scheduledDays,
+        weeklyOffDay: form.employmentType === 'tutor' ? form.weeklyOffDay : undefined,
         scheduledHoursPerDay: Number(form.scheduledHoursPerDay) || 8,
         citizenshipNumber: form.citizenshipNumber.trim() || undefined,
         nidNumber: form.nidNumber.trim() || undefined,
@@ -91,7 +98,14 @@ export default function HrNewEmployeePage() {
           <input className="hr-input" type="email" placeholder="Email *" value={form.email} onChange={(e) => set('email', e.target.value)} required />
           <input className="hr-input" type="password" placeholder="Login password *" value={form.password} onChange={(e) => set('password', e.target.value)} required />
           <input className="hr-input" placeholder="Phone" value={form.phone} onChange={(e) => set('phone', e.target.value)} />
-          <select className="hr-input" value={form.department} onChange={(e) => set('department', e.target.value)}>
+          <select className="hr-input" value={form.department} onChange={(e) => {
+            const dept = e.target.value
+            setForm((f) => ({
+              ...f,
+              department: dept,
+              employmentType: dept === 'stem-innovation-nepal' && f.employmentType === 'full_time' ? 'tutor' : f.employmentType,
+            }))
+          }}>
             {HR_DEPARTMENTS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
           </select>
           <input className="hr-input" placeholder="Position *" value={form.position} onChange={(e) => set('position', e.target.value)} required />
@@ -119,6 +133,22 @@ export default function HrNewEmployeePage() {
           <input className="hr-input" type="number" placeholder="Monthly salary / stipend (NPR)" value={form.monthlyPay} onChange={(e) => set('monthlyPay', e.target.value)} />
           <input className="hr-input" placeholder="Bank name" value={form.bankName} onChange={(e) => set('bankName', e.target.value)} />
           <input className="hr-input sm:col-span-2" placeholder="Bank account" value={form.bankAccount} onChange={(e) => set('bankAccount', e.target.value)} />
+          {form.employmentType === 'tutor' && (
+            <>
+              <div className="sm:col-span-2 rounded-xl bg-sky-50 border border-sky-100 px-4 py-3 text-sm text-sky-900">
+                STEM tutors work <strong>5 days/week</strong>. <strong>Saturday</strong> is always off. Pick one more weekly off day below.
+              </div>
+              <label className="sm:col-span-2 text-sm font-medium text-slate-700">
+                Tutor weekly off (besides Saturday)
+                <select className="hr-input mt-1" value={form.weeklyOffDay} onChange={(e) => set('weeklyOffDay', e.target.value)} required>
+                  {TUTOR_OFF_OPTIONS.map((d) => (
+                    <option key={d.v} value={d.v}>{d.l}</option>
+                  ))}
+                </select>
+              </label>
+              <input className="hr-input" type="number" placeholder="Hours per day" value={form.scheduledHoursPerDay} onChange={(e) => set('scheduledHoursPerDay', e.target.value)} />
+            </>
+          )}
           {form.employmentType === 'part_time' && (
             <>
               <div className="sm:col-span-2">

@@ -7,8 +7,9 @@ export const HR_DEPARTMENTS = [
 export type HrDepartment = (typeof HR_DEPARTMENTS)[number]['value']
 
 export const EMPLOYMENT_TYPES = [
-  { value: 'full_time', label: 'Full-time' },
+  { value: 'full_time', label: 'Full-time (Mon–Fri)' },
   { value: 'part_time', label: 'Part-time' },
+  { value: 'tutor', label: 'STEM Tutor (5 days/week)' },
   { value: 'intern', label: 'Intern' },
   { value: 'trainee', label: 'Trainee' },
 ] as const
@@ -26,6 +27,16 @@ export type HrRole = (typeof HR_ROLES)[number]['value']
 
 export const WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
 export type Weekday = (typeof WEEKDAYS)[number]
+
+/** Office staff: Saturday + Sunday off (~8 days/month). */
+export const STANDARD_WEEKLY_OFF: Weekday[] = ['sat', 'sun']
+
+/** STEM tutors: Saturday fixed off + one chosen weekday. */
+export const TUTOR_FIXED_WEEKLY_OFF: Weekday = 'sat'
+export const TUTOR_CHOICE_OFF_DAYS: Weekday[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri']
+
+/** Company public holidays per year (weekends excluded), managed in HrHoliday. */
+export const ANNUAL_PUBLIC_HOLIDAY_DAYS = 8
 
 export const LEAVE_TYPES = [
   { value: 'annual', label: 'Annual Leave', defaultDays: 18 },
