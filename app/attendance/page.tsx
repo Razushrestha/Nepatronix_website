@@ -291,10 +291,10 @@ function EmployeePortal({ user, onLogout }: { user: User; onLogout: () => void }
     setErr('')
     try {
       const needsGps = departmentRequiresGps(user.department)
-      let body: Record<string, number> = {}
+      let payload: Record<string, number> = {}
       if (needsGps) {
         setMsg('Locating you — please allow GPS and wait a few seconds…')
-        body = await getBestGpsReading()
+        payload = await getBestGpsReading()
       } else {
         setMsg('Verifying office Wi‑Fi…')
       }
@@ -302,12 +302,12 @@ function EmployeePortal({ user, onLogout }: { user: User; onLogout: () => void }
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify(body),
+        body: JSON.stringify(payload),
       })
-      const body = await res.json()
-      if (!res.ok) setErr(body.error || 'Failed')
+      const data = await res.json()
+      if (!res.ok) setErr(data.error || 'Failed')
       else {
-        setMsg(body.message || (action === 'in' ? 'Checked in successfully!' : 'Checked out successfully!'))
+        setMsg(data.message || (action === 'in' ? 'Checked in successfully!' : 'Checked out successfully!'))
         load()
       }
     } catch (e) {
