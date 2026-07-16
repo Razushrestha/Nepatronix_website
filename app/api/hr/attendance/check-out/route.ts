@@ -3,7 +3,7 @@ import { connectToDatabase } from '@/lib/mongodb'
 import { requireHrSession } from '@/lib/hr/auth'
 import { HrAttendance, HrEmployee } from '@/lib/hr/models'
 import { dateKey } from '@/lib/hr/attendance-utils'
-import { distanceMeters, isIpAllowed, normalizeClientIp } from '@/lib/hr/geo'
+import { normalizeClientIp, validateAttendanceLocation } from '@/lib/hr/geo'
 import { getEffectiveAllowedIps, getEffectiveOfficeCoords } from '@/lib/hr/service'
 import { getOfficeSettings } from '@/lib/hr/models'
 
@@ -27,18 +27,19 @@ export async function POST(req: NextRequest) {
     const accuracy = body.accuracy != null ? Number(body.accuracy) : undefined
 
     const settings = await getOfficeSettings()
-    const ips = getEffectiveAllowedIps(settings)
-    const ip = getRequestIp(req)
-    if (!isIpAllowed(ip, ips)) {
-      return NextResponse.json({ error: `Not on office network (IP: ${ip || 'unknown'})` }, { status: 403 })
-    }
     const office = getEffectiveOfficeCoords(settings)
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      return NextResponse.json({ error: 'GPS location is required' }, { status: 400 })
-    }
-    const dist = distanceMeters(lat, lng, office.latitude, office.longitude)
-    if (dist > office.radiusMeters) {
-      return NextResponse.json({ error: `You are ${Math.round(dist)}m from office` }, { status: 403 })
+    const loc = validateAttendanceLocation({
+      clientIp: getRequestIp(req),
+      allowedIps: getEffectiveAllowedIps(settings),
+      latitude: lat,
+      longitude: lng,
+      accuracy,
+      officeLat: office.latitude,
+      officeLng: office.longitude,
+      radiusMeters: office.radiusMeters,
+    })
+    if (!loc.ok) {
+      return NextResponse.json({ error: loc.error }, { status: 403 })
     }
 
     const emp = await HrEmployee.findById(session.id).lean()
@@ -53,6 +54,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Already checked out today' }, { status: 400 })
     }
 
+    const ip = getRequestIp(req)
     record.checkOut = new Date()
     record.checkOutIp = ip
     record.checkOutLat = lat

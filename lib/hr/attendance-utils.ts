@@ -98,3 +98,41 @@ export function defaultScheduledDays(employmentType: EmploymentType): Weekday[] 
   if (employmentType === 'part_time') return ['mon', 'wed', 'fri']
   return ['mon', 'tue', 'wed', 'thu', 'fri']
 }
+
+export function hoursPerDayFromSchedule(
+  scheduledStart?: string,
+  scheduledEnd?: string,
+  scheduledHoursPerDay?: number
+): number {
+  if (scheduledHoursPerDay && scheduledHoursPerDay > 0) return scheduledHoursPerDay
+  if (scheduledStart && scheduledEnd) {
+    const mins = parseTimeToMinutes(scheduledEnd) - parseTimeToMinutes(scheduledStart)
+    if (mins > 0) return mins / 60
+  }
+  return 8
+}
+
+export function employeeMonthlyWorkload(
+  emp: {
+    employmentType: EmploymentType
+    scheduledDays?: Weekday[]
+    scheduledStart?: string
+    scheduledEnd?: string
+    scheduledHoursPerDay?: number
+  },
+  holidayDates: Set<string>,
+  refDate = new Date()
+): { totalWorkingDays: number; totalWorkingHours: number; hoursPerDay: number } {
+  const year = refDate.getFullYear()
+  const month = refDate.getMonth()
+  const days = emp.scheduledDays?.length
+    ? emp.scheduledDays
+    : defaultScheduledDays(emp.employmentType)
+  const totalWorkingDays = countWorkingDaysInMonth(year, month, emp.employmentType, days, holidayDates)
+  const hoursPerDay = hoursPerDayFromSchedule(emp.scheduledStart, emp.scheduledEnd, emp.scheduledHoursPerDay)
+  return {
+    totalWorkingDays,
+    totalWorkingHours: Math.round(totalWorkingDays * hoursPerDay * 10) / 10,
+    hoursPerDay,
+  }
+}

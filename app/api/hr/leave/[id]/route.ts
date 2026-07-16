@@ -102,6 +102,62 @@ export async function PATCH(req: NextRequest, { params }: RouteCtx) {
       return NextResponse.json({ success: true })
     }
 
+    if (action === 'set_status') {
+      if (!isHrAdminRole(session.role)) {
+        return NextResponse.json({ error: 'HR admin only' }, { status: 403 })
+      }
+      const next = String(body.status || '')
+      if (!['approved', 'cancelled', 'pending_hr'].includes(next)) {
+        return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+      }
+
+      const prev = leave.status
+      if (prev === next) {
+        return NextResponse.json({ success: true, status: leave.status })
+      }
+
+      async function adjustBalance(direction: 'apply' | 'revert') {
+        if (leave.leaveType === 'unpaid' || !emp.paidLeaveEligible) return
+        const year = new Date(leave.fromDate).getFullYear()
+        const bal = await HrLeaveBalance.findOne({ employeeId: emp._id, year })
+        if (!bal) return
+        const field =
+          leave.leaveType === 'annual'
+            ? 'annualUsed'
+            : leave.leaveType === 'sick'
+            ? 'sickUsed'
+            : leave.leaveType === 'casual'
+            ? 'casualUsed'
+            : null
+        if (!field) return
+        const delta = direction === 'apply' ? leave.totalDays : -leave.totalDays
+        bal[field] = Math.max(0, (bal[field] as number) + delta)
+        await bal.save()
+      }
+
+      if (prev === 'approved' && next !== 'approved') await adjustBalance('revert')
+      if (next === 'approved' && prev !== 'approved') await adjustBalance('apply')
+
+      leave.status = next as typeof leave.status
+      if (next === 'approved') {
+        leave.hrApprovedAt = new Date()
+        leave.hrApprovedBy = session.id as unknown as typeof leave.hrApprovedBy
+        leave.rejectionReason = undefined
+        leave.rejectedBy = undefined
+      } else if (next === 'cancelled') {
+        leave.rejectionReason = comment || 'Cancelled by HR'
+        leave.rejectedBy = session.id as unknown as typeof leave.rejectedBy
+      } else {
+        leave.hrApprovedAt = undefined
+        leave.hrApprovedBy = undefined
+        leave.rejectionReason = undefined
+        leave.rejectedBy = undefined
+      }
+
+      await leave.save()
+      return NextResponse.json({ success: true, status: leave.status })
+    }
+
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
   } catch (err) {
     console.error('[hr/leave PATCH]', err)

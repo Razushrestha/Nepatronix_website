@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { getBestGpsReading } from '@/lib/hr/client-gps'
 
 type TodayAttendance = {
   status?: string
@@ -15,6 +16,7 @@ export default function HrDashboardPage() {
   const [user, setUser] = useState<{ fullName: string; employeeCode: string; role: string } | null>(null)
   const [today, setToday] = useState<TodayAttendance | null>(null)
   const [settings, setSettings] = useState<{ startTime: string; endTime: string } | null>(null)
+  const [openTasks, setOpenTasks] = useState(0)
   const [busy, setBusy] = useState('')
   const [msg, setMsg] = useState('')
   const [err, setErr] = useState('')
@@ -29,17 +31,15 @@ export default function HrDashboardPage() {
     fetch('/api/hr/settings', { credentials: 'same-origin' })
       .then((r) => r.json())
       .then((d) => setSettings(d))
+    fetch('/api/hr/tasks', { credentials: 'same-origin' })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.tasks) setOpenTasks(d.tasks.filter((t: { status: string }) => t.status !== 'completed').length)
+      })
   }, [])
 
-  async function getPosition(): Promise<GeolocationPosition> {
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) reject(new Error('Geolocation not supported'))
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0,
-      })
-    })
+  async function getPosition() {
+    return getBestGpsReading()
   }
 
   async function checkIn() {
@@ -47,15 +47,16 @@ export default function HrDashboardPage() {
     setErr('')
     setMsg('')
     try {
+      setMsg('Getting GPS location…')
       const pos = await getPosition()
       const res = await fetch('/api/hr/attendance/check-in', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
         body: JSON.stringify({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
+          latitude: pos.latitude,
+          longitude: pos.longitude,
+          accuracy: pos.accuracy,
         }),
       })
       const data = await res.json()
@@ -80,9 +81,9 @@ export default function HrDashboardPage() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
         body: JSON.stringify({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
+          latitude: pos.latitude,
+          longitude: pos.longitude,
+          accuracy: pos.accuracy,
         }),
       })
       const data = await res.json()
@@ -142,10 +143,16 @@ export default function HrDashboardPage() {
         {err && <p className="text-red-600 text-sm">{err}</p>}
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Link href="/hr/attendance" className="hr-card hover:border-[#C1121F]/30 transition-colors">
           <p className="font-semibold text-slate-900">Monthly attendance</p>
           <p className="text-sm text-slate-500 mt-1">View history, late totals, deductions</p>
+        </Link>
+        <Link href="/hr/tasks" className="hr-card hover:border-[#C1121F]/30 transition-colors">
+          <p className="font-semibold text-slate-900">Tasks</p>
+          <p className="text-sm text-slate-500 mt-1">
+            {openTasks > 0 ? `${openTasks} open task${openTasks === 1 ? '' : 's'} to complete` : 'View assigned work and mark complete'}
+          </p>
         </Link>
         <Link href="/hr/leave" className="hr-card hover:border-[#C1121F]/30 transition-colors">
           <p className="font-semibold text-slate-900">Leave &amp; balance</p>

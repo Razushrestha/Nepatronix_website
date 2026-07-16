@@ -307,6 +307,34 @@ const HrHolidaySchema = new Schema<HrHolidayDoc>(
 
 export const HrHoliday = makeModel<HrHolidayDoc>('HrHoliday', HrHolidaySchema)
 
+export type HrTaskStatus = 'pending' | 'in_progress' | 'completed'
+
+export interface HrTaskDoc {
+  _id: mongoose.Types.ObjectId
+  employeeId: mongoose.Types.ObjectId
+  title: string
+  description?: string
+  status: HrTaskStatus
+  dueDate?: string
+  assignedBy?: mongoose.Types.ObjectId
+  completedAt?: Date
+}
+
+const HrTaskSchema = new Schema<HrTaskDoc>(
+  {
+    employeeId: { type: Schema.Types.ObjectId, ref: 'HrEmployee', required: true, index: true },
+    title: { type: String, required: true, trim: true },
+    description: String,
+    status: { type: String, enum: ['pending', 'in_progress', 'completed'], default: 'pending' },
+    dueDate: String,
+    assignedBy: { type: Schema.Types.ObjectId, ref: 'HrEmployee' },
+    completedAt: Date,
+  },
+  { timestamps: true }
+)
+
+export const HrTask = makeModel<HrTaskDoc>('HrTask', HrTaskSchema)
+
 export async function getOfficeSettings(): Promise<HrOfficeSettingsDoc> {
   let doc = await HrOfficeSettings.findOne().lean<HrOfficeSettingsDoc>()
   if (!doc) {

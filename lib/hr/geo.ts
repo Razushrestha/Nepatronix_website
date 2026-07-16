@@ -33,3 +33,52 @@ export function isIpAllowed(clientIp: string, allowedIps: string[]): boolean {
   }
   return false
 }
+
+/** Max GPS uncertainty (m) before we reject — configurable via HR_GPS_MAX_ACCURACY_M */
+export function maxGpsAccuracyMeters(): number {
+  const env = Number(process.env.HR_GPS_MAX_ACCURACY_M)
+  if (Number.isFinite(env) && env > 0) return env
+  return process.env.NODE_ENV === 'development' ? 10000 : 2000
+}
+
+export type LocationValidation = { ok: true } | { ok: false; error: string }
+
+/** Office IP + geofence check. Inside radius always passes; poor accuracy only blocks when outside. */
+export function validateAttendanceLocation(input: {
+  clientIp: string
+  allowedIps: string[]
+  latitude: number
+  longitude: number
+  accuracy?: number
+  officeLat: number
+  officeLng: number
+  radiusMeters: number
+}): LocationValidation {
+  const { clientIp, allowedIps, latitude, longitude, accuracy, officeLat, officeLng, radiusMeters } = input
+
+  if (!isIpAllowed(clientIp, allowedIps)) {
+    return { ok: false, error: `Not on office network (IP: ${clientIp || 'unknown'})` }
+  }
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return { ok: false, error: 'GPS location is required — allow location access in your browser' }
+  }
+
+  const dist = distanceMeters(latitude, longitude, officeLat, officeLng)
+  const maxAcc = maxGpsAccuracyMeters()
+
+  if (dist <= radiusMeters) {
+    return { ok: true }
+  }
+
+  if (accuracy != null && accuracy > maxAcc) {
+    return {
+      ok: false,
+      error: 'GPS signal is weak. Move closer to a window, wait a few seconds, and try again.',
+    }
+  }
+
+  return {
+    ok: false,
+    error: `You are ${Math.round(dist)}m from the office (allowed within ${radiusMeters}m). Enable precise location if indoors.`,
+  }
+}

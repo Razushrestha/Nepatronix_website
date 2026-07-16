@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { EMPLOYMENT_TYPES, HR_DEPARTMENTS, HR_ROLES } from '@/lib/hr/constants'
+import { useHrPaths } from '@/lib/hr/ui-context'
 
 const WEEKDAYS = [
   { v: 'mon', l: 'Mon' }, { v: 'tue', l: 'Tue' }, { v: 'wed', l: 'Wed' },
@@ -11,6 +12,7 @@ const WEEKDAYS = [
 
 export default function HrNewEmployeePage() {
   const router = useRouter()
+  const paths = useHrPaths()
   const [managers, setManagers] = useState<{ id: string; fullName: string; employeeCode: string }[]>([])
   const [form, setForm] = useState({
     fullName: '', email: '', password: '', phone: '', department: 'nepatronix',
@@ -62,7 +64,7 @@ export default function HrNewEmployeePage() {
       setLoading(false)
       return
     }
-    router.push('/hr/manage/employees')
+    router.push(paths.employees)
   }
 
   return (

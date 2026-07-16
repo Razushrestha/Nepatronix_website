@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/mongodb'
 import { requireHrAdmin } from '@/lib/hr/auth'
-import { HrEmployee, sanitizeEmployee } from '@/lib/hr/models'
+import { HrEmployee, HrHoliday, sanitizeEmployee } from '@/lib/hr/models'
 import { createEmployeeWithDefaults } from '@/lib/hr/service'
+import { employeeMonthlyWorkload } from '@/lib/hr/attendance-utils'
 import type { EmploymentType, HrDepartment, HrRole } from '@/lib/hr/constants'
 
 export const runtime = 'nodejs'
@@ -17,6 +18,10 @@ export async function GET(req: NextRequest) {
   const q = searchParams.get('q')
 
   const filter: Record<string, unknown> = {}
+  if (searchParams.get('includeInactive') !== 'true') {
+    filter.active = true
+    filter.status = 'active'
+  }
   if (department) filter.department = department
   if (q) {
     filter.$or = [
@@ -27,8 +32,23 @@ export async function GET(req: NextRequest) {
   }
 
   const employees = await HrEmployee.find(filter).sort({ createdAt: -1 }).limit(200).lean()
+
+  const now = new Date()
+  const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  const holidays = await HrHoliday.find({ date: { $regex: `^${monthPrefix}` } }).lean()
+  const holidaySet = new Set(holidays.map((h) => h.date))
+
   return NextResponse.json({
-    employees: employees.map((e) => sanitizeEmployee(e, true)),
+    month: now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }),
+    employees: employees.map((e) => {
+      const workload = employeeMonthlyWorkload(e, holidaySet, now)
+      return {
+        ...sanitizeEmployee(e, true),
+        totalWorkingDays: workload.totalWorkingDays,
+        totalWorkingHours: workload.totalWorkingHours,
+        hoursPerDay: workload.hoursPerDay,
+      }
+    }),
   })
 }
 

@@ -1,10 +1,18 @@
 'use client'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { HR_DEPARTMENTS } from '@/lib/hr/constants'
+import { Icon } from '@/app/(admin)/components/icons'
 
-export default function HrLoginPage() {
+function safeNextPath(next: string | null): string {
+  if (!next || !next.startsWith('/hr')) return '/hr'
+  return next
+}
+
+function HrLoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const nextPath = safeNextPath(searchParams.get('next'))
   const [department, setDepartment] = useState('nepatronix')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -22,7 +30,7 @@ export default function HrLoginPage() {
       body: JSON.stringify({ department, email, password }),
     })
     if (res.ok) {
-      router.push('/hr')
+      router.push(nextPath)
       router.refresh()
     } else {
       const data = await res.json().catch(() => ({}))
@@ -35,7 +43,9 @@ export default function HrLoginPage() {
     <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4 hr-theme">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#C1121F]/10 rounded-2xl mb-4 text-2xl">👔</div>
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#C1121F]/10 rounded-2xl mb-4 text-[#C1121F]">
+            <Icon name="users" className="w-8 h-8" />
+          </div>
           <h1 className="text-2xl font-bold text-slate-900">HR Portal</h1>
           <p className="text-slate-500 text-sm mt-1">Nepatronix Group — employees &amp; managers</p>
         </div>
@@ -71,5 +81,19 @@ export default function HrLoginPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function HrLoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4 hr-theme">
+          <p className="text-slate-500 text-sm">Loading…</p>
+        </div>
+      }
+    >
+      <HrLoginForm />
+    </Suspense>
   )
 }

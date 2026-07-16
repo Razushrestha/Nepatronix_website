@@ -1,9 +1,16 @@
 'use client'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function AdminLoginPage() {
+function safeNextPath(next: string | null): string {
+  if (!next || !next.startsWith('/admin')) return '/admin'
+  return next
+}
+
+function AdminLoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const nextPath = safeNextPath(searchParams.get('next'))
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -22,7 +29,7 @@ export default function AdminLoginPage() {
     })
 
     if (res.ok) {
-      router.push('/admin')
+      router.push(nextPath)
       router.refresh()
     } else {
       const data = await res.json().catch(() => ({}))
@@ -98,5 +105,19 @@ export default function AdminLoginPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4 admin-theme">
+          <p className="text-slate-500 text-sm">Loading…</p>
+        </div>
+      }
+    >
+      <AdminLoginForm />
+    </Suspense>
   )
 }

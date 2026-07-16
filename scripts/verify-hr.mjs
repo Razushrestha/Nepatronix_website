@@ -86,6 +86,11 @@ async function main() {
     '/api/hr/leave',
     '/api/hr/settings',
     '/api/hr/employees',
+    '/api/hr/profile',
+    '/api/hr/salary',
+    '/api/hr/tasks',
+    '/api/hr/stats',
+    '/api/hr/attendance/overview',
     '/api/hr/attendance/check-in',
     '/api/hr/attendance/check-out',
   ]
@@ -174,12 +179,69 @@ async function main() {
     pass('HR lists employees', `${empList.json.employees.length} records`)
   } else fail('HR employee list', String(empList.status))
 
+  const empSearch = await req('/api/hr/employees?q=Sample', { cookie: sessions.hr })
+  if (empSearch.status === 200 && empSearch.json?.employees?.length >= 1) {
+    pass('HR employee search', `${empSearch.json.employees.length} match "Sample"`)
+  } else fail('HR employee search', String(empSearch.status))
+
+  const empDept = await req('/api/hr/employees?department=nepatronix', { cookie: sessions.hr })
+  if (empDept.status === 200 && empDept.json?.employees?.every((e) => e.department === 'nepatronix')) {
+    pass('HR employee dept filter', `${empDept.json.employees.length} in Nepatronix`)
+  } else fail('HR employee dept filter', String(empDept.status))
+
+  const sampleEmp = empList.json?.employees?.find((e) => e.email === ACCOUNTS.employee.email)
+  const sampleEmpId = sampleEmp?.id
+  if (sampleEmpId) {
+    const empGet = await req(`/api/hr/employees/${sampleEmpId}`, { cookie: sessions.hr })
+    if (empGet.status === 200 && empGet.json?.employee?.email === ACCOUNTS.employee.email) {
+      pass('HR GET employee by id', empGet.json.employee.employeeCode)
+    } else fail('HR GET employee', String(empGet.status))
+
+    const empPatch = await req(`/api/hr/employees/${sampleEmpId}`, {
+      method: 'PATCH',
+      cookie: sessions.hr,
+      body: { position: 'Sample Employee' },
+    })
+    if (empPatch.status === 200 && empPatch.json?.employee?.position === 'Sample Employee') {
+      pass('HR PATCH employee', 'position updated')
+    } else fail('HR PATCH employee', String(empPatch.status))
+
+    const empGetDenied = await req(`/api/hr/employees/${sampleEmpId}`, { cookie: sessions.employee })
+    if (empGetDenied.status === 401) pass('Employee cannot GET employee by id', '401')
+    else fail('Employee employee[id] blocked', String(empGetDenied.status))
+  } else {
+    fail('Sample employee id for CRUD', 'not found in list')
+  }
+
   // ── 8. Attendance read ────────────────────────────────────
   console.log('\nAttendance')
   const att = await req('/api/hr/attendance', { cookie: sessions.employee })
   if (att.status === 200 && att.json?.summary != null) {
     pass('Employee monthly attendance', `present=${att.json.summary.present}`)
   } else fail('Attendance GET', String(att.status))
+
+  const attMonth = await req('/api/hr/attendance?month=2026-01', { cookie: sessions.employee })
+  if (attMonth.status === 200 && attMonth.json?.month === '2026-01') {
+    pass('Attendance month param', attMonth.json.month)
+  } else fail('Attendance month filter', `${attMonth.status} month=${attMonth.json?.month}`)
+
+  const empMeEarly = await req('/api/hr/me', { cookie: sessions.employee })
+  const empIdForAtt = empMeEarly.json?.user?.id
+  if (empIdForAtt) {
+    const attAdmin = await req(`/api/hr/attendance?employeeId=${empIdForAtt}`, { cookie: sessions.hr })
+    if (attAdmin.status === 200 && attAdmin.json?.employee?.id === empIdForAtt) {
+      pass('HR admin attendance for employee', attAdmin.json.employee.fullName)
+    } else fail('HR attendance employeeId', String(attAdmin.status))
+
+    const mgrMe = await req('/api/hr/me', { cookie: sessions.manager })
+    const mgrId = mgrMe.json?.user?.id
+    if (mgrId && mgrId !== empIdForAtt) {
+      const attEmpIgnored = await req(`/api/hr/attendance?employeeId=${mgrId}`, { cookie: sessions.employee })
+      if (attEmpIgnored.status === 200 && attEmpIgnored.json?.employee?.id === empIdForAtt) {
+        pass('Employee employeeId param ignored', 'returns own attendance only')
+      } else fail('Employee attendance employeeId guard', String(attEmpIgnored.status))
+    }
+  }
 
   // ── 9. Check-in (office IP + GPS) ───────────────────────
   // Reset today's check-in if exists by using unique test — may already be checked in
@@ -227,7 +289,7 @@ async function main() {
   const leaveApply = await req('/api/hr/leave', {
     method: 'POST',
     cookie: sessions.employee,
-    body: { leaveType: 'casual', fromDate: fromStr, toDate: fromStr, reason: 'Smoke test leave' },
+    body: { leaveType: 'unpaid', fromDate: fromStr, toDate: fromStr, reason: 'Smoke test leave' },
   })
   let leaveId = leaveApply.json?.id
   if (leaveApply.status === 200 && leaveId) {
@@ -275,7 +337,273 @@ async function main() {
   const hrQueue = await req('/api/hr/leave?scope=hr-queue', { cookie: sessions.hr })
   if (hrQueue.status === 200) pass('HR queue', `${(hrQueue.json?.requests || []).length} pending`)
 
-  // ── 11. Logout (cookie cleared client-side; JWT remains valid until expiry) ──
+  const leaveAll = await req('/api/hr/leave?scope=all', { cookie: sessions.hr })
+  if (leaveAll.status === 200 && leaveAll.json?.summary?.total != null && leaveAll.json?.leaveTimeline?.length >= 12) {
+    pass('Leave scope=all overview', `${leaveAll.json.summary.total} total · ${leaveAll.json.leaveTimeline.length} months`)
+  } else fail('Leave scope=all', `${leaveAll.status} ${leaveAll.json?.error || ''}`)
+
+  const leaveMonth = fromStr.slice(0, 7)
+  const leaveMonthFilter = await req(`/api/hr/leave?scope=all&month=${leaveMonth}`, { cookie: sessions.hr })
+  if (leaveMonthFilter.status === 200 && leaveMonthFilter.json?.monthKey === leaveMonth) {
+    pass('Leave month filter', `${leaveMonthFilter.json.requests.length} in ${leaveMonth}`)
+  } else fail('Leave month filter', String(leaveMonthFilter.status))
+
+  const leaveApproved = await req('/api/hr/leave?scope=all&status=approved', { cookie: sessions.hr })
+  if (leaveApproved.status === 200 && leaveApproved.json?.requests?.every((r) => r.status === 'approved')) {
+    pass('Leave status=approved filter', `${leaveApproved.json.requests.length} approved`)
+  } else fail('Leave approved filter', String(leaveApproved.status))
+
+  const leaveDept = await req('/api/hr/leave?scope=all&department=nepatronix', { cookie: sessions.hr })
+  if (leaveDept.status === 200 && leaveDept.json?.filters?.department === 'nepatronix') {
+    pass('Leave department filter', `${leaveDept.json.requests.length} in Nepatronix`)
+  } else fail('Leave dept filter', String(leaveDept.status))
+
+  const leaveSearch = await req('/api/hr/leave?scope=all&q=Smoke', { cookie: sessions.hr })
+  if (leaveSearch.status === 200 && leaveSearch.json?.requests?.length >= 1) {
+    pass('Leave search filter', `${leaveSearch.json.requests.length} match "Smoke"`)
+  } else fail('Leave search filter', String(leaveSearch.status))
+
+  const leavePending = await req('/api/hr/leave?scope=all&status=pending', { cookie: sessions.hr })
+  if (
+    leavePending.status === 200 &&
+    leavePending.json?.requests?.every((r) => ['pending_manager', 'pending_hr'].includes(r.status))
+  ) {
+    pass('Leave pending group filter', `${leavePending.json.requests.length} pending`)
+  } else fail('Leave pending filter', String(leavePending.status))
+
+  const leaveApply2 = await req('/api/hr/leave', {
+    method: 'POST',
+    cookie: sessions.employee,
+    body: { leaveType: 'unpaid', fromDate: fromStr, toDate: fromStr, reason: 'set_status smoke test' },
+  })
+  const leaveId2 = leaveApply2.json?.id
+  if (leaveApply2.status === 200 && leaveId2) {
+    pass('Second leave for set_status', leaveId2)
+    const setApproved = await req(`/api/hr/leave/${leaveId2}`, {
+      method: 'PATCH',
+      cookie: sessions.hr,
+      body: { action: 'set_status', status: 'approved' },
+    })
+    if (setApproved.status === 200 && setApproved.json?.status === 'approved') {
+      pass('set_status → approved', 'approved')
+    } else fail('set_status approved', `${setApproved.status} ${setApproved.json?.error || ''}`)
+
+    const setCancel = await req(`/api/hr/leave/${leaveId2}`, {
+      method: 'PATCH',
+      cookie: sessions.hr,
+      body: { action: 'set_status', status: 'cancelled' },
+    })
+    if (setCancel.status === 200 && setCancel.json?.status === 'cancelled') {
+      pass('set_status → cancelled', 'cancelled')
+    } else fail('set_status cancelled', `${setCancel.status} ${setCancel.json?.error || ''}`)
+  } else {
+    fail('Second leave apply', `${leaveApply2.status} ${leaveApply2.json?.error || ''}`)
+  }
+
+  const leaveDenied = await req('/api/hr/leave?scope=all', { cookie: sessions.employee })
+  if (leaveDenied.status === 403) pass('Employee cannot GET scope=all', '403')
+  else fail('Leave scope=all blocked', String(leaveDenied.status))
+
+  const leaveTeam = await req('/api/hr/leave?scope=team', { cookie: sessions.manager })
+  if (leaveTeam.status === 200 && Array.isArray(leaveTeam.json?.requests)) {
+    pass('Manager team leave scope', `${leaveTeam.json.requests.length} request(s)`)
+  } else fail('Leave scope=team', String(leaveTeam.status))
+
+  const leaveCancelApply = await req('/api/hr/leave', {
+    method: 'POST',
+    cookie: sessions.employee,
+    body: { leaveType: 'unpaid', fromDate: fromStr, toDate: fromStr, reason: 'cancel smoke test' },
+  })
+  const leaveCancelId = leaveCancelApply.json?.id
+  if (leaveCancelApply.status === 200 && leaveCancelId) {
+    const leaveCancel = await req(`/api/hr/leave/${leaveCancelId}`, {
+      method: 'PATCH',
+      cookie: sessions.employee,
+      body: { action: 'cancel' },
+    })
+    if (leaveCancel.status === 200) pass('Employee cancels own leave', 'cancelled')
+    else fail('Leave cancel', `${leaveCancel.status} ${leaveCancel.json?.error || ''}`)
+  } else {
+    fail('Leave for cancel test', `${leaveCancelApply.status} ${leaveCancelApply.json?.error || ''}`)
+  }
+
+  const leaveRejectApply = await req('/api/hr/leave', {
+    method: 'POST',
+    cookie: sessions.employee,
+    body: { leaveType: 'unpaid', fromDate: fromStr, toDate: fromStr, reason: 'reject smoke test' },
+  })
+  const leaveRejectId = leaveRejectApply.json?.id
+  if (leaveRejectApply.status === 200 && leaveRejectId) {
+    const leaveReject = await req(`/api/hr/leave/${leaveRejectId}`, {
+      method: 'PATCH',
+      cookie: sessions.manager,
+      body: { action: 'reject', comment: 'Not approved' },
+    })
+    if (leaveReject.status === 200 && leaveReject.json?.status === 'rejected') {
+      pass('Manager rejects leave', 'rejected')
+    } else fail('Leave reject', `${leaveReject.status} ${leaveReject.json?.error || ''}`)
+  } else {
+    fail('Leave for reject test', `${leaveRejectApply.status} ${leaveRejectApply.json?.error || ''}`)
+  }
+
+  const leaveBadAction = await req(`/api/hr/leave/${leaveId || '000000000000000000000000'}`, {
+    method: 'PATCH',
+    cookie: sessions.employee,
+    body: { action: 'set_status', status: 'approved' },
+  })
+  if (leaveBadAction.status === 403) pass('Employee cannot set_status', '403')
+  else fail('set_status employee blocked', String(leaveBadAction.status))
+
+  // ── 11. Profile & salary ──────────────────────────────────
+  console.log('\nProfile & salary')
+  const profileGet = await req('/api/hr/profile', { cookie: sessions.employee })
+  if (profileGet.status === 200 && profileGet.json?.profile?.email) {
+    pass('Employee GET profile', profileGet.json.profile.email)
+  } else fail('Profile GET', String(profileGet.status))
+
+  const profilePatch = await req('/api/hr/profile', {
+    method: 'PATCH',
+    cookie: sessions.employee,
+    body: { phone: '9801111111', role: 'super_hr_admin', monthlyPay: 999999 },
+  })
+  if (profilePatch.status === 200 && profilePatch.json?.profile?.phone === '9801111111') {
+    pass('Employee PATCH profile', 'phone updated')
+  } else fail('Profile PATCH', `${profilePatch.status} ${profilePatch.json?.error || ''}`)
+
+  if (profilePatch.json?.profile?.role === 'employee') {
+    pass('Profile PATCH ignores role/salary', profilePatch.json.profile.role)
+  } else fail('Profile privilege guard', profilePatch.json?.profile?.role || 'missing')
+
+  const salaryGet = await req('/api/hr/salary', { cookie: sessions.employee })
+  if (salaryGet.status === 200 && salaryGet.json?.monthlyPay != null) {
+    pass('Employee GET salary', `NPR ${salaryGet.json.monthlyPay} · net ${salaryGet.json.estimatedNet}`)
+  } else fail('Salary GET', String(salaryGet.status))
+
+  const salaryDenied = await req('/api/hr/salary')
+  if (salaryDenied.status === 401) pass('Salary requires auth', '401')
+  else fail('Salary auth guard', String(salaryDenied.status))
+
+  // ── 12. Tasks ─────────────────────────────────────────────
+  console.log('\nTasks')
+  const tasksEmp = await req('/api/hr/tasks', { cookie: sessions.employee })
+  if (tasksEmp.status === 200 && Array.isArray(tasksEmp.json?.tasks)) {
+    pass('Employee lists tasks', `${tasksEmp.json.tasks.length} task(s)`)
+  } else fail('Tasks GET', String(tasksEmp.status))
+
+  const empMe = await req('/api/hr/me', { cookie: sessions.employee })
+  const empId = empMe.json?.user?.id
+
+  const taskCreateDenied = await req('/api/hr/tasks', {
+    method: 'POST',
+    cookie: sessions.employee,
+    body: { employeeId: empId, title: 'Hacked task' },
+  })
+  if (taskCreateDenied.status === 401) pass('Employee cannot create tasks', '401')
+  else fail('Employee task POST blocked', String(taskCreateDenied.status))
+
+  const taskCreate = await req('/api/hr/tasks', {
+    method: 'POST',
+    cookie: sessions.manager,
+    body: {
+      employeeId: empId,
+      title: 'Smoke test task',
+      description: 'Created by verify-hr.mjs',
+      dueDate: fromStr,
+    },
+  })
+  let taskId = taskCreate.json?.task?.id
+  if (taskCreate.status === 201 && taskId) {
+    pass('Manager creates task', taskId)
+  } else fail('Manager task POST', `${taskCreate.status} ${taskCreate.json?.error || ''}`)
+
+  if (taskId) {
+    const taskStart = await req(`/api/hr/tasks/${taskId}`, {
+      method: 'PATCH',
+      cookie: sessions.employee,
+      body: { status: 'in_progress' },
+    })
+    if (taskStart.status === 200 && taskStart.json?.task?.status === 'in_progress') {
+      pass('Employee starts task', 'in_progress')
+    } else fail('Task start', `${taskStart.status} ${taskStart.json?.error || ''}`)
+
+    const taskDone = await req(`/api/hr/tasks/${taskId}`, {
+      method: 'PATCH',
+      cookie: sessions.employee,
+      body: { status: 'completed' },
+    })
+    if (taskDone.status === 200 && taskDone.json?.task?.status === 'completed') {
+      pass('Employee completes task', 'completed')
+    } else fail('Task complete', `${taskDone.status} ${taskDone.json?.error || ''}`)
+
+    const mgrCannotPatch = await req(`/api/hr/tasks/${taskId}`, {
+      method: 'PATCH',
+      cookie: sessions.manager,
+      body: { status: 'pending' },
+    })
+    if (mgrCannotPatch.status === 403) pass('Only assignee can update task', '403')
+    else fail('Task assignee guard', String(mgrCannotPatch.status))
+  }
+
+  // ── 13. HR stats (admin only) ───────────────────────────────
+  console.log('\nHR stats')
+  const statsHr = await req('/api/hr/stats', { cookie: sessions.hr })
+  if (statsHr.status === 200 && statsHr.json?.kpis?.totalEmployees != null) {
+    pass('HR admin GET stats', `${statsHr.json.kpis.totalEmployees} employees`)
+  } else fail('Stats GET (HR)', String(statsHr.status))
+
+  if (statsHr.json?.kpis?.netPayroll != null && Array.isArray(statsHr.json?.payrollHistory)) {
+    pass('Stats payroll data', `net ${statsHr.json.kpis.netPayroll} · ${statsHr.json.payrollHistory.length} months`)
+  } else fail('Stats payroll fields')
+
+  const statsMonth = await req('/api/hr/stats?month=2026-01', { cookie: sessions.hr })
+  if (statsMonth.status === 200 && statsMonth.json?.monthKey === '2026-01') {
+    pass('Stats month param', statsMonth.json.month)
+  } else fail('Stats month filter', String(statsMonth.status))
+
+  if (Array.isArray(statsHr.json?.departments)) {
+    pass('Stats departments', `${statsHr.json.departments.length} dept(s)`)
+  } else fail('Stats departments')
+
+  const statsEmp = await req('/api/hr/stats', { cookie: sessions.employee })
+  if (statsEmp.status === 401) pass('Employee cannot GET stats', '401')
+  else fail('Stats employee blocked', String(statsEmp.status))
+
+  // ── 14. Attendance overview & filters ───────────────────────
+  console.log('\nAttendance overview')
+  const overviewAll = await req('/api/hr/attendance/overview', { cookie: sessions.hr })
+  if (overviewAll.status === 200 && Array.isArray(overviewAll.json?.employees) && overviewAll.json?.departmentCounts) {
+    pass('Overview all departments', `${overviewAll.json.employees.length} employees`)
+  } else fail('Overview GET', `${overviewAll.status} ${overviewAll.json?.error || ''}`)
+
+  const overviewDept = await req('/api/hr/attendance/overview?department=nepatronix', { cookie: sessions.hr })
+  if (overviewDept.status === 200 && overviewDept.json?.filters?.department === 'nepatronix') {
+    pass('Overview department filter', `${overviewDept.json.employees.length} in Nepatronix`)
+  } else fail('Overview dept filter', String(overviewDept.status))
+
+  const overviewEmpty = await req('/api/hr/attendance/overview?department=metatronix', { cookie: sessions.hr })
+  if (overviewEmpty.status === 200 && overviewEmpty.json?.employees?.length === 0) {
+    pass('Overview empty department', 'Metatronix 0 employees')
+  } else fail('Overview empty dept', `got ${overviewEmpty.json?.employees?.length}`)
+
+  const overviewSearch = await req('/api/hr/attendance/overview?q=Sample', { cookie: sessions.hr })
+  if (overviewSearch.status === 200 && overviewSearch.json?.employees?.length >= 1) {
+    pass('Overview search filter', `${overviewSearch.json.employees.length} match "Sample"`)
+  } else fail('Overview search', String(overviewSearch.status))
+
+  const overviewMonth = await req('/api/hr/attendance/overview?month=2026-01', { cookie: sessions.hr })
+  if (overviewMonth.status === 200 && overviewMonth.json?.monthKey === '2026-01') {
+    pass('Overview month filter', overviewMonth.json.month)
+  } else fail('Overview month', String(overviewMonth.status))
+
+  if (overviewAll.json?.payrollHistory?.length >= 12) {
+    pass('Overview payroll history', `${overviewAll.json.payrollHistory.length} months`)
+  } else fail('Payroll history months', String(overviewAll.json?.payrollHistory?.length))
+
+  const overviewDenied = await req('/api/hr/attendance/overview', { cookie: sessions.employee })
+  if (overviewDenied.status === 401) pass('Employee cannot GET overview', '401')
+  else fail('Overview employee blocked', String(overviewDenied.status))
+
+  // ── 15. Logout (cookie cleared client-side; JWT remains valid until expiry) ──
   console.log('\nLogout')
   const logout = await fetch(`${BASE}/api/hr/auth`, { method: 'DELETE', headers: { cookie: sessions.employee } })
   if (logout.status === 200) pass('DELETE /api/hr/auth', '200')

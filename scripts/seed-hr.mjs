@@ -70,6 +70,19 @@ const HrLeaveBalanceSchema = new mongoose.Schema({
   casualUsed: { type: Number, default: 0 },
 })
 
+const HrTaskSchema = new mongoose.Schema(
+  {
+    employeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'HrEmployee', index: true },
+    title: { type: String, required: true },
+    description: String,
+    status: { type: String, enum: ['pending', 'in_progress', 'completed'], default: 'pending' },
+    dueDate: String,
+    assignedBy: mongoose.Schema.Types.ObjectId,
+    completedAt: Date,
+  },
+  { timestamps: true }
+)
+
 async function main() {
   await mongoose.connect(URI)
   const HrEmployee = mongoose.models.HrEmployee || mongoose.model('HrEmployee', HrEmployeeSchema)
@@ -77,6 +90,7 @@ async function main() {
     mongoose.models.HrOfficeSettings || mongoose.model('HrOfficeSettings', HrOfficeSettingsSchema)
   const HrLeaveBalance =
     mongoose.models.HrLeaveBalance || mongoose.model('HrLeaveBalance', HrLeaveBalanceSchema)
+  const HrTask = mongoose.models.HrTask || mongoose.model('HrTask', HrTaskSchema)
 
   if (!(await HrOfficeSettings.findOne())) {
     await HrOfficeSettings.create({
@@ -115,10 +129,12 @@ async function main() {
     })
     console.log(`✓ HR admin created: ${hrEmail} / ${hrPassword}`)
   } else {
-    console.log(`· HR admin already exists: ${hrEmail}`)
+    await HrEmployee.updateOne({ _id: hrAdmin._id }, { $set: { passwordHash: hash, active: true, status: 'active' } })
+    console.log(`· HR admin already exists — password synced: ${hrEmail}`)
   }
 
   const mgrEmail = process.env.HR_MANAGER_EMAIL || 'manager@nepatronix.org'
+  const mgrPassword = process.env.HR_MANAGER_PASSWORD || 'managernepatronix'
   let manager = await HrEmployee.findOne({ email: mgrEmail })
   if (!manager) {
     manager = await HrEmployee.create({
@@ -126,7 +142,7 @@ async function main() {
       department: 'nepatronix',
       fullName: 'Sample Manager',
       email: mgrEmail,
-      passwordHash: await bcrypt.hash(process.env.HR_MANAGER_PASSWORD || 'managernepatronix', 10),
+      passwordHash: await bcrypt.hash(mgrPassword, 10),
       role: 'manager',
       position: 'Operations Manager',
       employmentType: 'full_time',
@@ -141,26 +157,37 @@ async function main() {
       casual: 6,
     })
     console.log(`✓ Manager created: ${mgrEmail}`)
+  } else {
+    await HrEmployee.updateOne(
+      { _id: manager._id },
+      { $set: { passwordHash: await bcrypt.hash(mgrPassword, 10), active: true, status: 'active' } }
+    )
+    console.log(`· Manager already exists — password synced: ${mgrEmail}`)
   }
 
   const empEmail = process.env.HR_SAMPLE_EMAIL || 'employee@nepatronix.org'
+  const empPassword = process.env.HR_SAMPLE_PASSWORD || 'employeenepatronix'
   const existingEmp = await HrEmployee.findOne({ email: empEmail })
+  let sampleEmployee = existingEmp
   if (!existingEmp) {
-    const emp = await HrEmployee.create({
+    sampleEmployee = await HrEmployee.create({
       employeeCode: 'NPT-EMP001',
       department: 'nepatronix',
       fullName: 'Sample Employee',
       email: empEmail,
-      passwordHash: await bcrypt.hash(process.env.HR_SAMPLE_PASSWORD || 'employeenepatronix', 10),
+      passwordHash: await bcrypt.hash(empPassword, 10),
       role: 'employee',
       position: 'STEM Trainer',
       employmentType: 'full_time',
       managerId: manager?._id,
       monthlyPay: 35000,
+      phone: '9800000001',
+      bankName: 'Nepal Bank',
+      bankAccount: '00123456789',
       scheduledDays: ['mon', 'tue', 'wed', 'thu', 'fri'],
     })
     await HrLeaveBalance.create({
-      employeeId: emp._id,
+      employeeId: sampleEmployee._id,
       year: new Date().getFullYear(),
       annual: 18,
       sick: 12,
@@ -168,7 +195,21 @@ async function main() {
     })
     console.log(`✓ Sample employee: ${empEmail}`)
   } else if (manager) {
-    await HrEmployee.updateOne({ email: empEmail }, { $set: { managerId: manager._id } })
+    await HrEmployee.updateOne(
+      { email: empEmail },
+      {
+        $set: {
+          managerId: manager._id,
+          phone: existingEmp.phone || '9800000001',
+          bankName: existingEmp.bankName || 'Nepal Bank',
+          bankAccount: existingEmp.bankAccount || '00123456789',
+          passwordHash: await bcrypt.hash(empPassword, 10),
+          active: true,
+          status: 'active',
+        },
+      }
+    )
+    sampleEmployee = await HrEmployee.findOne({ email: empEmail })
     console.log(`✓ Sample employee manager link ensured`)
     const bal = await HrLeaveBalance.findOne({ employeeId: existingEmp._id, year: new Date().getFullYear() })
     if (!bal) {
@@ -180,6 +221,36 @@ async function main() {
         casual: 6,
       })
       console.log(`✓ Leave balance created for sample employee`)
+    }
+  }
+
+  if (sampleEmployee && manager) {
+    const taskCount = await HrTask.countDocuments({ employeeId: sampleEmployee._id })
+    if (taskCount === 0) {
+      const due = new Date()
+      due.setDate(due.getDate() + 7)
+      const dueStr = due.toISOString().slice(0, 10)
+      await HrTask.insertMany([
+        {
+          employeeId: sampleEmployee._id,
+          title: 'Complete onboarding checklist',
+          description: 'Review handbook, sign policies, and submit ID copies to HR.',
+          status: 'pending',
+          dueDate: dueStr,
+          assignedBy: manager._id,
+        },
+        {
+          employeeId: sampleEmployee._id,
+          title: 'Prepare weekly class report',
+          description: 'Submit attendance and progress summary every Friday.',
+          status: 'in_progress',
+          dueDate: dueStr,
+          assignedBy: manager._id,
+        },
+      ])
+      console.log('✓ Sample tasks created for employee')
+    } else {
+      console.log(`· Sample tasks already exist (${taskCount})`)
     }
   }
 

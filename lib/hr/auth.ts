@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
 import type { HrDepartment, HrRole } from './constants'
 import { isHrAdminRole, isHrManagerRole } from './constants'
+import { getSession } from '@/lib/auth'
 
 const JWT_SECRET = process.env.JWT_SECRET || process.env.HR_JWT_SECRET || 'insecure-dev-secret-change-me'
 export const HR_COOKIE_NAME = 'hr_token'
@@ -14,6 +15,18 @@ export interface HrSessionUser {
   department: HrDepartment
   role: HrRole
   employeeCode: string
+}
+
+/** CMS admin users get full HR access without a separate HR login. */
+function cmsAdminAsHrSession(admin: { id: string; email: string; name: string }): HrSessionUser {
+  return {
+    id: admin.id,
+    email: admin.email,
+    fullName: admin.name,
+    department: 'nepatronix',
+    role: 'super_hr_admin',
+    employeeCode: 'CMS-ADMIN',
+  }
 }
 
 export function signHrToken(user: HrSessionUser): string {
@@ -45,8 +58,13 @@ export const hrAuthCookie = {
 export async function getHrSession(): Promise<HrSessionUser | null> {
   const store = await cookies()
   const token = store.get(HR_COOKIE_NAME)?.value
-  if (!token) return null
-  return verifyHrToken(token)
+  if (token) {
+    const hr = verifyHrToken(token)
+    if (hr) return hr
+  }
+  const admin = await getSession()
+  if (admin?.role === 'admin') return cmsAdminAsHrSession(admin)
+  return null
 }
 
 export async function requireHrSession(): Promise<HrSessionUser | null> {

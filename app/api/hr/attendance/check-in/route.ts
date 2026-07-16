@@ -16,7 +16,7 @@ import {
   isScheduledWorkday,
   scheduledHoursForType,
 } from '@/lib/hr/attendance-utils'
-import { distanceMeters, isIpAllowed, normalizeClientIp } from '@/lib/hr/geo'
+import { normalizeClientIp, validateAttendanceLocation } from '@/lib/hr/geo'
 import { getEffectiveAllowedIps, getEffectiveOfficeCoords } from '@/lib/hr/service'
 import type { Weekday } from '@/lib/hr/constants'
 
@@ -35,26 +35,18 @@ async function validateLocation(
   accuracy?: number
 ): Promise<{ ok: boolean; error?: string }> {
   const settings = await getOfficeSettings()
-  const ips = getEffectiveAllowedIps(settings)
-  const ip = getRequestIp(req)
-  if (!isIpAllowed(ip, ips)) {
-    return { ok: false, error: `Not on office network (IP: ${ip || 'unknown'})` }
-  }
   const office = getEffectiveOfficeCoords(settings)
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-    return { ok: false, error: 'GPS location is required' }
-  }
-  if (accuracy && accuracy > 100) {
-    return { ok: false, error: 'GPS accuracy too low — move closer to a window and retry' }
-  }
-  const dist = distanceMeters(lat, lng, office.latitude, office.longitude)
-  if (dist > office.radiusMeters) {
-    return {
-      ok: false,
-      error: `You are ${Math.round(dist)}m from office (max ${office.radiusMeters}m)`,
-    }
-  }
-  return { ok: true }
+  const result = validateAttendanceLocation({
+    clientIp: getRequestIp(req),
+    allowedIps: getEffectiveAllowedIps(settings),
+    latitude: lat,
+    longitude: lng,
+    accuracy,
+    officeLat: office.latitude,
+    officeLng: office.longitude,
+    radiusMeters: office.radiusMeters,
+  })
+  return result.ok ? { ok: true } : { ok: false, error: result.error }
 }
 
 export async function POST(req: NextRequest) {

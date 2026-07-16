@@ -76,6 +76,37 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
           Statistics
         </Link>
 
+        {user.role === 'admin' && (
+          <div>
+            <p className="px-3 pb-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-widest">HR</p>
+            <div className="space-y-0.5">
+              {[
+                { href: '/admin/hr', label: 'HR Overview', icon: 'dashboard', exact: true },
+                { href: '/admin/hr/employees', label: 'Employees', icon: 'users' },
+                { href: '/admin/hr/attendance', label: 'Attendance', icon: 'clock' },
+                { href: '/admin/hr/leave', label: 'Leave', icon: 'calendar' },
+                { href: '/admin/hr/settings', label: 'Office Settings', icon: 'settings' },
+              ].map((item) => {
+                const active = item.exact ? pathname === item.href : pathname.startsWith(item.href)
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className={`group relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${navLinkClass(active)}`}
+                  >
+                    {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#C1121F] rounded-full" />}
+                    <span className={active ? 'text-[#C1121F]' : 'text-slate-500 group-hover:text-slate-700'}>
+                      <Icon name={item.icon} />
+                    </span>
+                    {item.label}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         {grouped.map(({ group, items }) => (
           <div key={group}>
             <p className="px-3 pb-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-widest">{group}</p>
@@ -117,11 +148,12 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
       </div>
       <div className="px-3 pb-5 space-y-0.5">
         <Link
-          href="/hr/login"
+          href="/attendance"
+          target="_blank"
           className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-          HR Portal
+          <Icon name="clock" className="w-4 h-4" />
+          Staff Attendance
         </Link>
         <a href="/" target="_blank" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
