@@ -2,13 +2,15 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { HR_DEPARTMENTS, isHrManagerRole, departmentRequiresGps } from '@/lib/hr/constants'
+import { HR_DEPARTMENTS, departmentRequiresGps } from '@/lib/hr/constants'
 import { Icon } from '@/app/(admin)/components/icons'
 import { getBestGpsReading } from '@/lib/hr/client-gps'
 import AttendanceSidebar, { type AttendanceView } from './components/AttendanceSidebar'
 import ProfileForm from './components/ProfileForm'
+import TaskModule from '@/app/(admin)/components/tasks/TaskModule'
 
 type User = {
+  id: string
   fullName: string
   employeeCode: string
   department: string
@@ -214,6 +216,8 @@ type TaskItem = {
   title: string
   description?: string
   status: string
+  effectiveStatus?: string
+  completionPercent?: number
   dueDate?: string
   createdAt?: string
 }
@@ -221,7 +225,10 @@ type TaskItem = {
 const TASK_STATUS_STYLES: Record<string, string> = {
   pending: 'bg-amber-50 text-amber-700 border-amber-200',
   in_progress: 'bg-blue-50 text-blue-700 border-blue-200',
+  review: 'bg-violet-50 text-violet-700 border-violet-200',
   completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  cancelled: 'bg-slate-100 text-slate-500 border-slate-200',
+  overdue: 'bg-red-50 text-red-700 border-red-200',
 }
 
 function EmployeePortal({ user, onLogout }: { user: User; onLogout: () => void }) {
@@ -235,7 +242,6 @@ function EmployeePortal({ user, onLogout }: { user: User; onLogout: () => void }
   const [msg, setMsg] = useState('')
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState<'in' | 'out' | null>(null)
-  const [taskBusy, setTaskBusy] = useState<string | null>(null)
 
   const load = useCallback(() => {
     fetch('/api/hr/attendance', { credentials: 'same-origin' })
@@ -253,9 +259,10 @@ function EmployeePortal({ user, onLogout }: { user: User; onLogout: () => void }
   }, [])
 
   const loadTasks = useCallback(() => {
-    fetch('/api/hr/tasks', { credentials: 'same-origin' })
+    fetch('/api/tasks?limit=50', { credentials: 'same-origin' })
       .then((r) => r.json())
-      .then((d) => { if (d.tasks) setTasks(d.tasks) })
+      .then((d) => { if (Array.isArray(d.tasks)) setTasks(d.tasks) })
+      .catch(() => {})
   }, [])
 
   const loadLeave = useCallback(() => {
@@ -277,18 +284,6 @@ function EmployeePortal({ user, onLogout }: { user: User; onLogout: () => void }
     if (view === 'salary') loadSalary()
     if (view === 'task') loadTasks()
   }, [view, loadSalary, loadTasks])
-
-  async function updateTaskStatus(id: string, status: string) {
-    setTaskBusy(id)
-    const res = await fetch(`/api/hr/tasks/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify({ status }),
-    })
-    if (res.ok) loadTasks()
-    setTaskBusy(null)
-  }
 
   async function check(action: 'in' | 'out') {
     setBusy(action)
@@ -329,7 +324,9 @@ function EmployeePortal({ user, onLogout }: { user: User; onLogout: () => void }
     trackingActive && today && !today.checkIn && !['weekly_off', 'holiday', 'leave', 'not_started'].includes(statusKey)
   const canCheckOut = trackingActive && today?.checkIn && !today?.checkOut
 
-  const openTasks = tasks.filter((t) => t.status !== 'completed').length
+  const openTasks = tasks.filter(
+    (t) => t.status !== 'completed' && t.status !== 'cancelled'
+  ).length
 
   const titles: Record<AttendanceView, string> = {
     dashboard: 'Dashboard',
@@ -436,14 +433,22 @@ function EmployeePortal({ user, onLogout }: { user: User; onLogout: () => void }
                 <div className="hr-card">
                   <h3 className="font-semibold text-slate-900 mb-3">Recent tasks</h3>
                   <div className="divide-y divide-slate-100">
-                    {tasks.slice(0, 3).map((t) => (
-                      <div key={t.id} className="py-3 flex justify-between items-center gap-3 text-sm">
-                        <span className="font-medium text-slate-800">{t.title}</span>
-                        <span className={`text-xs font-medium capitalize px-2 py-1 rounded-full border ${TASK_STATUS_STYLES[t.status] || TASK_STATUS_STYLES.pending}`}>
-                          {t.status.replace(/_/g, ' ')}
-                        </span>
-                      </div>
-                    ))}
+                    {tasks.slice(0, 3).map((t) => {
+                      const s = t.effectiveStatus || t.status
+                      return (
+                        <button
+                          type="button"
+                          key={t.id}
+                          onClick={() => setView('task')}
+                          className="w-full py-3 flex justify-between items-center gap-3 text-sm text-left hover:opacity-80"
+                        >
+                          <span className="font-medium text-slate-800">{t.title}</span>
+                          <span className={`text-xs font-medium capitalize px-2 py-1 rounded-full border ${TASK_STATUS_STYLES[s] || TASK_STATUS_STYLES.pending}`}>
+                            {s.replace(/_/g, ' ')}
+                          </span>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )}
@@ -623,59 +628,13 @@ function EmployeePortal({ user, onLogout }: { user: User; onLogout: () => void }
           )}
 
           {view === 'task' && (
-            <div className="space-y-4">
-              <div className="hr-card">
-                <h2 className="font-semibold text-slate-900">Your tasks</h2>
-                <p className="text-sm text-slate-500 mt-1">Tasks assigned by your manager or HR</p>
-              </div>
-              <div className="space-y-3">
-                {tasks.map((t) => (
-                  <div key={t.id} className="hr-card">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <h3 className="font-semibold text-slate-900">{t.title}</h3>
-                        {t.description && <p className="text-sm text-slate-500 mt-1">{t.description}</p>}
-                        {t.dueDate && <p className="text-xs text-slate-400 mt-2">Due: {t.dueDate}</p>}
-                      </div>
-                      <span className={`text-xs font-medium capitalize px-2.5 py-1 rounded-full border ${TASK_STATUS_STYLES[t.status] || TASK_STATUS_STYLES.pending}`}>
-                        {t.status.replace(/_/g, ' ')}
-                      </span>
-                    </div>
-                    {t.status !== 'completed' && (
-                      <div className="flex gap-2 mt-4">
-                        {t.status === 'pending' && (
-                          <button
-                            type="button"
-                            disabled={taskBusy === t.id}
-                            onClick={() => updateTaskStatus(t.id, 'in_progress')}
-                            className="hr-btn-secondary text-sm py-2 px-4"
-                          >
-                            Start task
-                          </button>
-                        )}
-                        {t.status === 'in_progress' && (
-                          <button
-                            type="button"
-                            disabled={taskBusy === t.id}
-                            onClick={() => updateTaskStatus(t.id, 'completed')}
-                            className="hr-btn text-sm py-2 px-4"
-                          >
-                            Mark complete
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {!tasks.length && (
-                  <div className="hr-card py-12 text-center text-slate-500 text-sm">
-                    No tasks assigned yet. Your manager will add tasks here when needed.
-                  </div>
-                )}
-              </div>
-              {isHrManagerRole(user.role) && (
-                <Link href="/hr/approvals" className="block text-center text-sm text-[#C1121F] hover:underline">Manager portal →</Link>
-              )}
+            <div className="-mx-4 -my-6 sm:-mx-6 lg:-mx-8">
+              <TaskModule
+                role={user.role}
+                currentUserId={user.id}
+                department={user.department}
+                variant="staff"
+              />
             </div>
           )}
 
