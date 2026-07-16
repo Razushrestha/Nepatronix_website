@@ -29,6 +29,12 @@ function cmsAdminAsHrSession(admin: { id: string; email: string; name: string })
   }
 }
 
+async function getCmsAdminHrSession(): Promise<HrSessionUser | null> {
+  const admin = await getSession()
+  if (admin?.role === 'admin') return cmsAdminAsHrSession(admin)
+  return null
+}
+
 export function signHrToken(user: HrSessionUser): string {
   return jwt.sign({ ...user, userType: 'hr' }, JWT_SECRET, { expiresIn: MAX_AGE })
 }
@@ -62,9 +68,7 @@ export async function getHrSession(): Promise<HrSessionUser | null> {
     const hr = verifyHrToken(token)
     if (hr) return hr
   }
-  const admin = await getSession()
-  if (admin?.role === 'admin') return cmsAdminAsHrSession(admin)
-  return null
+  return getCmsAdminHrSession()
 }
 
 export async function requireHrSession(): Promise<HrSessionUser | null> {
@@ -72,12 +76,16 @@ export async function requireHrSession(): Promise<HrSessionUser | null> {
 }
 
 export async function requireHrManager(): Promise<HrSessionUser | null> {
+  const cms = await getCmsAdminHrSession()
+  if (cms) return cms
   const user = await getHrSession()
   if (!user || !isHrManagerRole(user.role)) return null
   return user
 }
 
 export async function requireHrAdmin(): Promise<HrSessionUser | null> {
+  const cms = await getCmsAdminHrSession()
+  if (cms) return cms
   const user = await getHrSession()
   if (!user || !isHrAdminRole(user.role)) return null
   return user

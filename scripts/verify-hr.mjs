@@ -637,6 +637,31 @@ async function main() {
   if (overviewDenied.status === 401) pass('Employee cannot GET overview', '401')
   else fail('Overview employee blocked', String(overviewDenied.status))
 
+  // CMS admin should access HR admin APIs even when an employee hr_token is also present
+  console.log('\nCMS admin cross-auth')
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@nepatronix.org'
+  const adminPassword = process.env.ADMIN_PASSWORD || process.env.ADMIN_SECRET || 'adminnepatronix'
+  const cmsLogin = await req('/api/admin/auth', {
+    method: 'POST',
+    body: { email: adminEmail, password: adminPassword },
+  })
+  const cmsCookie = parseCookie(cmsLogin.res)
+  if (cmsLogin.status === 200 && cmsCookie) {
+    pass('CMS admin login', adminEmail)
+    const cmsStats = await req('/api/hr/stats', { cookie: cmsCookie })
+    if (cmsStats.status === 200 && cmsStats.json?.kpis?.totalEmployees != null) {
+      pass('CMS admin GET stats', `${cmsStats.json.kpis.totalEmployees} employees`)
+    } else fail('CMS admin stats', String(cmsStats.status))
+
+    const mixedCookie = `${cmsCookie}; ${sessions.employee}`
+    const cmsOverviewMixed = await req('/api/hr/attendance/overview', { cookie: mixedCookie })
+    if (cmsOverviewMixed.status === 200 && Array.isArray(cmsOverviewMixed.json?.employees)) {
+      pass('CMS admin overview beats employee cookie', `${cmsOverviewMixed.json.employees.length} employees`)
+    } else fail('CMS admin mixed cookies', `${cmsOverviewMixed.status} ${cmsOverviewMixed.json?.error || ''}`)
+  } else {
+    fail('CMS admin login', `${cmsLogin.status} — set ADMIN_EMAIL/ADMIN_PASSWORD for this test`)
+  }
+
   // ── 15. Logout (cookie cleared client-side; JWT remains valid until expiry) ──
   console.log('\nLogout')
   const logout = await fetch(`${BASE}/api/hr/auth`, { method: 'DELETE', headers: { cookie: sessions.employee } })
