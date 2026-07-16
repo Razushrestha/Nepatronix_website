@@ -138,7 +138,7 @@ const HrOfficeSettingsSchema = new Schema<HrOfficeSettingsDoc>(
     latitude: { type: Number, default: 27.6858125 },
     longitude: { type: Number, default: 85.3165781 },
     radiusMeters: { type: Number, default: 150 },
-    allowedIps: { type: [String], default: ['127.0.0.1', '::1', '192.168.1.*', '192.168.1.254'] },
+    allowedIps: { type: [String], default: ['127.0.0.1', '::1', '192.168.2.*', '192.168.2.254'] },
     officeName: { type: String, default: 'Nepatronix Office — Tinkune' },
   },
   { timestamps: true }

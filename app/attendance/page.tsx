@@ -490,7 +490,7 @@ function EmployeePortal({ user, onLogout }: { user: User; onLogout: () => void }
                 </div>
 
                 <p className="relative text-xs text-slate-400 mt-4">
-                  Must be on office Wi‑Fi with location enabled. On laptop, wait a few seconds for GPS to improve.
+                  Enable location and wait a few seconds for GPS. Nepatronix staff must be within 150m of the office. STEM Innovation Nepal uses office Wi‑Fi only.
                 </p>
               </div>
 

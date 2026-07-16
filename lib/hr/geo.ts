@@ -22,6 +22,23 @@ export function normalizeClientIp(raw: string | null): string {
   return first
 }
 
+/** Best-effort client IP (Cloudflare → nginx → Node). */
+export function getClientIpFromHeaders(headers: {
+  get(name: string): string | null
+}): string {
+  const candidates = [
+    headers.get('cf-connecting-ip'),
+    headers.get('true-client-ip'),
+    headers.get('x-real-ip'),
+    headers.get('x-forwarded-for'),
+  ]
+  for (const raw of candidates) {
+    const ip = normalizeClientIp(raw)
+    if (ip) return ip
+  }
+  return ''
+}
+
 export function isIpAllowed(clientIp: string, allowedIps: string[]): boolean {
   if (!clientIp) return false
   const normalized = normalizeClientIp(clientIp)
@@ -34,6 +51,13 @@ export function isIpAllowed(clientIp: string, allowedIps: string[]): boolean {
   return false
 }
 
+function isPrivateLanIp(ip: string): boolean {
+  if (!ip) return false
+  if (ip.startsWith('10.') || ip.startsWith('192.168.') || ip.startsWith('172.')) return true
+  if (ip === '127.0.0.1' || ip === '::1') return true
+  return false
+}
+
 /** Max GPS uncertainty (m) before we reject — configurable via HR_GPS_MAX_ACCURACY_M */
 export function maxGpsAccuracyMeters(): number {
   const env = Number(process.env.HR_GPS_MAX_ACCURACY_M)
@@ -43,7 +67,12 @@ export function maxGpsAccuracyMeters(): number {
 
 export type LocationValidation = { ok: true } | { ok: false; error: string }
 
-/** Office IP + geofence check. Inside radius always passes; poor accuracy only blocks when outside. */
+/**
+ * Attendance location rules:
+ * - GPS departments (Nepatronix, Metatronix): office geofence is primary on cloud hosting.
+ *   LAN IPs (192.168.x.x) only apply for local/dev — the server never sees them over the internet.
+ * - STEM Innovation Nepal: no GPS; office Wi‑Fi / public IP must match allowed list (set in HR Settings).
+ */
 export function validateAttendanceLocation(input: {
   clientIp: string
   allowedIps: string[]
@@ -67,34 +96,45 @@ export function validateAttendanceLocation(input: {
     requireGps = true,
   } = input
 
-  if (!isIpAllowed(clientIp, allowedIps)) {
-    return { ok: false, error: `Not on office network (IP: ${clientIp || 'unknown'})` }
-  }
+  const ipOk = isIpAllowed(clientIp, allowedIps) || isPrivateLanIp(clientIp)
 
+  // STEM / GPS-exempt: Wi‑Fi or whitelisted public IP only
   if (!requireGps) {
+    if (!ipOk) {
+      return {
+        ok: false,
+        error: `Office network not recognized (IP: ${clientIp || 'unknown'}). Connect to office Wi‑Fi, or ask HR to add your office public IP in HR Settings.`,
+      }
+    }
     return { ok: true }
   }
 
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-    return { ok: false, error: 'GPS location is required — allow location access in your browser' }
-  }
+  // GPS departments: geofence is enough when site is cloud-hosted (public IP is not 192.168.x)
+  if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+    const dist = distanceMeters(latitude, longitude, officeLat, officeLng)
+    const maxAcc = maxGpsAccuracyMeters()
 
-  const dist = distanceMeters(latitude, longitude, officeLat, officeLng)
-  const maxAcc = maxGpsAccuracyMeters()
+    if (dist <= radiusMeters) {
+      return { ok: true }
+    }
 
-  if (dist <= radiusMeters) {
-    return { ok: true }
-  }
+    if (accuracy != null && accuracy > maxAcc) {
+      return {
+        ok: false,
+        error: 'GPS signal is weak. Move closer to a window, wait a few seconds, and try again.',
+      }
+    }
 
-  if (accuracy != null && accuracy > maxAcc) {
     return {
       ok: false,
-      error: 'GPS signal is weak. Move closer to a window, wait a few seconds, and try again.',
+      error: `You are ${Math.round(dist)}m from the office (allowed within ${radiusMeters}m). Enable precise location if indoors.`,
     }
   }
 
-  return {
-    ok: false,
-    error: `You are ${Math.round(dist)}m from the office (allowed within ${radiusMeters}m). Enable precise location if indoors.`,
+  // No GPS — fall back to LAN IP (local dev only)
+  if (ipOk) {
+    return { ok: true }
   }
+
+  return { ok: false, error: 'GPS location is required — allow location access in your browser' }
 }

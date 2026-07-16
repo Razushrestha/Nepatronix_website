@@ -3,7 +3,7 @@ import { connectToDatabase } from '@/lib/mongodb'
 import { requireHrSession } from '@/lib/hr/auth'
 import { HrAttendance, HrEmployee } from '@/lib/hr/models'
 import { dateKey } from '@/lib/hr/attendance-utils'
-import { normalizeClientIp, validateAttendanceLocation } from '@/lib/hr/geo'
+import { getClientIpFromHeaders, validateAttendanceLocation } from '@/lib/hr/geo'
 import { departmentRequiresGps } from '@/lib/hr/constants'
 import { getEffectiveAllowedIps, getEffectiveOfficeCoords } from '@/lib/hr/service'
 import { getOfficeSettings } from '@/lib/hr/models'
@@ -11,9 +11,7 @@ import { getOfficeSettings } from '@/lib/hr/models'
 export const runtime = 'nodejs'
 
 function getRequestIp(req: NextRequest): string {
-  return normalizeClientIp(
-    req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || ''
-  )
+  return getClientIpFromHeaders(req.headers)
 }
 
 export async function POST(req: NextRequest) {

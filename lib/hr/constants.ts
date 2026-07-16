@@ -53,7 +53,7 @@ export const DEFAULT_OFFICE = {
   latitude: 27.6858125,
   longitude: 85.3165781,
   radiusMeters: 150,
-  allowedIps: ['127.0.0.1', '::1', '192.168.1.*', '192.168.1.254'],
+  allowedIps: ['127.0.0.1', '::1', '192.168.2.*', '192.168.2.254'],
 }
 
 /** Departments that only need office Wi‑Fi — no GPS / geofence. */
