@@ -3,13 +3,19 @@
 import { useEffect, useState, use } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { EMPLOYMENT_TYPES, HR_DEPARTMENTS, HR_ROLES } from '@/lib/hr/constants'
+import { EMPLOYMENT_TYPES, HR_DEPARTMENTS, HR_ROLES, usesFlexibleSchedule } from '@/lib/hr/constants'
 import { useHrPaths } from '@/lib/hr/ui-context'
 
 const WEEKDAYS = [
   { v: 'mon', l: 'Mon' }, { v: 'tue', l: 'Tue' }, { v: 'wed', l: 'Wed' },
   { v: 'thu', l: 'Thu' }, { v: 'fri', l: 'Fri' },
 ]
+
+const FLEX_SCHEDULE_LABEL: Record<string, string> = {
+  part_time: 'Fixed work days',
+  freelance: 'Freelance work days',
+  project_basis: 'Project work days',
+}
 
 const TUTOR_OFF_OPTIONS = [
   { v: 'sun', l: 'Sunday' }, { v: 'mon', l: 'Monday' }, { v: 'tue', l: 'Tuesday' },
@@ -201,9 +207,11 @@ export default function HrEditEmployeePage({ params }: { params: Promise<{ id: s
               </select>
             </Field>
           )}
-          {form.employmentType === 'part_time' && (
+          {usesFlexibleSchedule(String(form.employmentType || '')) && (
             <div className="sm:col-span-2">
-              <p className="text-xs font-medium text-slate-500 mb-2">Fixed work days</p>
+              <p className="text-xs font-medium text-slate-500 mb-2">
+                {FLEX_SCHEDULE_LABEL[String(form.employmentType)] || 'Work days'} (Sat/Sun off)
+              </p>
               <div className="flex flex-wrap gap-2">
                 {WEEKDAYS.map((d) => (
                   <button

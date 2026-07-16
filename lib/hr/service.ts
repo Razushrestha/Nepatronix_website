@@ -11,7 +11,6 @@ import {
   DEFAULT_ATTENDANCE_START_DATE,
   departmentCode,
   LEAVE_TYPES,
-  TUTOR_CHOICE_OFF_DAYS,
   type EmploymentType,
   type HrDepartment,
   type Weekday,
@@ -148,7 +147,10 @@ export async function createEmployeeWithDefaults(
     bankName: input.bankName,
     bankAccount: input.bankAccount,
     paidLeaveEligible:
-      input.paidLeaveEligible ?? (employmentType === 'full_time' || employmentType === 'part_time'),
+      input.paidLeaveEligible ??
+      (employmentType === 'full_time' ||
+        employmentType === 'part_time' ||
+        employmentType === 'tutor'),
     active: true,
   })
 

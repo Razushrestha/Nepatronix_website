@@ -4,7 +4,7 @@ import { hashPassword } from '@/lib/auth'
 import { requireHrAdmin } from '@/lib/hr/auth'
 import { HrEmployee, HrHoliday, sanitizeEmployee } from '@/lib/hr/models'
 import { employeeMonthlyWorkload, tutorScheduledDays } from '@/lib/hr/attendance-utils'
-import { TUTOR_CHOICE_OFF_DAYS, type Weekday } from '@/lib/hr/constants'
+import { TUTOR_CHOICE_OFF_DAYS, usesFlexibleSchedule, type Weekday } from '@/lib/hr/constants'
 
 export const runtime = 'nodejs'
 
@@ -68,6 +68,14 @@ export async function PATCH(req: NextRequest, { params }: RouteCtx) {
       body.scheduledDays = tutorScheduledDays(weeklyOffDay)
     } else if (body.employmentType && body.employmentType !== 'tutor') {
       delete body.weeklyOffDay
+    }
+
+    if (
+      usesFlexibleSchedule(employmentType) &&
+      Array.isArray(body.scheduledDays) &&
+      body.scheduledDays.length === 0
+    ) {
+      return NextResponse.json({ error: 'Select at least one work day' }, { status: 400 })
     }
 
     const emp = await HrEmployee.findByIdAndUpdate(id, body, { new: true }).lean()

@@ -158,7 +158,12 @@ export function scheduledHoursForType(
   employmentType: EmploymentType,
   scheduledHoursPerDay: number
 ): number {
-  if (employmentType === 'part_time' || employmentType === 'tutor') {
+  if (
+    employmentType === 'part_time' ||
+    employmentType === 'tutor' ||
+    employmentType === 'freelance' ||
+    employmentType === 'project_basis'
+  ) {
     return scheduledHoursPerDay || 4
   }
   return 8
@@ -166,6 +171,8 @@ export function scheduledHoursForType(
 
 export function defaultScheduledDays(employmentType: EmploymentType): Weekday[] {
   if (employmentType === 'part_time') return ['mon', 'wed', 'fri']
+  if (employmentType === 'freelance') return ['mon', 'tue', 'wed', 'thu', 'fri']
+  if (employmentType === 'project_basis') return ['mon', 'tue', 'wed', 'thu', 'fri']
   if (employmentType === 'tutor') {
     return ['sun', 'mon', 'tue', 'wed', 'thu']
   }

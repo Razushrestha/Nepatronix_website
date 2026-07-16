@@ -2,13 +2,19 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { EMPLOYMENT_TYPES, HR_DEPARTMENTS, HR_ROLES, TUTOR_CHOICE_OFF_DAYS } from '@/lib/hr/constants'
+import { EMPLOYMENT_TYPES, HR_DEPARTMENTS, HR_ROLES, TUTOR_CHOICE_OFF_DAYS, usesFlexibleSchedule } from '@/lib/hr/constants'
 import { useHrPaths } from '@/lib/hr/ui-context'
 
 const WEEKDAYS = [
   { v: 'mon', l: 'Mon' }, { v: 'tue', l: 'Tue' }, { v: 'wed', l: 'Wed' },
   { v: 'thu', l: 'Thu' }, { v: 'fri', l: 'Fri' },
 ]
+
+const FLEX_SCHEDULE_LABEL: Record<string, string> = {
+  part_time: 'Fixed work days',
+  freelance: 'Freelance work days',
+  project_basis: 'Project work days',
+}
 
 const TUTOR_OFF_OPTIONS = [
   { v: 'sun', l: 'Sunday' }, { v: 'mon', l: 'Monday' }, { v: 'tue', l: 'Tuesday' },
@@ -149,10 +155,13 @@ export default function HrNewEmployeePage() {
               <input className="hr-input" type="number" placeholder="Hours per day" value={form.scheduledHoursPerDay} onChange={(e) => set('scheduledHoursPerDay', e.target.value)} />
             </>
           )}
-          {form.employmentType === 'part_time' && (
+          {usesFlexibleSchedule(form.employmentType) && (
             <>
+              <div className="sm:col-span-2 rounded-xl bg-slate-50 border border-slate-100 px-4 py-3 text-sm text-slate-600">
+                Saturday &amp; Sunday are always off. Pick which weekdays they work.
+              </div>
               <div className="sm:col-span-2">
-                <p className="text-sm font-medium mb-2">Fixed work days</p>
+                <p className="text-sm font-medium mb-2">{FLEX_SCHEDULE_LABEL[form.employmentType] || 'Work days'}</p>
                 <div className="flex flex-wrap gap-2">
                   {WEEKDAYS.map((d) => (
                     <button
@@ -167,6 +176,9 @@ export default function HrNewEmployeePage() {
                 </div>
               </div>
               <input className="hr-input" type="number" placeholder="Hours per day" value={form.scheduledHoursPerDay} onChange={(e) => set('scheduledHoursPerDay', e.target.value)} />
+              {form.employmentType === 'project_basis' && (
+                <p className="sm:col-span-2 text-xs text-slate-500">Set contract end date after creating the employee if the project has a fixed duration.</p>
+              )}
             </>
           )}
         </section>

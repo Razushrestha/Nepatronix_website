@@ -84,7 +84,7 @@ const HrEmployeeSchema = new Schema<HrEmployeeDoc>(
     position: { type: String, default: '' },
     employmentType: {
       type: String,
-      enum: ['full_time', 'part_time', 'tutor', 'intern', 'trainee'],
+      enum: ['full_time', 'part_time', 'tutor', 'freelance', 'project_basis', 'intern', 'trainee'],
       default: 'full_time',
     },
     joinDate: Date,

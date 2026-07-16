@@ -10,6 +10,8 @@ export const EMPLOYMENT_TYPES = [
   { value: 'full_time', label: 'Full-time (Mon–Fri)' },
   { value: 'part_time', label: 'Part-time' },
   { value: 'tutor', label: 'STEM Tutor (5 days/week)' },
+  { value: 'freelance', label: 'Freelance' },
+  { value: 'project_basis', label: 'Project basis' },
   { value: 'intern', label: 'Intern' },
   { value: 'trainee', label: 'Trainee' },
 ] as const
@@ -98,4 +100,9 @@ export function isHrManagerRole(role: string): boolean {
 
 export function isHrAdminRole(role: string): boolean {
   return role === 'hr_staff' || role === 'super_hr_admin'
+}
+
+/** Employment types that use custom work-day selection (Sat/Sun always off). */
+export function usesFlexibleSchedule(type: string): boolean {
+  return type === 'part_time' || type === 'freelance' || type === 'project_basis'
 }

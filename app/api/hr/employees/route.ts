@@ -5,7 +5,7 @@ import { requireHrAdmin } from '@/lib/hr/auth'
 import { HrEmployee, HrHoliday, sanitizeEmployee } from '@/lib/hr/models'
 import { createEmployeeWithDefaults } from '@/lib/hr/service'
 import { employeeMonthlyWorkload } from '@/lib/hr/attendance-utils'
-import { EMPLOYMENT_TYPES, HR_DEPARTMENTS, HR_ROLES, TUTOR_CHOICE_OFF_DAYS, type EmploymentType, type HrDepartment, type HrRole, type Weekday } from '@/lib/hr/constants'
+import { EMPLOYMENT_TYPES, HR_DEPARTMENTS, HR_ROLES, TUTOR_CHOICE_OFF_DAYS, usesFlexibleSchedule, type EmploymentType, type HrDepartment, type HrRole, type Weekday } from '@/lib/hr/constants'
 
 export const runtime = 'nodejs'
 
@@ -123,6 +123,13 @@ export async function POST(req: NextRequest) {
           { error: 'STEM tutors must pick a weekly off day (Sunday–Friday). Saturday is always off.' },
           { status: 400 }
         )
+      }
+    }
+
+    if (usesFlexibleSchedule(employmentType)) {
+      const days = Array.isArray(body.scheduledDays) ? body.scheduledDays.filter(Boolean) : []
+      if (!days.length) {
+        return NextResponse.json({ error: 'Select at least one work day for this employment type' }, { status: 400 })
       }
     }
 
