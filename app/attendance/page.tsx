@@ -25,6 +25,9 @@ type AttendanceData = {
   } | null
   records: { date: string; status: string; checkIn?: string; checkOut?: string; lateMinutes?: number; lateDeduction?: number }[]
   summary: { present: number; lateMinutes: number; lateDeduction: number; absent: number }
+  attendanceStartDate?: string
+  attendanceStartLabel?: string
+  trackingActive?: boolean
 }
 
 type OfficeSettings = { startTime: string; endTime: string; officeName?: string }
@@ -32,6 +35,7 @@ type OfficeSettings = { startTime: string; endTime: string; officeName?: string 
 const STATUS_STYLES: Record<string, string> = {
   present: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   absent: 'bg-slate-100 text-slate-600 border-slate-200',
+  not_started: 'bg-sky-50 text-sky-700 border-sky-200',
   half_day: 'bg-amber-50 text-amber-700 border-amber-200',
   leave: 'bg-violet-50 text-violet-700 border-violet-200',
   weekly_off: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -317,10 +321,12 @@ function EmployeePortal({ user, onLogout }: { user: User; onLogout: () => void }
   }
 
   const today = data?.today
-  const statusKey = today?.status || 'absent'
+  const trackingActive = data?.trackingActive !== false
+  const statusKey = today?.status || (trackingActive ? 'absent' : 'not_started')
   const statusStyle = STATUS_STYLES[statusKey] || STATUS_STYLES.absent
-  const canCheckIn = today && !today.checkIn && !['weekly_off', 'holiday', 'leave'].includes(statusKey)
-  const canCheckOut = today?.checkIn && !today?.checkOut
+  const canCheckIn =
+    trackingActive && today && !today.checkIn && !['weekly_off', 'holiday', 'leave', 'not_started'].includes(statusKey)
+  const canCheckOut = trackingActive && today?.checkIn && !today?.checkOut
 
   const openTasks = tasks.filter((t) => t.status !== 'completed').length
 
@@ -367,6 +373,11 @@ function EmployeePortal({ user, onLogout }: { user: User; onLogout: () => void }
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-5xl w-full mx-auto space-y-6">
+          {!trackingActive && data?.attendanceStartLabel && (
+            <div className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+              <strong>Attendance starts {data.attendanceStartLabel}</strong> (Shrawan 1). Until then, check-in is disabled and past days are not counted toward salary or deductions.
+            </div>
+          )}
           {view === 'dashboard' && (
             <>
               <div className="hr-card">
@@ -446,7 +457,7 @@ function EmployeePortal({ user, onLogout }: { user: User; onLogout: () => void }
                   <div>
                     <p className="text-xs font-bold text-[#C1121F] uppercase tracking-widest">Current status</p>
                     <span className={`inline-flex mt-2 px-3 py-1 rounded-full text-sm font-semibold border capitalize ${statusStyle}`}>
-                      {statusKey.replace(/_/g, ' ')}
+                      {statusKey === 'not_started' ? 'Starts tomorrow' : statusKey.replace(/_/g, ' ')}
                     </span>
                   </div>
                   {today?.checkIn && (
@@ -477,7 +488,7 @@ function EmployeePortal({ user, onLogout }: { user: User; onLogout: () => void }
                     disabled={busy !== null || !canCheckIn}
                     className="hr-btn flex-1 py-3.5 text-base disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {busy === 'in' ? 'Checking in…' : today?.checkIn ? '✓ Already checked in' : 'Check in now'}
+                    {busy === 'in' ? 'Checking in…' : today?.checkIn ? '✓ Already checked in' : trackingActive ? 'Check in now' : 'Opens Shrawan 1'}
                   </button>
                   <button
                     type="button"

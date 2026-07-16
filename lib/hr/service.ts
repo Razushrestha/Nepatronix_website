@@ -8,6 +8,7 @@ import {
 } from './models'
 import {
   DEFAULT_OFFICE,
+  DEFAULT_ATTENDANCE_START_DATE,
   departmentCode,
   LEAVE_TYPES,
   type EmploymentType,
@@ -69,6 +70,20 @@ export function getEffectiveOfficeCoords(settings: { latitude: number; longitude
     longitude: Number(process.env.HR_OFFICE_LNG) || settings.longitude || DEFAULT_OFFICE.longitude,
     radiusMeters: Number(process.env.HR_OFFICE_RADIUS_M) || settings.radiusMeters || DEFAULT_OFFICE.radiusMeters,
   }
+}
+
+export function getEffectiveAttendanceStartDate(settings: { attendanceStartDate?: string }): string {
+  const env = process.env.HR_ATTENDANCE_START_DATE?.trim()
+  if (env && /^\d{4}-\d{2}-\d{2}$/.test(env)) return env
+  const stored = settings.attendanceStartDate?.trim()
+  if (stored && /^\d{4}-\d{2}-\d{2}$/.test(stored)) return stored
+  return DEFAULT_ATTENDANCE_START_DATE
+}
+
+export function formatAttendanceStartLabel(startDate: string): string {
+  const d = new Date(`${startDate}T12:00:00`)
+  if (isNaN(d.getTime())) return startDate
+  return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 export async function createEmployeeWithDefaults(

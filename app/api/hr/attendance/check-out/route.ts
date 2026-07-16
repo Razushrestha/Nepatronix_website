@@ -5,7 +5,7 @@ import { HrAttendance, HrEmployee } from '@/lib/hr/models'
 import { dateKey } from '@/lib/hr/attendance-utils'
 import { getClientIpFromHeaders, validateAttendanceLocation } from '@/lib/hr/geo'
 import { departmentRequiresGps } from '@/lib/hr/constants'
-import { getEffectiveAllowedIps, getEffectiveOfficeCoords } from '@/lib/hr/service'
+import { getEffectiveAllowedIps, getEffectiveOfficeCoords, getEffectiveAttendanceStartDate, formatAttendanceStartLabel } from '@/lib/hr/service'
 import { getOfficeSettings } from '@/lib/hr/models'
 
 export const runtime = 'nodejs'
@@ -47,6 +47,16 @@ export async function POST(req: NextRequest) {
     }
 
     const today = dateKey(new Date())
+    const attendanceStartDate = getEffectiveAttendanceStartDate(settings)
+    if (today < attendanceStartDate) {
+      return NextResponse.json(
+        {
+          error: `Attendance tracking starts on ${formatAttendanceStartLabel(attendanceStartDate)} (Shrawan 1).`,
+        },
+        { status: 400 }
+      )
+    }
+
     const record = await HrAttendance.findOne({ employeeId: emp._id, date: today })
     if (!record?.checkIn) {
       return NextResponse.json({ error: 'Check in first before checking out' }, { status: 400 })

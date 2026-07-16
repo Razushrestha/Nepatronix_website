@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/mongodb'
 import { requireHrSession, requireHrAdmin } from '@/lib/hr/auth'
-import { HrAttendance, HrEmployee, HrHoliday } from '@/lib/hr/models'
-import { dateKey, isScheduledWorkday, isWeekend } from '@/lib/hr/attendance-utils'
+import { HrAttendance, HrEmployee, HrHoliday, getOfficeSettings } from '@/lib/hr/models'
+import { dateKey, filterCountableRecords, isScheduledWorkday, isWeekend } from '@/lib/hr/attendance-utils'
+import { getEffectiveAttendanceStartDate, formatAttendanceStartLabel } from '@/lib/hr/service'
 import type { Weekday } from '@/lib/hr/constants'
 
 export const runtime = 'nodejs'
@@ -22,6 +23,9 @@ export async function GET(req: NextRequest) {
 
   const emp = await HrEmployee.findById(targetId).lean()
   if (!emp) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const settings = await getOfficeSettings()
+  const attendanceStartDate = getEffectiveAttendanceStartDate(settings)
 
   const now = new Date()
   const [y, m] = month
@@ -43,27 +47,39 @@ export async function GET(req: NextRequest) {
   let todayRecord = records.find((r) => r.date === today)
   if (!todayRecord && prefix === today.slice(0, 7)) {
     const d = now
-    let status: 'weekly_off' | 'holiday' | 'absent' = 'absent'
-    if (isWeekend(d)) status = 'weekly_off'
-    else if (holidaySet.has(today)) status = 'holiday'
-    else if (!isScheduledWorkday(d, emp.employmentType, emp.scheduledDays as Weekday[])) {
-      status = 'weekly_off'
+    if (today < attendanceStartDate) {
+      todayRecord = {
+        date: today,
+        status: 'not_started',
+        lateMinutes: 0,
+        lateDeduction: 0,
+        scheduledStart: emp.scheduledStart,
+        scheduledEnd: emp.scheduledEnd,
+      } as (typeof records)[0]
+    } else {
+      let status: 'weekly_off' | 'holiday' | 'absent' = 'absent'
+      if (isWeekend(d)) status = 'weekly_off'
+      else if (holidaySet.has(today)) status = 'holiday'
+      else if (!isScheduledWorkday(d, emp.employmentType, emp.scheduledDays as Weekday[])) {
+        status = 'weekly_off'
+      }
+      todayRecord = {
+        date: today,
+        status,
+        lateMinutes: 0,
+        lateDeduction: 0,
+        scheduledStart: emp.scheduledStart,
+        scheduledEnd: emp.scheduledEnd,
+      } as (typeof records)[0]
     }
-    todayRecord = {
-      date: today,
-      status,
-      lateMinutes: 0,
-      lateDeduction: 0,
-      scheduledStart: emp.scheduledStart,
-      scheduledEnd: emp.scheduledEnd,
-    } as (typeof records)[0]
   }
 
+  const countable = filterCountableRecords(records, attendanceStartDate)
   const summary = {
-    present: records.filter((r) => r.status === 'present').length,
-    lateMinutes: records.reduce((s, r) => s + (r.lateMinutes || 0), 0),
-    lateDeduction: records.reduce((s, r) => s + (r.lateDeduction || 0), 0),
-    absent: records.filter((r) => r.status === 'absent').length,
+    present: countable.filter((r) => r.status === 'present').length,
+    lateMinutes: countable.reduce((s, r) => s + (r.lateMinutes || 0), 0),
+    lateDeduction: countable.reduce((s, r) => s + (r.lateDeduction || 0), 0),
+    absent: countable.filter((r) => r.status === 'absent').length,
   }
 
   return NextResponse.json({
@@ -72,5 +88,8 @@ export async function GET(req: NextRequest) {
     today: todayRecord || null,
     records,
     summary,
+    attendanceStartDate,
+    attendanceStartLabel: formatAttendanceStartLabel(attendanceStartDate),
+    trackingActive: today >= attendanceStartDate,
   })
 }

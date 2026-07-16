@@ -12,6 +12,7 @@ export default function HrManageSettingsPage() {
     longitude: '',
     radiusMeters: '150',
     allowedIps: '',
+    attendanceStartDate: '2026-07-17',
   })
   const [msg, setMsg] = useState('')
   const [canEdit, setCanEdit] = useState(false)
@@ -30,6 +31,7 @@ export default function HrManageSettingsPage() {
           longitude: String(d.longitude ?? ''),
           radiusMeters: String(d.radiusMeters ?? 150),
           allowedIps: Array.isArray(d.allowedIps) ? d.allowedIps.join('\n') : '',
+          attendanceStartDate: d.attendanceStartDate || '2026-07-17',
         })
       })
   }, [])
@@ -50,6 +52,7 @@ export default function HrManageSettingsPage() {
         longitude: Number(form.longitude),
         radiusMeters: Number(form.radiusMeters),
         allowedIps: form.allowedIps.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean),
+        attendanceStartDate: form.attendanceStartDate,
       }),
     })
     setMsg(res.ok ? 'Settings saved' : 'Save failed')
@@ -73,6 +76,16 @@ export default function HrManageSettingsPage() {
           <input className="hr-input" placeholder="Longitude" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} />
         </div>
         <input className="hr-input" placeholder="GPS radius (m)" value={form.radiusMeters} onChange={(e) => setForm({ ...form, radiusMeters: e.target.value })} />
+        <label className="block text-sm font-medium text-slate-700">
+          Attendance start date
+          <input
+            type="date"
+            className="hr-input mt-1"
+            value={form.attendanceStartDate}
+            onChange={(e) => setForm({ ...form, attendanceStartDate: e.target.value })}
+          />
+        </label>
+        <p className="text-xs text-slate-500">Days before this date are ignored for check-in, late deductions, and payroll. Set to Shrawan 1 when launching attendance.</p>
         <textarea
           className="hr-input"
           rows={4}
@@ -80,7 +93,7 @@ export default function HrManageSettingsPage() {
           value={form.allowedIps}
           onChange={(e) => setForm({ ...form, allowedIps: e.target.value })}
         />
-        <p className="text-xs text-slate-500">Env overrides: HR_ALLOWED_IPS, HR_OFFICE_LAT, HR_OFFICE_LNG, HR_OFFICE_RADIUS_M</p>
+        <p className="text-xs text-slate-500">Env overrides: HR_ALLOWED_IPS, HR_OFFICE_LAT, HR_OFFICE_LNG, HR_OFFICE_RADIUS_M, HR_ATTENDANCE_START_DATE</p>
         {msg && <p className="text-sm text-green-700">{msg}</p>}
         <button type="submit" className="hr-btn">Save settings</button>
       </form>

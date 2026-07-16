@@ -128,6 +128,7 @@ export interface HrOfficeSettingsDoc {
   radiusMeters: number
   allowedIps: string[]
   officeName: string
+  attendanceStartDate: string
 }
 
 const HrOfficeSettingsSchema = new Schema<HrOfficeSettingsDoc>(
@@ -150,6 +151,7 @@ const HrOfficeSettingsSchema = new Schema<HrOfficeSettingsDoc>(
       ],
     },
     officeName: { type: String, default: 'Nepatronix Office — Tinkune' },
+    attendanceStartDate: { type: String, default: '2026-07-17' },
   },
   { timestamps: true }
 )

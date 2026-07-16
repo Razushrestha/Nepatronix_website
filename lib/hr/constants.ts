@@ -63,6 +63,9 @@ export const DEFAULT_OFFICE = {
   ],
 }
 
+/** Official attendance / payroll start — Shrawan 1 (17 Jul 2026). Days before this are ignored. */
+export const DEFAULT_ATTENDANCE_START_DATE = '2026-07-17'
+
 /** Departments that only need office Wi‑Fi — no GPS / geofence. */
 export const GPS_EXEMPT_DEPARTMENTS: readonly HrDepartment[] = ['stem-innovation-nepal']
 

@@ -18,7 +18,7 @@ import {
 } from '@/lib/hr/attendance-utils'
 import { getClientIpFromHeaders, validateAttendanceLocation } from '@/lib/hr/geo'
 import { departmentRequiresGps } from '@/lib/hr/constants'
-import { getEffectiveAllowedIps, getEffectiveOfficeCoords } from '@/lib/hr/service'
+import { getEffectiveAllowedIps, getEffectiveOfficeCoords, getEffectiveAttendanceStartDate, formatAttendanceStartLabel } from '@/lib/hr/service'
 import type { Weekday } from '@/lib/hr/constants'
 
 export const runtime = 'nodejs'
@@ -71,6 +71,16 @@ export async function POST(req: NextRequest) {
     const now = new Date()
     const today = dateKey(now)
     const settings = await getOfficeSettings()
+    const attendanceStartDate = getEffectiveAttendanceStartDate(settings)
+
+    if (today < attendanceStartDate) {
+      return NextResponse.json(
+        {
+          error: `Attendance tracking starts on ${formatAttendanceStartLabel(attendanceStartDate)} (Shrawan 1). Check-in opens from that date — earlier days are not counted.`,
+        },
+        { status: 400 }
+      )
+    }
 
     if (!isScheduledWorkday(now, emp.employmentType, emp.scheduledDays as Weekday[])) {
       return NextResponse.json({ error: 'Today is not a scheduled work day for you' }, { status: 400 })
@@ -109,7 +119,8 @@ export async function POST(req: NextRequest) {
       month,
       emp.employmentType,
       emp.scheduledDays as Weekday[],
-      holidaySet
+      holidaySet,
+      attendanceStartDate.slice(0, 7) === `${year}-${String(month + 1).padStart(2, '0')}` ? attendanceStartDate : undefined
     )
     const hours = scheduledHoursForType(emp.employmentType, emp.scheduledHoursPerDay)
     const lateDeduction = calcLateDeduction(lateMinutes, emp.monthlyPay, workingDays, hours)

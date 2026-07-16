@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/mongodb'
 import { requireHrAdmin } from '@/lib/hr/auth'
 import { HrAttendance, HrEmployee, HrLeaveRequest, HrTask, getOfficeSettings } from '@/lib/hr/models'
-import { dateKey } from '@/lib/hr/attendance-utils'
+import { dateKey, filterCountableRecords, isCountableAttendanceDate } from '@/lib/hr/attendance-utils'
+import { getEffectiveAttendanceStartDate } from '@/lib/hr/service'
 
 export const runtime = 'nodejs'
 
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest) {
       absentToday,
       onLeaveToday,
       deptAgg,
-      settings,
+      officeSettings,
       recentLeave,
       recentEmployees,
       monthRecords,
@@ -79,9 +80,14 @@ export async function GET(req: NextRequest) {
       HrTask.countDocuments({ status: { $in: ['pending', 'in_progress'] } }),
     ])
 
-    const monthPresent = monthRecords.filter((r) => r.status === 'present').length
-    const monthLateDeduction = monthRecords.reduce((s, r) => s + (r.lateDeduction || 0), 0)
-    const monthLateMinutes = monthRecords.reduce((s, r) => s + (r.lateMinutes || 0), 0)
+    const attendanceStartDate = getEffectiveAttendanceStartDate(officeSettings)
+
+    const monthPresent = monthRecords.filter(
+      (r) => r.status === 'present' && isCountableAttendanceDate(r.date, attendanceStartDate)
+    ).length
+    const countableMonth = filterCountableRecords(monthRecords, attendanceStartDate)
+    const monthLateDeduction = countableMonth.reduce((s, r) => s + (r.lateDeduction || 0), 0)
+    const monthLateMinutes = countableMonth.reduce((s, r) => s + (r.lateMinutes || 0), 0)
     const netPayroll = Math.max(0, grossPayroll - monthLateDeduction)
 
     const leaveEmpIds = [...new Set(recentLeave.map((r) => String(r.employeeId)))]
@@ -109,8 +115,20 @@ export async function GET(req: NextRequest) {
           {
             $group: {
               _id: { $substr: ['$date', 0, 7] },
-              deductions: { $sum: '$lateDeduction' },
-              presentDays: { $sum: { $cond: [{ $eq: ['$status', 'present'] }, 1, 0] } },
+              deductions: {
+                $sum: {
+                  $cond: [{ $gte: ['$date', attendanceStartDate] }, '$lateDeduction', 0],
+                },
+              },
+              presentDays: {
+                $sum: {
+                  $cond: [
+                    { $and: [{ $gte: ['$date', attendanceStartDate] }, { $eq: ['$status', 'present'] }] },
+                    1,
+                    0,
+                  ],
+                },
+              },
             },
           },
         ])
@@ -156,10 +174,11 @@ export async function GET(req: NextRequest) {
       payrollHistory,
       departments: deptAgg.map((d) => ({ department: d._id || 'unknown', count: d.count })),
       office: {
-        name: settings.officeName,
-        startTime: settings.startTime,
-        endTime: settings.endTime,
-        graceMinutes: settings.graceMinutes,
+        name: officeSettings.officeName,
+        startTime: officeSettings.startTime,
+        endTime: officeSettings.endTime,
+        graceMinutes: officeSettings.graceMinutes,
+        attendanceStartDate,
       },
       recentLeave: recentLeave.map((r) => ({
         id: String(r._id),

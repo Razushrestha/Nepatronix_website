@@ -65,6 +65,7 @@ const HrOfficeSettingsSchema = new mongoose.Schema(
       ],
     },
     officeName: String,
+    attendanceStartDate: { type: String, default: '2026-07-17' },
   },
   { timestamps: true }
 )
@@ -101,6 +102,19 @@ async function main() {
   const HrLeaveBalance =
     mongoose.models.HrLeaveBalance || mongoose.model('HrLeaveBalance', HrLeaveBalanceSchema)
   const HrTask = mongoose.models.HrTask || mongoose.model('HrTask', HrTaskSchema)
+  const HrAttendance =
+    mongoose.models.HrAttendance ||
+    mongoose.model(
+      'HrAttendance',
+      new mongoose.Schema({
+        employeeId: mongoose.Schema.Types.ObjectId,
+        date: String,
+        status: String,
+        lateDeduction: Number,
+      })
+    )
+
+  const attendanceStartDate = process.env.HR_ATTENDANCE_START_DATE || '2026-07-17'
 
   await HrOfficeSettings.findOneAndUpdate(
     {},
@@ -111,6 +125,7 @@ async function main() {
         latitude: 27.6858125,
         longitude: 85.3165781,
         radiusMeters: 150,
+        attendanceStartDate,
         allowedIps: [
           '127.0.0.1',
           '::1',
@@ -123,7 +138,12 @@ async function main() {
     },
     { upsert: true }
   )
-  console.log('✓ Office settings synced (GPS + office Wi‑Fi)')
+  console.log(`✓ Office settings synced (attendance starts ${attendanceStartDate})`)
+
+  const removed = await HrAttendance.deleteMany({ date: { $lt: attendanceStartDate } })
+  if (removed.deletedCount) {
+    console.log(`✓ Cleared ${removed.deletedCount} pre-start attendance record(s)`)
+  }
 
   const hrEmail = process.env.HR_ADMIN_EMAIL || 'hr@nepatronix.org'
   const hrPassword = process.env.HR_ADMIN_PASSWORD || 'hradminnepatronix'

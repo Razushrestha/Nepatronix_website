@@ -288,6 +288,8 @@ async function main() {
     pass('Check-in with office GPS', checkIn.json?.message || 'ok')
   } else if (checkIn.status === 400 && checkIn.json?.error?.includes('Already checked in')) {
     pass('Check-in idempotent guard', 'already checked in')
+  } else if (checkIn.status === 400 && checkIn.json?.error?.includes('Attendance tracking starts')) {
+    pass('Check-in blocked before official start date', 'Shrawan 1 guard')
   } else if (checkIn.status === 403) {
     fail('Check-in IP/GPS', checkIn.json?.error || String(checkIn.status))
   } else {

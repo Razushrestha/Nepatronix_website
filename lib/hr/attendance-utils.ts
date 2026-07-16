@@ -56,17 +56,44 @@ export function countWorkingDaysInMonth(
   month: number,
   employmentType: EmploymentType,
   scheduledDays: Weekday[],
-  holidayDates: Set<string>
+  holidayDates: Set<string>,
+  fromDateKey?: string | null
 ): number {
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   let count = 0
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(year, month, d)
     const key = dateKey(date)
+    if (fromDateKey && key < fromDateKey) continue
     if (holidayDates.has(key)) continue
     if (isScheduledWorkday(date, employmentType, scheduledDays)) count++
   }
   return count
+}
+
+/** Working days in a month that count for attendance/payroll (respects official start date). */
+export function workingDaysFromStartInMonth(
+  year: number,
+  month: number,
+  employmentType: EmploymentType,
+  scheduledDays: Weekday[],
+  holidayDates: Set<string>,
+  attendanceStartDate: string
+): number {
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`
+  const startMonth = attendanceStartDate.slice(0, 7)
+  if (monthPrefix < startMonth) return 0
+  const fromKey = monthPrefix === startMonth ? attendanceStartDate : undefined
+  return countWorkingDaysInMonth(year, month, employmentType, scheduledDays, holidayDates, fromKey)
+}
+
+/** Only dates on or after the official start date affect salary / deductions. */
+export function isCountableAttendanceDate(date: string, startDate: string): boolean {
+  return !startDate || date >= startDate
+}
+
+export function filterCountableRecords<T extends { date: string }>(records: T[], startDate: string): T[] {
+  return records.filter((r) => isCountableAttendanceDate(r.date, startDate))
 }
 
 export function calcLateMinutes(checkIn: Date, scheduledStart: string, graceMinutes = 0): number {
@@ -121,14 +148,17 @@ export function employeeMonthlyWorkload(
     scheduledHoursPerDay?: number
   },
   holidayDates: Set<string>,
-  refDate = new Date()
+  refDate = new Date(),
+  attendanceStartDate?: string
 ): { totalWorkingDays: number; totalWorkingHours: number; hoursPerDay: number } {
   const year = refDate.getFullYear()
   const month = refDate.getMonth()
   const days = emp.scheduledDays?.length
     ? emp.scheduledDays
     : defaultScheduledDays(emp.employmentType)
-  const totalWorkingDays = countWorkingDaysInMonth(year, month, emp.employmentType, days, holidayDates)
+  const totalWorkingDays = attendanceStartDate
+    ? workingDaysFromStartInMonth(year, month, emp.employmentType, days, holidayDates, attendanceStartDate)
+    : countWorkingDaysInMonth(year, month, emp.employmentType, days, holidayDates)
   const hoursPerDay = hoursPerDayFromSchedule(emp.scheduledStart, emp.scheduledEnd, emp.scheduledHoursPerDay)
   return {
     totalWorkingDays,

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/mongodb'
 import { requireHrSession } from '@/lib/hr/auth'
-import { HrAttendance, HrEmployee, HrHoliday } from '@/lib/hr/models'
-import { employeeMonthlyWorkload } from '@/lib/hr/attendance-utils'
+import { HrAttendance, HrEmployee, HrHoliday, getOfficeSettings } from '@/lib/hr/models'
+import { employeeMonthlyWorkload, filterCountableRecords } from '@/lib/hr/attendance-utils'
+import { getEffectiveAttendanceStartDate, formatAttendanceStartLabel } from '@/lib/hr/service'
 
 export const runtime = 'nodejs'
 
@@ -14,9 +15,13 @@ export async function GET() {
   const emp = await HrEmployee.findById(session.id).lean()
   if (!emp) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  const settings = await getOfficeSettings()
+  const attendanceStartDate = getEffectiveAttendanceStartDate(settings)
+
   const now = new Date()
   const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
   const monthLabel = now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
   const records = await HrAttendance.find({
     employeeId: emp._id,
@@ -25,11 +30,12 @@ export async function GET() {
 
   const holidays = await HrHoliday.find({ date: { $regex: `^${monthPrefix}` } }).lean()
   const holidaySet = new Set(holidays.map((h) => h.date))
-  const workload = employeeMonthlyWorkload(emp, holidaySet, now)
+  const workload = employeeMonthlyWorkload(emp, holidaySet, now, attendanceStartDate)
 
-  const lateDeduction = records.reduce((s, r) => s + (r.lateDeduction || 0), 0)
-  const lateMinutes = records.reduce((s, r) => s + (r.lateMinutes || 0), 0)
-  const presentDays = records.filter((r) => r.status === 'present').length
+  const countable = filterCountableRecords(records, attendanceStartDate)
+  const lateDeduction = countable.reduce((s, r) => s + (r.lateDeduction || 0), 0)
+  const lateMinutes = countable.reduce((s, r) => s + (r.lateMinutes || 0), 0)
+  const presentDays = countable.filter((r) => r.status === 'present').length
   const monthlyPay = emp.monthlyPay || 0
   const estimatedNet = Math.max(0, monthlyPay - lateDeduction)
 
@@ -49,5 +55,8 @@ export async function GET() {
     totalWorkingHours: workload.totalWorkingHours,
     bankName: emp.bankName,
     bankAccount: emp.bankAccount,
+    attendanceStartDate,
+    attendanceStartLabel: formatAttendanceStartLabel(attendanceStartDate),
+    trackingActive: todayKey >= attendanceStartDate,
   })
 }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/mongodb'
 import { requireHrAdmin, requireHrSession } from '@/lib/hr/auth'
 import { getOfficeSettings, HrOfficeSettings } from '@/lib/hr/models'
-import { getEffectiveAllowedIps, getEffectiveOfficeCoords } from '@/lib/hr/service'
+import { getEffectiveAllowedIps, getEffectiveOfficeCoords, getEffectiveAttendanceStartDate, formatAttendanceStartLabel } from '@/lib/hr/service'
 import { departmentRequiresGps, GPS_EXEMPT_DEPARTMENTS } from '@/lib/hr/constants'
 
 export const runtime = 'nodejs'
@@ -15,6 +15,7 @@ export async function GET() {
   const settings = await getOfficeSettings()
   const office = getEffectiveOfficeCoords(settings)
   const ips = getEffectiveAllowedIps(settings)
+  const attendanceStartDate = getEffectiveAttendanceStartDate(settings)
   const isAdmin = session.role === 'hr_staff' || session.role === 'super_hr_admin'
 
   return NextResponse.json({
@@ -27,6 +28,8 @@ export async function GET() {
     radiusMeters: office.radiusMeters,
     allowedIpCount: ips.length,
     allowedIps: isAdmin ? ips : undefined,
+    attendanceStartDate,
+    attendanceStartLabel: formatAttendanceStartLabel(attendanceStartDate),
     canEdit: isAdmin,
     requiresGps: departmentRequiresGps(session.department),
     gpsExemptDepartments: isAdmin ? [...GPS_EXEMPT_DEPARTMENTS] : undefined,
@@ -53,6 +56,10 @@ export async function PATCH(req: NextRequest) {
     if (body.officeName != null) updates.officeName = String(body.officeName)
     if (Array.isArray(body.allowedIps)) {
       updates.allowedIps = body.allowedIps.map((s: string) => s.trim()).filter(Boolean)
+    }
+    if (body.attendanceStartDate != null) {
+      const d = String(body.attendanceStartDate).trim()
+      if (/^\d{4}-\d{2}-\d{2}$/.test(d)) updates.attendanceStartDate = d
     }
 
     Object.assign(doc, updates)

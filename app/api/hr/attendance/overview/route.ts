@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/mongodb'
 import { requireHrAdmin } from '@/lib/hr/auth'
-import { HrAttendance, HrEmployee, HrHoliday } from '@/lib/hr/models'
-import { dateKey, employeeMonthlyWorkload } from '@/lib/hr/attendance-utils'
+import { HrAttendance, HrEmployee, HrHoliday, getOfficeSettings } from '@/lib/hr/models'
+import { dateKey, employeeMonthlyWorkload, isCountableAttendanceDate } from '@/lib/hr/attendance-utils'
+import { getEffectiveAttendanceStartDate, formatAttendanceStartLabel } from '@/lib/hr/service'
 import type { HrDepartment } from '@/lib/hr/constants'
 
 export const runtime = 'nodejs'
@@ -50,6 +51,7 @@ function buildEmployeeFilter(department: string | null, q: string | null) {
 async function buildPayrollHistory(
   employees: { monthlyPay?: number }[],
   empIds: unknown[],
+  attendanceStartDate: string,
   monthsBack = 12
 ) {
   const now = new Date()
@@ -92,8 +94,20 @@ async function buildPayrollHistory(
     {
       $group: {
         _id: { $substr: ['$date', 0, 7] },
-        deductions: { $sum: '$lateDeduction' },
-        presentDays: { $sum: { $cond: [{ $eq: ['$status', 'present'] }, 1, 0] } },
+        deductions: {
+          $sum: {
+            $cond: [{ $gte: ['$date', attendanceStartDate] }, '$lateDeduction', 0],
+          },
+        },
+        presentDays: {
+          $sum: {
+            $cond: [
+              { $and: [{ $gte: ['$date', attendanceStartDate] }, { $eq: ['$status', 'present'] }] },
+              1,
+              0,
+            ],
+          },
+        },
       },
     },
   ])
@@ -127,6 +141,8 @@ export async function GET(req: NextRequest) {
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     await connectToDatabase()
+    const settings = await getOfficeSettings()
+    const attendanceStartDate = getEffectiveAttendanceStartDate(settings)
     const { searchParams } = new URL(req.url)
     const department = searchParams.get('department')?.trim() || null
     const q = searchParams.get('q')?.trim() || null
@@ -182,6 +198,7 @@ export async function GET(req: NextRequest) {
     }
 
     for (const r of records) {
+      if (!isCountableAttendanceDate(r.date, attendanceStartDate)) continue
       const id = String(r.employeeId)
       const s = summaryByEmp.get(id)
       if (!s) continue
@@ -191,6 +208,12 @@ export async function GET(req: NextRequest) {
       s.lateMinutes += r.lateMinutes || 0
       s.lateDeduction += r.lateDeduction || 0
       if (today && r.date === today) s.todayStatus = r.status
+    }
+
+    if (today && today < attendanceStartDate) {
+      for (const s of summaryByEmp.values()) {
+        if (s.todayStatus === 'absent') s.todayStatus = 'not_started'
+      }
     }
 
     let presentToday = 0
@@ -203,7 +226,7 @@ export async function GET(req: NextRequest) {
     const rows = employees.map((e) => {
       const id = String(e._id)
       const att = summaryByEmp.get(id)!
-      const workload = employeeMonthlyWorkload(e, holidaySet, refDate)
+      const workload = employeeMonthlyWorkload(e, holidaySet, refDate, attendanceStartDate)
       const monthlyPay = e.monthlyPay || 0
       const finalSalary = Math.max(0, monthlyPay - att.lateDeduction)
 
@@ -244,8 +267,8 @@ export async function GET(req: NextRequest) {
     const monthPresentTotal = rows.reduce((s, r) => s + r.present, 0)
 
     const [payrollHistory, filteredPayrollHistory] = await Promise.all([
-      buildPayrollHistory(allEmployees, allEmployees.map((e) => e._id)),
-      buildPayrollHistory(employees, empIds),
+      buildPayrollHistory(allEmployees, allEmployees.map((e) => e._id), attendanceStartDate),
+      buildPayrollHistory(employees, empIds, attendanceStartDate),
     ])
 
     return NextResponse.json({
@@ -253,6 +276,9 @@ export async function GET(req: NextRequest) {
       monthKey: monthPrefix,
       today,
       isCurrentMonth,
+      attendanceStartDate,
+      attendanceStartLabel: formatAttendanceStartLabel(attendanceStartDate),
+      trackingActive: today ? today >= attendanceStartDate : false,
       filters: { department, q, month: monthPrefix },
       totalEmployeesUnfiltered: allEmployees.length,
       departmentCounts,
