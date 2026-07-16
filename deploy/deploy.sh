@@ -14,10 +14,28 @@ npm ci
 
 echo "==> Building (VPS fast build — skips heavy TypeScript check)..."
 export NODE_OPTIONS="--max-old-space-size=4096"
-npm run build:vps
+if ! npm run build:vps; then
+  echo "ERROR: Build failed — site will show 502 until fixed."
+  exit 1
+fi
+
+if [ ! -d .next ]; then
+  echo "ERROR: .next missing after build."
+  exit 1
+fi
+
+echo "==> Seeding HR office settings..."
+npm run seed:hr || true
 
 echo "==> Restarting app..."
-pm2 restart nepatronix || pm2 start ecosystem.config.js
+pm2 delete nepatronix 2>/dev/null || true
+pm2 start ecosystem.config.js
 pm2 save
 
-echo "==> Done. Check: pm2 logs nepatronix --lines 30"
+sleep 4
+if ! curl -sf -o /dev/null http://127.0.0.1:3000; then
+  echo "WARNING: App not responding on :3000. Run: pm2 logs nepatronix --lines 50"
+  exit 1
+fi
+
+echo "==> Done. App is up on port 3000."

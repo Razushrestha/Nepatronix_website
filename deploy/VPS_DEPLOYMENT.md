@@ -153,7 +153,7 @@ npm run verify -- https://nepatronix.org
 | `git pull` blocked on `next.config.ts` | Run `git checkout -- next.config.ts && git pull origin main` |
 | Admin login fails | Run `npm run seed:admin`, check `JWT_SECRET` |
 | Empty site | Run `npm run seed:content` or restore mongodump |
-| 502 Bad Gateway | `pm2 restart nepatronix`, check `pm2 logs` |
+| 502 Bad Gateway | App not on port 3000 — run `bash deploy/recover-502.sh` then `pm2 logs nepatronix` |
 
 ### MongoDB authentication during build
 
