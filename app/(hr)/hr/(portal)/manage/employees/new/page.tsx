@@ -52,19 +52,33 @@ export default function HrNewEmployeePage() {
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
       body: JSON.stringify({
-        ...form,
+        fullName: form.fullName.trim(),
+        email: form.email.trim(),
+        password: form.password,
+        phone: form.phone.trim() || undefined,
+        department: form.department,
+        position: form.position.trim(),
+        employmentType: form.employmentType,
+        role: form.role,
         monthlyPay: Number(form.monthlyPay) || 0,
+        scheduledDays: form.scheduledDays,
         scheduledHoursPerDay: Number(form.scheduledHoursPerDay) || 8,
+        citizenshipNumber: form.citizenshipNumber.trim() || undefined,
+        nidNumber: form.nidNumber.trim() || undefined,
+        panNumber: form.panNumber.trim() || undefined,
+        bankName: form.bankName.trim() || undefined,
+        bankAccount: form.bankAccount.trim() || undefined,
         managerId: form.managerId || undefined,
       }),
     })
-    const data = await res.json()
+    const data = await res.json().catch(() => ({}))
     if (!res.ok) {
-      setError(data.error || 'Failed')
+      setError(data.error || `Failed (${res.status})`)
       setLoading(false)
       return
     }
     router.push(paths.employees)
+    setLoading(false)
   }
 
   return (

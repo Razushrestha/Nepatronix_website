@@ -1,12 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server'
+import mongoose from 'mongoose'
 import { connectToDatabase } from '@/lib/mongodb'
 import { requireHrAdmin } from '@/lib/hr/auth'
 import { HrEmployee, HrHoliday, sanitizeEmployee } from '@/lib/hr/models'
 import { createEmployeeWithDefaults } from '@/lib/hr/service'
 import { employeeMonthlyWorkload } from '@/lib/hr/attendance-utils'
-import type { EmploymentType, HrDepartment, HrRole } from '@/lib/hr/constants'
+import { EMPLOYMENT_TYPES, HR_DEPARTMENTS, HR_ROLES, type EmploymentType, type HrDepartment, type HrRole } from '@/lib/hr/constants'
 
 export const runtime = 'nodejs'
+
+function formatCreateError(err: unknown): { message: string; status: number } {
+  if (err && typeof err === 'object' && 'code' in err && (err as { code: number }).code === 11000) {
+    const key = (err as { keyPattern?: Record<string, number> }).keyPattern || {}
+    if (key.email) return { message: 'Email already registered', status: 409 }
+    if (key.employeeCode) return { message: 'Employee code already exists — try again', status: 409 }
+    return { message: 'Duplicate record — email or employee code may already exist', status: 409 }
+  }
+  if (err instanceof mongoose.Error.ValidationError) {
+    const msg = Object.values(err.errors)
+      .map((e) => e.message)
+      .join('; ')
+    return { message: msg || 'Validation failed', status: 400 }
+  }
+  if (err instanceof mongoose.Error.CastError) {
+    return { message: `Invalid ${err.path}: ${err.value}`, status: 400 }
+  }
+  if (err instanceof Error && err.message) {
+    return { message: err.message, status: 500 }
+  }
+  return { message: 'Failed to create employee', status: 500 }
+}
+
+function parseManagerId(value: unknown): mongoose.Types.ObjectId | undefined {
+  if (!value || value === '') return undefined
+  const id = String(value)
+  if (!mongoose.Types.ObjectId.isValid(id)) return undefined
+  return new mongoose.Types.ObjectId(id)
+}
 
 export async function GET(req: NextRequest) {
   const session = await requireHrAdmin()
@@ -69,13 +99,28 @@ export async function POST(req: NextRequest) {
     const monthlyPay = Number(body.monthlyPay) || 0
 
     if (!fullName || !email || !password || !department || !position) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+      return NextResponse.json({ error: 'Missing required fields (name, email, password, department, position)' }, { status: 400 })
+    }
+
+    if (!HR_DEPARTMENTS.some((d) => d.value === department)) {
+      return NextResponse.json({ error: 'Invalid department' }, { status: 400 })
+    }
+
+    const role = String(body.role || 'employee') as HrRole
+    if (!HR_ROLES.some((r) => r.value === role)) {
+      return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
+    }
+
+    if (!EMPLOYMENT_TYPES.some((t) => t.value === employmentType)) {
+      return NextResponse.json({ error: 'Invalid employment type' }, { status: 400 })
     }
 
     const existing = await HrEmployee.findOne({ email: email.toLowerCase() })
     if (existing) {
       return NextResponse.json({ error: 'Email already registered' }, { status: 409 })
     }
+
+    const managerId = parseManagerId(body.managerId)
 
     const emp = await createEmployeeWithDefaults({
       fullName,
@@ -86,20 +131,20 @@ export async function POST(req: NextRequest) {
       position,
       employmentType,
       monthlyPay,
-      role: (body.role || 'employee') as HrRole,
-      phone: body.phone,
-      citizenshipNumber: body.citizenshipNumber,
-      nidNumber: body.nidNumber,
-      panNumber: body.panNumber,
+      role,
+      phone: body.phone || undefined,
+      citizenshipNumber: body.citizenshipNumber || undefined,
+      nidNumber: body.nidNumber || undefined,
+      panNumber: body.panNumber || undefined,
       joinDate: body.joinDate ? new Date(body.joinDate) : undefined,
       contractEndDate: body.contractEndDate ? new Date(body.contractEndDate) : undefined,
-      managerId: body.managerId || undefined,
+      managerId,
       scheduledDays: body.scheduledDays,
       scheduledStart: body.scheduledStart,
       scheduledEnd: body.scheduledEnd,
       scheduledHoursPerDay: body.scheduledHoursPerDay,
-      bankName: body.bankName,
-      bankAccount: body.bankAccount,
+      bankName: body.bankName || undefined,
+      bankAccount: body.bankAccount || undefined,
       dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : undefined,
       gender: body.gender,
       permanentAddress: body.permanentAddress,
@@ -111,9 +156,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       employee: sanitizeEmployee(emp, true),
-    })
+    }, { status: 201 })
   } catch (err) {
     console.error('[hr/employees POST]', err)
-    return NextResponse.json({ error: 'Failed to create employee' }, { status: 500 })
+    const { message, status } = formatCreateError(err)
+    return NextResponse.json({ error: message }, { status })
   }
 }

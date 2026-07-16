@@ -19,9 +19,27 @@ import { defaultScheduledDays, scheduledHoursForType } from './attendance-utils'
 export async function nextEmployeeCode(department: HrDepartment): Promise<string> {
   await connectToDatabase()
   const prefix = departmentCode(department)
-  const count = await HrEmployee.countDocuments({ department })
-  const num = String(count + 1).padStart(3, '0')
-  return `${prefix}-${num}`
+  const existing = await HrEmployee.find({
+    employeeCode: { $regex: `^${prefix}-`, $options: 'i' },
+  })
+    .select('employeeCode')
+    .lean()
+
+  let maxNum = 0
+  for (const row of existing) {
+    const code = row.employeeCode || ''
+    const tail = code.slice(prefix.length + 1)
+    const digits = tail.match(/\d+/)?.[0]
+    if (digits) maxNum = Math.max(maxNum, parseInt(digits, 10))
+  }
+
+  for (let n = maxNum + 1; n < maxNum + 50; n++) {
+    const candidate = `${prefix}-${String(n).padStart(3, '0')}`
+    const taken = await HrEmployee.findOne({ employeeCode: candidate }).select('_id').lean()
+    if (!taken) return candidate
+  }
+
+  return `${prefix}-${Date.now().toString(36).toUpperCase()}`
 }
 
 export async function ensureOfficeSettings() {

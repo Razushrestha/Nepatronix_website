@@ -189,6 +189,40 @@ async function main() {
     pass('HR employee dept filter', `${empDept.json.employees.length} in Nepatronix`)
   } else fail('HR employee dept filter', String(empDept.status))
 
+  const createEmail = `smoke-create-${Date.now()}@example.com`
+  const empCreate = await req('/api/hr/employees', {
+    method: 'POST',
+    cookie: sessions.hr,
+    body: {
+      fullName: 'Smoke Test Hire',
+      email: createEmail,
+      password: 'testpassword123',
+      department: 'nepatronix',
+      position: 'CEO',
+      employmentType: 'full_time',
+      role: 'employee',
+      monthlyPay: 50000,
+      bankAccount: 'global ime bank',
+    },
+  })
+  if (empCreate.status === 201 && empCreate.json?.employee?.email === createEmail) {
+    pass('HR POST create employee', empCreate.json.employee.employeeCode)
+  } else fail('HR create employee', `${empCreate.status} ${empCreate.json?.error || ''}`)
+
+  const empCreateDup = await req('/api/hr/employees', {
+    method: 'POST',
+    cookie: sessions.hr,
+    body: {
+      fullName: 'Duplicate',
+      email: createEmail,
+      password: 'testpassword123',
+      department: 'nepatronix',
+      position: 'CEO',
+    },
+  })
+  if (empCreateDup.status === 409) pass('HR create duplicate email blocked', '409')
+  else fail('HR duplicate email', String(empCreateDup.status))
+
   const sampleEmp = empList.json?.employees?.find((e) => e.email === ACCOUNTS.employee.email)
   const sampleEmpId = sampleEmp?.id
   if (sampleEmpId) {
