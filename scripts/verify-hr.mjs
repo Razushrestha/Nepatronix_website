@@ -30,8 +30,8 @@ function parseCookie(res) {
   return raw.split(';')[0]
 }
 
-async function req(path, { method = 'GET', body, cookie } = {}) {
-  const headers = { 'Content-Type': 'application/json' }
+async function req(path, { method = 'GET', body, cookie, headers: extraHeaders } = {}) {
+  const headers = { 'Content-Type': 'application/json', ...extraHeaders }
   if (cookie) headers.cookie = cookie
   const res = await fetch(`${BASE}${path}`, {
     method,
@@ -595,6 +595,28 @@ async function main() {
   if (assignableMgr.status === 200 && (assignableMgr.json?.employees || []).length >= 1) {
     pass('Assignable list for manager', `${assignableMgr.json.employees.length} assignable`)
   } else fail('Assignable manager list', `${assignableMgr.status} len=${assignableMgr.json?.employees?.length}`)
+
+  const cmsLoginEarly = await req('/api/admin/auth', {
+    method: 'POST',
+    body: { email: process.env.ADMIN_EMAIL || 'admin@nepatronix.org', password: process.env.ADMIN_PASSWORD || process.env.ADMIN_SECRET || 'adminnepatronix' },
+  })
+  const cmsCookieEarly = parseCookie(cmsLoginEarly.res)
+  if (cmsLoginEarly.status === 200 && cmsCookieEarly) {
+    const mixedCookie = `${cmsCookieEarly}; ${sessions.employee}`
+    const mixedDenied = await req('/api/tasks/assignable', { cookie: mixedCookie })
+    if (mixedDenied.status === 403) pass('Assignable mixed cookie without CMS context', '403')
+    else fail('Assignable mixed cookie guard', String(mixedDenied.status))
+
+    const mixedOk = await req('/api/tasks/assignable', {
+      cookie: mixedCookie,
+      headers: { 'X-HR-Context': 'cms-admin' },
+    })
+    if (mixedOk.status === 200 && (mixedOk.json?.employees || []).length >= 1) {
+      pass('Assignable with CMS admin context header', `${mixedOk.json.employees.length} assignable`)
+    } else fail('Assignable CMS context header', `${mixedOk.status} ${mixedOk.json?.error || ''}`)
+  } else {
+    fail('CMS admin login for assignable context test', String(cmsLoginEarly.status))
+  }
 
   const moduleCreateDenied = await req('/api/tasks', {
     method: 'POST',

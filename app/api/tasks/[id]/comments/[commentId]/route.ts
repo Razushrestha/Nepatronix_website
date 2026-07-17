@@ -18,7 +18,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; commentId: string }> }
 ) {
-  const session = await requireHrSession()
+  const session = await requireHrSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   await connectToDatabase()
   const { id, commentId } = await params
@@ -45,10 +45,10 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string; commentId: string }> }
 ) {
-  const session = await requireHrSession()
+  const session = await requireHrSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   await connectToDatabase()
   const { id, commentId } = await params

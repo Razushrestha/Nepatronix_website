@@ -16,6 +16,7 @@ import {
   InlineSpinner,
   PriorityBadge,
   ProgressBar,
+  TaskCmsAdminProvider,
   TaskStatusBadge,
   api,
   fetchJson,
@@ -30,7 +31,20 @@ const KANBAN_COLUMNS: { status: string; label: string }[] = [
   { status: 'completed', label: 'Completed' },
 ]
 
-export default function TaskModule({
+export default function TaskModule(props: {
+  role: string
+  currentUserId: string
+  department?: string
+  variant?: 'admin' | 'staff'
+}) {
+  return (
+    <TaskCmsAdminProvider value={props.variant === 'admin'}>
+      <TaskModuleBody {...props} />
+    </TaskCmsAdminProvider>
+  )
+}
+
+function TaskModuleBody({
   role,
   currentUserId,
   department,

@@ -10,7 +10,7 @@ export const runtime = 'nodejs'
 
 /** Lightweight list of employees/freelancers that a task creator can assign or mention. */
 export async function GET(req: NextRequest) {
-  const session = await requireHrSession()
+  const session = await requireHrSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!canCreateTask(session.role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })

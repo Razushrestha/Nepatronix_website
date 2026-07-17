@@ -15,8 +15,8 @@ import { canViewAllTasks } from '@/lib/tasks/constants'
 
 export const runtime = 'nodejs'
 
-export async function GET() {
-  const session = await requireHrSession()
+export async function GET(req: NextRequest) {
+  const session = await requireHrSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   await connectToDatabase()

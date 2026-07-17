@@ -9,10 +9,10 @@ import { isValidObjectId, loadTaskContext, logHistory, toObjectId } from '@/lib/
 export const runtime = 'nodejs'
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string; attachmentId: string }> }
 ) {
-  const session = await requireHrSession()
+  const session = await requireHrSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   await connectToDatabase()
   const { id, attachmentId } = await params

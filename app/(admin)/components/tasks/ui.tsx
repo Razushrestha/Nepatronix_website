@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { createContext, useContext } from 'react'
 import {
   TASK_PRIORITIES,
   TASK_STATUSES,
@@ -8,8 +8,51 @@ import {
   type TaskStatus,
 } from '@/lib/tasks/constants'
 
-export const fetchJson = async (url: string) => {
-  const r = await fetch(url, { credentials: 'same-origin' })
+export type TaskApiOpts = { cmsAdmin?: boolean }
+
+const CMS_ADMIN_HEADER = { 'X-HR-Context': 'cms-admin' }
+
+const TaskCmsAdminContext = createContext(false)
+let activeCmsAdminContext = false
+
+export function TaskCmsAdminProvider({
+  value,
+  children,
+}: {
+  value: boolean
+  children: React.ReactNode
+}) {
+  activeCmsAdminContext = value
+  return <TaskCmsAdminContext.Provider value={value}>{children}</TaskCmsAdminContext.Provider>
+}
+
+function resolveCmsAdmin(opts?: TaskApiOpts): boolean {
+  return opts?.cmsAdmin ?? activeCmsAdminContext
+}
+
+function taskHeaders(opts?: TaskApiOpts): HeadersInit | undefined {
+  return resolveCmsAdmin(opts) ? CMS_ADMIN_HEADER : undefined
+}
+
+/** Hook for components that need explicit fetch helpers (e.g. SWR fetchers). */
+export function useTaskApi() {
+  const cmsAdmin = useContext(TaskCmsAdminContext)
+  const opts = cmsAdmin ? { cmsAdmin: true } satisfies TaskApiOpts : undefined
+  return {
+    cmsAdmin,
+    fetchJson: (url: string) => fetchJson(url, opts),
+    api: (url: string, method: 'POST' | 'PATCH' | 'DELETE', body?: unknown) => api(url, method, body, opts),
+    fetch: (url: string, init?: RequestInit) =>
+      fetch(url, {
+        ...init,
+        credentials: 'same-origin',
+        headers: { ...taskHeaders(opts), ...init?.headers },
+      }),
+  }
+}
+
+export const fetchJson = async (url: string, opts?: TaskApiOpts) => {
+  const r = await fetch(url, { credentials: 'same-origin', headers: taskHeaders(opts) })
   if (!r.ok) {
     let msg = `Request failed (${r.status})`
     try {
@@ -26,11 +69,14 @@ export const fetchJson = async (url: string) => {
 export async function api(
   url: string,
   method: 'POST' | 'PATCH' | 'DELETE',
-  body?: unknown
+  body?: unknown,
+  opts?: TaskApiOpts
 ): Promise<Record<string, unknown>> {
   const res = await fetch(url, {
     method,
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    headers: body
+      ? { 'Content-Type': 'application/json', ...taskHeaders(opts) }
+      : taskHeaders(opts),
     credentials: 'same-origin',
     body: body ? JSON.stringify(body) : undefined,
   })

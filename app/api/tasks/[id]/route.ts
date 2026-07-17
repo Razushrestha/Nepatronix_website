@@ -59,8 +59,8 @@ async function loadTask(id: string): Promise<TaskDoc | null> {
   return Task.findOne({ _id: id, deletedAt: null }).lean<TaskDoc>()
 }
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await requireHrSession()
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await requireHrSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   await connectToDatabase()
@@ -97,7 +97,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await requireHrSession()
+  const session = await requireHrSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   await connectToDatabase()
@@ -247,7 +247,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await requireHrSession()
+  const session = await requireHrSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!canHardDeleteTask(session.role)) {
     return NextResponse.json({ error: 'Only an admin can delete tasks' }, { status: 403 })

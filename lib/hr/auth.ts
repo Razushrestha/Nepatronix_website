@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
+import type { NextRequest } from 'next/server'
 import type { HrDepartment, HrRole } from './constants'
 import { isHrAdminRole, isHrManagerRole } from './constants'
 import { getSession } from '@/lib/auth'
@@ -71,7 +72,20 @@ export async function getHrSession(): Promise<HrSessionUser | null> {
   return getCmsAdminHrSession()
 }
 
-export async function requireHrSession(): Promise<HrSessionUser | null> {
+/** When the CMS admin console calls HR APIs, prefer admin_token over a stale hr_token. */
+function preferCmsAdminSession(req?: Pick<NextRequest, 'headers' | 'nextUrl'>): boolean {
+  if (!req) return false
+  return (
+    req.headers.get('x-hr-context') === 'cms-admin' ||
+    req.nextUrl.searchParams.get('context') === 'cms-admin'
+  )
+}
+
+export async function requireHrSession(req?: Pick<NextRequest, 'headers' | 'nextUrl'>): Promise<HrSessionUser | null> {
+  if (preferCmsAdminSession(req)) {
+    const cms = await getCmsAdminHrSession()
+    if (cms) return cms
+  }
   return getHrSession()
 }
 

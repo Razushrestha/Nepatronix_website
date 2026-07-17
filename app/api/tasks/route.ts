@@ -31,7 +31,7 @@ const STATUS_VALUES = TASK_STATUSES.map((s) => s.value)
 const VISIBILITY_VALUES = TASK_VISIBILITIES.map((v) => v.value)
 
 export async function GET(req: NextRequest) {
-  const session = await requireHrSession()
+  const session = await requireHrSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   await connectToDatabase()
@@ -158,7 +158,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await requireHrSession()
+  const session = await requireHrSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!canCreateTask(session.role)) {
     return NextResponse.json({ error: 'You do not have permission to create tasks' }, { status: 403 })

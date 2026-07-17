@@ -7,8 +7,8 @@ import { loadTaskContext, logHistory, notify, serializeAttachment, taskAssigneeI
 
 export const runtime = 'nodejs'
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await requireHrSession()
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await requireHrSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   await connectToDatabase()
   const { id } = await params
@@ -23,7 +23,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
 /** Register an already-uploaded file (via /api/hr/upload) as a task attachment. */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await requireHrSession()
+  const session = await requireHrSession(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   await connectToDatabase()
   const { id } = await params

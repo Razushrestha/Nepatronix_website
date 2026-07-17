@@ -24,6 +24,7 @@ import {
   ProgressBar,
   TaskStatusBadge,
   api,
+  fetchJson,
   fmtDate,
   fmtDateTime,
   relTime,
@@ -53,9 +54,8 @@ export default function TaskDrawer({
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch(`/api/tasks/${taskId}`, { credentials: 'same-origin' })
-      if (!res.ok) throw new Error((await res.json()).error || 'Failed to load task')
-      setData(await res.json())
+      const json = await fetchJson(`/api/tasks/${taskId}`)
+      setData(json as TaskDetailResponse)
       setError('')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load')
