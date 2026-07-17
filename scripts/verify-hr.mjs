@@ -580,6 +580,127 @@ async function main() {
     else fail('Task assignee guard', String(mgrCannotPatch.status))
   }
 
+  // ── 12b. Task management module (/api/tasks) ────────────────
+  console.log('\nTask management module')
+
+  const tasksModuleGuard = await req('/api/tasks')
+  if (tasksModuleGuard.status === 401) pass('Task module requires auth', '401')
+  else fail('Task module auth guard', String(tasksModuleGuard.status))
+
+  const assignableEmp = await req('/api/tasks/assignable', { cookie: sessions.employee })
+  if (assignableEmp.status === 403) pass('Assignable list forbidden for employee', '403')
+  else fail('Assignable employee guard', `got ${assignableEmp.status}`)
+
+  const assignableMgr = await req('/api/tasks/assignable', { cookie: sessions.manager })
+  if (assignableMgr.status === 200 && (assignableMgr.json?.employees || []).length >= 1) {
+    pass('Assignable list for manager', `${assignableMgr.json.employees.length} assignable`)
+  } else fail('Assignable manager list', `${assignableMgr.status} len=${assignableMgr.json?.employees?.length}`)
+
+  const moduleCreateDenied = await req('/api/tasks', {
+    method: 'POST',
+    cookie: sessions.employee,
+    body: { title: 'Employee should not create this' },
+  })
+  if (moduleCreateDenied.status === 403) pass('Employee cannot create module task', '403')
+  else fail('Module task create guard', String(moduleCreateDenied.status))
+
+  const moduleCreate = await req('/api/tasks', {
+    method: 'POST',
+    cookie: sessions.manager,
+    body: {
+      title: 'Smoke module task',
+      description: '<p>Created by verify-hr.mjs</p><script>alert(1)</script>',
+      priority: 'high',
+      department: 'nepatronix',
+      visibility: 'team',
+      dueDate: fromStr,
+      assigneeIds: empId ? [empId] : [],
+    },
+  })
+  const moduleTaskId = moduleCreate.json?.task?.id
+  if (moduleCreate.status === 201 && moduleTaskId) {
+    pass('Manager creates module task', moduleTaskId)
+  } else fail('Manager module task POST', `${moduleCreate.status} ${moduleCreate.json?.error || ''}`)
+
+  if (moduleTaskId && empId) {
+    const list = await req('/api/tasks', { cookie: sessions.employee })
+    if (list.status === 200 && (list.json?.tasks || []).some((t) => t.id === moduleTaskId)) {
+      pass('Assigned task visible to employee', 'appears in /api/tasks')
+    } else fail('Assigned task visibility', `${list.status} count=${list.json?.tasks?.length}`)
+
+    const detail = await req(`/api/tasks/${moduleTaskId}`, { cookie: sessions.employee })
+    if (detail.status === 200 && detail.json?.task?.id === moduleTaskId) {
+      pass('Employee opens assigned task', 'GET /api/tasks/:id')
+    } else fail('Employee task detail', String(detail.status))
+
+    if (detail.json?.task && !String(detail.json.task.description || '').includes('<script')) {
+      pass('Task description sanitized', 'script stripped')
+    } else fail('Task description sanitize', 'script tag present')
+
+    const start = await req(`/api/tasks/${moduleTaskId}`, {
+      method: 'PATCH',
+      cookie: sessions.employee,
+      body: { status: 'in_progress' },
+    })
+    if (start.status === 200 && start.json?.task?.status === 'in_progress') {
+      pass('Assignee updates task status', 'in_progress')
+    } else fail('Assignee status update', `${start.status} ${start.json?.error || ''}`)
+
+    const checklist = await req(`/api/tasks/${moduleTaskId}/checklists`, {
+      method: 'POST',
+      cookie: sessions.manager,
+      body: { title: 'Deliver the module', assignedToId: empId },
+    })
+    const itemId = checklist.json?.checklist?.id
+    if (checklist.status === 201 && itemId) pass('Creator adds checklist item', itemId)
+    else fail('Checklist POST', `${checklist.status} ${checklist.json?.error || ''}`)
+
+    const checklistDenied = await req(`/api/tasks/${moduleTaskId}/checklists`, {
+      method: 'POST',
+      cookie: sessions.employee,
+      body: { title: 'Employee cannot add this' },
+    })
+    if (checklistDenied.status === 403) pass('Employee cannot add checklist', '403')
+    else fail('Checklist add guard', String(checklistDenied.status))
+
+    if (itemId) {
+      const done = await req(`/api/tasks/${moduleTaskId}/checklists/${itemId}`, {
+        method: 'PATCH',
+        cookie: sessions.employee,
+        body: { completed: true },
+      })
+      if (done.status === 200 && done.json?.checklist?.completed && done.json?.completionPercent === 100) {
+        pass('Assignee completes checklist → 100%', `progress ${done.json.completionPercent}%`)
+      } else fail('Checklist complete/progress', `${done.status} pct=${done.json?.completionPercent}`)
+    }
+
+    const comment = await req(`/api/tasks/${moduleTaskId}/comments`, {
+      method: 'POST',
+      cookie: sessions.employee,
+      body: { body: 'On it — nearly done.' },
+    })
+    if (comment.status === 201 && comment.json?.comment?.id) pass('Employee comments on task', comment.json.comment.id)
+    else fail('Task comment POST', `${comment.status} ${comment.json?.error || ''}`)
+
+    const notif = await req('/api/notifications', { cookie: sessions.employee })
+    if (notif.status === 200 && Array.isArray(notif.json?.notifications)) {
+      const hasAssign = notif.json.notifications.some((n) => n.type === 'task_assigned')
+      pass('Notifications endpoint', hasAssign ? `task_assigned present · ${notif.json.unread} unread` : `${notif.json.notifications.length} items`)
+    } else fail('Notifications GET', String(notif.status))
+
+    const dash = await req('/api/tasks/dashboard', { cookie: sessions.manager })
+    if (dash.status === 200 && dash.json?.stats?.total != null) pass('Manager task dashboard', `${dash.json.stats.total} tasks`)
+    else fail('Task dashboard', String(dash.status))
+
+    const delDenied = await req(`/api/tasks/${moduleTaskId}`, { method: 'DELETE', cookie: sessions.manager })
+    if (delDenied.status === 403) pass('Manager cannot delete task', '403')
+    else fail('Task delete guard', String(delDenied.status))
+
+    const del = await req(`/api/tasks/${moduleTaskId}?hard=true`, { method: 'DELETE', cookie: sessions.hr })
+    if (del.status === 200 && del.json?.ok) pass('Admin hard-deletes module task (cleanup)', del.json.deleted)
+    else fail('Task delete', `${del.status} ${del.json?.error || ''}`)
+  }
+
   // ── 13. HR stats (admin only) ───────────────────────────────
   console.log('\nHR stats')
   const statsHr = await req('/api/hr/stats', { cookie: sessions.hr })
@@ -616,10 +737,14 @@ async function main() {
     pass('Overview department filter', `${overviewDept.json.employees.length} in Nepatronix`)
   } else fail('Overview dept filter', String(overviewDept.status))
 
-  const overviewEmpty = await req('/api/hr/attendance/overview?department=metatronix', { cookie: sessions.hr })
-  if (overviewEmpty.status === 200 && overviewEmpty.json?.employees?.length === 0) {
-    pass('Overview empty department', 'Metatronix 0 employees')
-  } else fail('Overview empty dept', `got ${overviewEmpty.json?.employees?.length}`)
+  const overviewMtx = await req('/api/hr/attendance/overview?department=metatronix', { cookie: sessions.hr })
+  if (
+    overviewMtx.status === 200 &&
+    overviewMtx.json?.filters?.department === 'metatronix' &&
+    (overviewMtx.json?.employees || []).every((e) => e.department === 'metatronix')
+  ) {
+    pass('Overview department filter (Metatronix)', `${overviewMtx.json.employees.length} scoped correctly`)
+  } else fail('Overview Metatronix filter', `got ${overviewMtx.json?.employees?.length}`)
 
   const overviewSearch = await req('/api/hr/attendance/overview?q=Sample', { cookie: sessions.hr })
   if (overviewSearch.status === 200 && overviewSearch.json?.employees?.length >= 1) {

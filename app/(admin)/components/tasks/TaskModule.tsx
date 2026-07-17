@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
 import {
   TASK_PRIORITIES,
@@ -46,6 +46,7 @@ export default function TaskModule({
   const [openTask, setOpenTask] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [employees, setEmployees] = useState<AssignableEmployee[]>([])
+  const [employeesError, setEmployeesError] = useState('')
   const [search, setSearch] = useState('')
   const [debounced, setDebounced] = useState('')
   const [filters, setFilters] = useState({
@@ -65,12 +66,20 @@ export default function TaskModule({
     return () => clearTimeout(t)
   }, [search])
 
-  useEffect(() => {
-    if (!canCreate) return
+  const loadEmployees = useCallback(() => {
+    setEmployeesError('')
     fetchJson('/api/tasks/assignable')
       .then((d) => setEmployees((d.employees as AssignableEmployee[]) || []))
-      .catch(() => setEmployees([]))
-  }, [canCreate])
+      .catch((e) => {
+        setEmployees([])
+        setEmployeesError(e instanceof Error ? e.message : 'Failed to load employees')
+      })
+  }, [])
+
+  useEffect(() => {
+    if (!canCreate) return
+    loadEmployees()
+  }, [canCreate, loadEmployees])
 
   // Read ?task= on first mount.
   useEffect(() => {
@@ -225,6 +234,8 @@ export default function TaskModule({
       {showCreate && (
         <CreateTaskModal
           employees={employees}
+          employeesError={employeesError}
+          onReloadEmployees={loadEmployees}
           defaultDepartment={department}
           onClose={() => setShowCreate(false)}
           onCreated={(id) => { setShowCreate(false); refreshAll(); setOpenTask(id) }}

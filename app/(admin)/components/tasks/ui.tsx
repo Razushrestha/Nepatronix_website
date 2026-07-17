@@ -8,11 +8,20 @@ import {
   type TaskStatus,
 } from '@/lib/tasks/constants'
 
-export const fetchJson = (url: string) =>
-  fetch(url, { credentials: 'same-origin' }).then((r) => {
-    if (!r.ok) throw new Error('Request failed')
-    return r.json()
-  })
+export const fetchJson = async (url: string) => {
+  const r = await fetch(url, { credentials: 'same-origin' })
+  if (!r.ok) {
+    let msg = `Request failed (${r.status})`
+    try {
+      const d = await r.json()
+      if (d?.error) msg = `${d.error} (${r.status})`
+    } catch {
+      /* non-JSON error body */
+    }
+    throw new Error(msg)
+  }
+  return r.json()
+}
 
 export async function api(
   url: string,

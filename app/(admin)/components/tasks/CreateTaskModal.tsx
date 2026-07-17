@@ -14,11 +14,15 @@ const RichTextEditor = dynamic(() => import('@/app/(admin)/components/RichTextEd
 
 export default function CreateTaskModal({
   employees,
+  employeesError,
+  onReloadEmployees,
   defaultDepartment,
   onClose,
   onCreated,
 }: {
   employees: AssignableEmployee[]
+  employeesError?: string
+  onReloadEmployees?: () => void
   defaultDepartment?: string
   onClose: () => void
   onCreated: (id: string) => void
@@ -134,7 +138,18 @@ export default function CreateTaskModal({
           <div>
             <label className="text-xs font-semibold text-slate-500">Assign to</label>
             <div className="mt-1 max-h-40 overflow-y-auto border border-slate-200 rounded-lg p-2 space-y-1">
-              {employees.length === 0 && <p className="text-xs text-slate-400 px-1 py-2">No assignable employees found.</p>}
+              {employeesError ? (
+                <div className="px-1 py-2 space-y-1">
+                  <p className="text-xs text-red-600">Couldn&apos;t load employees: {employeesError}</p>
+                  {onReloadEmployees && (
+                    <button type="button" onClick={onReloadEmployees} className="text-xs font-semibold text-[#C1121F] hover:underline">
+                      Retry
+                    </button>
+                  )}
+                </div>
+              ) : (
+                employees.length === 0 && <p className="text-xs text-slate-400 px-1 py-2">No assignable employees found.</p>
+              )}
               {employees.map((e) => (
                 <label key={e.id} className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-slate-50 cursor-pointer">
                   <input type="checkbox" checked={assigneeIds.includes(e.id)} onChange={() => toggleAssignee(e.id)} className="accent-[#C1121F]" />
