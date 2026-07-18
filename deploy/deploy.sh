@@ -7,16 +7,21 @@ set -euo pipefail
 cd /var/www/nepatronix
 
 echo "==> Pulling latest code..."
-# Production secrets live only on the server — never let git pull overwrite them.
+# Production secrets live only on the server — move aside so git pull never conflicts.
+ENV_BACKUP=""
 if [ -f .env.local ]; then
-  cp -a .env.local .env.local.deploy.bak
-fi
-if git ls-files --error-unmatch .env.local >/dev/null 2>&1; then
-  git update-index --skip-worktree .env.local 2>/dev/null || true
+  ENV_BACKUP="$(mktemp /tmp/nepatronix-env.XXXXXX)"
+  cp -a .env.local "$ENV_BACKUP"
+  if git ls-files --error-unmatch .env.local >/dev/null 2>&1; then
+    git rm -f .env.local
+  else
+    rm -f .env.local
+  fi
 fi
 git pull origin main
-if [ -f .env.local.deploy.bak ]; then
-  mv -f .env.local.deploy.bak .env.local
+if [ -n "$ENV_BACKUP" ] && [ -f "$ENV_BACKUP" ]; then
+  cp -a "$ENV_BACKUP" .env.local
+  rm -f "$ENV_BACKUP"
 fi
 
 echo "==> Installing dependencies..."
