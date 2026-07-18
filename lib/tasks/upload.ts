@@ -11,7 +11,7 @@ export interface TaskUploadResult {
 
 /** Upload a file to GridFS through the HR-session upload endpoint. */
 export async function taskUpload(file: File): Promise<TaskUploadResult> {
-  if (file.size > TASK_MAX_UPLOAD_BYTES) {
+  if (TASK_MAX_UPLOAD_BYTES > 0 && file.size > TASK_MAX_UPLOAD_BYTES) {
     throw new Error(`File is too large (max ${formatTaskMaxUploadSize()})`)
   }
 
@@ -31,13 +31,22 @@ export async function taskUpload(file: File): Promise<TaskUploadResult> {
     try {
       data = JSON.parse(text)
     } catch {
-      if (!res.ok) throw new Error(`Upload failed (${res.status})`)
+      if (!res.ok) {
+        if (res.status === 413) {
+          throw new Error(
+            'Upload blocked by server size limit (HTTP 413). Redeploy the app and ensure nginx client_max_body_size is 512M (bash deploy/deploy.sh on the VPS).'
+          )
+        }
+        throw new Error(`Upload failed (${res.status})`)
+      }
     }
   }
 
   if (!res.ok) {
     if (res.status === 401) throw new Error('Session expired — please log in again')
-    if (res.status === 413) throw new Error(data.error || `File too large (max ${formatTaskMaxUploadSize()})`)
+    if (res.status === 413) {
+      throw new Error(data.error || `File too large (max ${formatTaskMaxUploadSize()})`)
+    }
     if (res.status === 415) throw new Error('File type not allowed')
     throw new Error(data.error || `Upload failed (${res.status})`)
   }

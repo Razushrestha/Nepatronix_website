@@ -9,7 +9,7 @@ import {
 import { formatTaskMaxUploadSize, getTaskMaxUploadBytes } from '@/lib/tasks/upload-limits'
 
 export const runtime = 'nodejs'
-export const maxDuration = 600
+export const maxDuration = 3600
 
 export async function POST(req: NextRequest) {
   try {
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'File type not allowed' }, { status: 415 })
     }
 
-    if (file.size > maxBytes) {
+    if (maxBytes > 0 && file.size > maxBytes) {
       return NextResponse.json(
         { error: `File exceeds ${formatTaskMaxUploadSize(maxBytes)} limit` },
         { status: 413 }

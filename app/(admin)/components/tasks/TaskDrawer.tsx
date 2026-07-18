@@ -1354,7 +1354,7 @@ function FilesTab({
                 {busy ? 'Uploading…' : dragOver ? 'Drop files here' : 'Drag & drop or click to upload'}
               </p>
               <p className="text-[11px] text-slate-500">
-                Images, PDF, Word, Excel, video (MP4, MOV, WebM…) · up to {maxLabel} each
+                Images, PDF, Word, Excel, video (MP4, MOV, WebM…) · {maxLabel === 'any size' ? 'any file size' : `up to ${maxLabel} each`}
               </p>
             </button>
           </div>
