@@ -36,6 +36,78 @@ function absoluteFileUrl(path: string): string {
   return `${window.location.origin}${path.startsWith('/') ? path : `/${path}`}`
 }
 
+function PdfPreview({ url, title }: { url: string; title: string }) {
+  const absUrl = useMemo(() => absoluteFileUrl(url), [url])
+  const [blobUrl, setBlobUrl] = useState<string | null>(null)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let active = true
+    let objectUrl: string | null = null
+    setBlobUrl(null)
+    setError('')
+
+    fetch(url, { credentials: 'same-origin' })
+      .then((r) => {
+        if (!r.ok) throw new Error(`Could not load PDF (${r.status})`)
+        return r.blob()
+      })
+      .then((blob) => {
+        if (!active) return
+        const pdfBlob =
+          blob.type === 'application/pdf'
+            ? blob
+            : new Blob([blob], { type: 'application/pdf' })
+        objectUrl = URL.createObjectURL(pdfBlob)
+        setBlobUrl(objectUrl)
+      })
+      .catch((err) => {
+        if (!active) return
+        setError(err instanceof Error ? err.message : 'Failed to load PDF')
+      })
+
+    return () => {
+      active = false
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [url])
+
+  if (error) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 bg-slate-100 p-6 text-center">
+        <p className="text-sm text-slate-600">{error}</p>
+        <a
+          href={absUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="rounded-lg bg-[#C1121F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#A30F19]"
+        >
+          Open PDF in new tab
+        </a>
+      </div>
+    )
+  }
+
+  if (!blobUrl) {
+    return (
+      <div className="flex h-full items-center justify-center bg-slate-100">
+        <InlineSpinner className="w-8 h-8" />
+      </div>
+    )
+  }
+
+  return (
+    <object
+      data={blobUrl}
+      type="application/pdf"
+      className="h-full w-full bg-slate-100"
+      aria-label={title}
+    >
+      <iframe src={blobUrl} title={title} className="h-full w-full border-0 bg-slate-100" />
+    </object>
+  )
+}
+
 function PreviewBody({ attachment, mode }: { attachment: AttachmentDTO; mode: PreviewMode }) {
   const [text, setText] = useState('')
   const [textError, setTextError] = useState('')
@@ -69,19 +141,19 @@ function PreviewBody({ attachment, mode }: { attachment: AttachmentDTO; mode: Pr
   }
 
   if (mode === 'pdf') {
-    return (
-      <iframe
-        src={`${url}#view=FitH`}
-        title={attachment.fileName}
-        className="h-full w-full border-0 bg-slate-100"
-      />
-    )
+    return <PdfPreview url={url} title={attachment.fileName} />
   }
 
   if (mode === 'video') {
     return (
-      <div className="flex h-full items-center justify-center bg-black p-4">
-        <video src={url} controls className="max-h-full max-w-full rounded-lg" playsInline>
+      <div className="flex h-full min-h-0 items-center justify-center bg-black p-4">
+        <video
+          src={absUrl}
+          controls
+          className="max-h-full max-w-full rounded-lg"
+          playsInline
+          preload="metadata"
+        >
           <track kind="captions" />
         </video>
       </div>
@@ -255,8 +327,10 @@ export default function AttachmentPreviewModal({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1">
-        <PreviewBody attachment={attachment} mode={mode} />
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <div className="h-full w-full">
+          <PreviewBody attachment={attachment} mode={mode} />
+        </div>
       </div>
     </div>
   )

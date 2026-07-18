@@ -1,11 +1,18 @@
 import { NextRequest } from 'next/server'
 import { getFile } from '@/lib/gridfs'
+import { guessAttachmentMime } from '@/lib/tasks/attachment-mime'
 import { Readable } from 'stream'
 
 export const runtime = 'nodejs'
 
 function safeFilename(name: string): string {
   return name.replace(/[^\w.\-() ]+/g, '_') || 'file'
+}
+
+function resolveFileContentType(stored: string, filename: string): string {
+  const type = stored?.trim() || ''
+  if (type && type !== 'application/octet-stream') return type
+  return guessAttachmentMime(filename) || type || 'application/octet-stream'
 }
 
 function parseRange(
@@ -40,11 +47,13 @@ export async function GET(
 
     const webStream = Readable.toWeb(file.stream as Readable) as ReadableStream
     const safeName = safeFilename(file.filename)
+    const contentType = resolveFileContentType(file.contentType, file.filename)
     const baseHeaders: Record<string, string> = {
-      'Content-Type': file.contentType,
+      'Content-Type': contentType,
       'Content-Disposition': `inline; filename="${safeName}"`,
       'Accept-Ranges': 'bytes',
       'Cache-Control': 'public, max-age=31536000, immutable',
+      'X-Content-Type-Options': 'nosniff',
     }
 
     if (range && 'rangeStart' in file) {
