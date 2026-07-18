@@ -7,7 +7,17 @@ set -euo pipefail
 cd /var/www/nepatronix
 
 echo "==> Pulling latest code..."
+# Production secrets live only on the server — never let git pull overwrite them.
+if [ -f .env.local ]; then
+  cp -a .env.local .env.local.deploy.bak
+fi
+if git ls-files --error-unmatch .env.local >/dev/null 2>&1; then
+  git update-index --skip-worktree .env.local 2>/dev/null || true
+fi
 git pull origin main
+if [ -f .env.local.deploy.bak ]; then
+  mv -f .env.local.deploy.bak .env.local
+fi
 
 echo "==> Installing dependencies..."
 npm ci
