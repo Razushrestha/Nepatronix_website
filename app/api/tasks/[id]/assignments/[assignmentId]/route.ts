@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/mongodb'
 import { requireHrSession } from '@/lib/hr/auth'
-import { TaskAssignment } from '@/lib/tasks/models'
+import { Task, TaskAssignment, TaskChecklist } from '@/lib/tasks/models'
 import type { TaskAssignmentDoc } from '@/lib/tasks/models'
 import {
   isValidObjectId,
   loadTaskContext,
   logHistory,
   notify,
+  recomputeProgress,
   serializeAssignment,
   toObjectId,
 } from '@/lib/tasks/service'
@@ -62,6 +63,17 @@ export async function PATCH(
   }
 
   await TaskAssignment.updateOne({ _id: assignment._id }, { $set: set })
+
+  // When there is no checklist, manual assignee % drives overall task progress.
+  if (set.completionPercent !== undefined) {
+    const checklistCount = await TaskChecklist.countDocuments({ taskId: ctx.task._id, deletedAt: null })
+    if (checklistCount === 0) {
+      await Task.updateOne({ _id: ctx.task._id }, { $set: { completionPercent: set.completionPercent } })
+    } else {
+      await recomputeProgress(ctx.task._id)
+    }
+  }
+
   await logHistory(
     ctx.task._id,
     ctx.actor,

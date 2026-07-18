@@ -38,7 +38,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params
   const ctx = await loadTaskContext(session, id)
   if (!ctx) return NextResponse.json({ error: 'Task not found' }, { status: 404 })
-  if (!(ctx.isAdmin || ctx.isCreator)) {
+  if (!(ctx.isAdmin || ctx.isCreator || ctx.isAssignee)) {
     return NextResponse.json({ error: 'You cannot add checklist items' }, { status: 403 })
   }
 

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   TASK_PRIORITIES,
   TASK_STATUSES,
+  ASSIGNABLE_STATUSES,
   isTaskAdmin,
 } from '@/lib/tasks/constants'
 import type {
@@ -15,6 +16,7 @@ import type {
   TaskDetailResponse,
   TaskDTO,
 } from './shared-types'
+import { parseDescriptionToChecklistItems } from '@/lib/tasks/parse-description-checklist'
 import { taskUpload } from '@/lib/tasks/upload'
 import {
   Avatar,
@@ -140,7 +142,15 @@ export default function TaskDrawer({
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {tab === 'overview' && (
-                <OverviewTab data={data!} canManage={canManage} employees={employees} onChanged={refresh} />
+                <OverviewTab
+                  data={data!}
+                  canManage={canManage}
+                  isAssignee={isAssignee}
+                  currentUserId={currentUserId}
+                  employees={employees}
+                  onChanged={refresh}
+                  onGoToPlan={() => setTab('plan')}
+                />
               )}
               {tab === 'plan' && (
                 <PlanTab data={data!} canManage={canManage} isAssignee={isAssignee} employees={employees} onChanged={refresh} />
@@ -221,7 +231,9 @@ function DrawerHeader({
         </div>
       )}
       {!canManage && (
-        <p className="text-[11px] text-slate-400 mt-2">You have limited access — you can update your status, checklist and comments.</p>
+        <p className="text-[11px] text-slate-400 mt-2">
+          Update your progress below — tick checklist items or set completion % on the Overview tab.
+        </p>
       )}
     </div>
   )
@@ -232,18 +244,30 @@ function DrawerHeader({
 function OverviewTab({
   data,
   canManage,
+  isAssignee,
+  currentUserId,
   employees,
   onChanged,
+  onGoToPlan,
 }: {
   data: TaskDetailResponse
   canManage: boolean
+  isAssignee: boolean
+  currentUserId: string
   employees: AssignableEmployee[]
   onChanged: () => Promise<void>
+  onGoToPlan: () => void
 }) {
   const task = data.task
+  const myAssignment = data.assignments.find((a) => a.assigneeId === currentUserId)
   const [addingAssignee, setAddingAssignee] = useState('')
+  const [importingChecklist, setImportingChecklist] = useState(false)
+  const [importMsg, setImportMsg] = useState<string | null>(null)
   const assignedIds = new Set(data.assignments.map((a) => a.assigneeId))
   const available = employees.filter((e) => !assignedIds.has(e.id))
+  const parsedFromDescription = task.description ? parseDescriptionToChecklistItems(task.description) : []
+  const existingTitles = new Set(data.checklists.map((c) => c.title.toLowerCase().trim()))
+  const importableCount = parsedFromDescription.filter((t) => !existingTitles.has(t.toLowerCase())).length
 
   async function addAssignee() {
     if (!addingAssignee) return
@@ -256,11 +280,63 @@ function OverviewTab({
     await onChanged()
   }
 
+  async function importDescriptionToChecklist() {
+    setImportingChecklist(true)
+    setImportMsg(null)
+    try {
+      const res = await api(`/api/tasks/${task.id}/checklists/import-description`, 'POST')
+      const created = Array.isArray(res.created) ? res.created.length : 0
+      const skipped = typeof res.skipped === 'number' ? res.skipped : 0
+      if (created > 0) {
+        setImportMsg(String(res.message || `Added ${created} checklist item(s).`))
+        await onChanged()
+        onGoToPlan()
+      } else if (skipped > 0) {
+        setImportMsg('All items from the description are already in the checklist.')
+      } else {
+        setImportMsg('No list items found in the description.')
+      }
+    } catch (e) {
+      setImportMsg(e instanceof Error ? e.message : 'Import failed')
+    } finally {
+      setImportingChecklist(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
+      {isAssignee && !canManage && (
+        <AssigneeProgressPanel
+          task={task}
+          assignment={myAssignment}
+          checklistTotal={data.checklists.length}
+          checklistDone={data.checklists.filter((c) => c.completed).length}
+          onChanged={onChanged}
+          onGoToPlan={onGoToPlan}
+        />
+      )}
+
       {task.description ? (
         <div className="bg-white rounded-xl border border-slate-200 p-4">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2">Description</p>
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Description</p>
+            {canManage && parsedFromDescription.length > 0 && (
+              <button
+                type="button"
+                onClick={importDescriptionToChecklist}
+                disabled={importingChecklist || importableCount === 0}
+                className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+                title={
+                  importableCount === 0
+                    ? 'All description items are already in the checklist'
+                    : `Create ${importableCount} checklist item(s) from numbered lines or bullets in the description`
+                }
+              >
+                {importingChecklist ? 'Importing…' : importableCount === 0 ? 'Already in checklist' : `Convert to checklist (${importableCount})`}
+              </button>
+            )}
+          </div>
+          {importMsg && <p className="text-xs text-slate-500 mb-2">{importMsg}</p>}
           <div className="admin-prose text-sm text-slate-700" dangerouslySetInnerHTML={{ __html: task.description }} />
         </div>
       ) : null}
@@ -324,6 +400,149 @@ function Meta({ label, value, highlight }: { label: string; value: string; highl
     <div className="bg-white rounded-xl border border-slate-200 px-3 py-2">
       <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{label}</p>
       <p className={`text-sm font-medium capitalize mt-0.5 ${highlight ? 'text-red-600' : 'text-slate-800'}`}>{value}</p>
+    </div>
+  )
+}
+
+function AssigneeProgressPanel({
+  task,
+  assignment,
+  checklistTotal,
+  checklistDone,
+  onChanged,
+  onGoToPlan,
+}: {
+  task: TaskDTO
+  assignment?: { id: string; status: string; completionPercent: number }
+  checklistTotal: number
+  checklistDone: number
+  onChanged: () => Promise<void>
+  onGoToPlan: () => void
+}) {
+  const [busy, setBusy] = useState(false)
+  const [status, setStatus] = useState(task.status)
+  const [percent, setPercent] = useState(
+    checklistTotal > 0 ? task.completionPercent : (assignment?.completionPercent ?? task.completionPercent)
+  )
+  const usesChecklist = checklistTotal > 0
+
+  async function saveStatus(next: string) {
+    setStatus(next as typeof status)
+    setBusy(true)
+    try {
+      await api(`/api/tasks/${task.id}`, 'PATCH', { status: next })
+      await onChanged()
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Failed to update status')
+      setStatus(task.status)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function savePercent(next: number) {
+    setPercent(next)
+    if (usesChecklist) return
+    if (!assignment) {
+      alert('You must be assigned to this task to update progress.')
+      return
+    }
+    setBusy(true)
+    try {
+      await api(`/api/tasks/${task.id}/assignments/${assignment.id}`, 'PATCH', {
+        completionPercent: next,
+      })
+      await onChanged()
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Failed to update progress')
+      setPercent(assignment.completionPercent)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="bg-white rounded-xl border-2 border-[#C1121F]/20 p-4 space-y-4">
+      <div>
+        <p className="text-[11px] font-bold uppercase tracking-wide text-[#C1121F]">My progress</p>
+        <p className="text-xs text-slate-500 mt-1">
+          {usesChecklist
+            ? `Overall completion is ${task.completionPercent}% (${checklistDone}/${checklistTotal} checklist items done).`
+            : 'Set your completion % below, or add checklist items for automatic tracking.'}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <label className="text-xs text-slate-500">
+          Task status
+          <select
+            value={status}
+            disabled={busy}
+            onChange={(e) => saveStatus(e.target.value)}
+            className="mt-1 w-full text-sm border border-slate-300 rounded-lg px-2 py-1.5"
+          >
+            {ASSIGNABLE_STATUSES.map((s) => {
+              const label = TASK_STATUSES.find((x) => x.value === s)?.label || s
+              return (
+                <option key={s} value={s}>
+                  {label}
+                </option>
+              )
+            })}
+          </select>
+        </label>
+
+        <div>
+          <label className="text-xs text-slate-500">
+            Completion {usesChecklist ? '(from checklist)' : ''}
+          </label>
+          {usesChecklist ? (
+            <div className="mt-2">
+              <ProgressBar percent={task.completionPercent} />
+              <button
+                type="button"
+                onClick={onGoToPlan}
+                className="mt-2 text-xs font-semibold text-[#C1121F] hover:underline"
+              >
+                Open Plan & Checklist →
+              </button>
+            </div>
+          ) : (
+            <div className="mt-2 space-y-2">
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={percent}
+                disabled={busy || !assignment}
+                onChange={(e) => setPercent(Number(e.target.value))}
+                onMouseUp={(e) => savePercent(Number(e.currentTarget.value))}
+                onTouchEnd={(e) => savePercent(Number(e.currentTarget.value))}
+                className="w-full accent-[#C1121F]"
+              />
+              <div className="flex items-center justify-between text-xs text-slate-600">
+                <span>{percent}% complete</span>
+                <button
+                  type="button"
+                  disabled={busy || !assignment}
+                  onClick={() => savePercent(percent)}
+                  className="font-semibold text-[#C1121F] hover:underline disabled:opacity-40"
+                >
+                  Save
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={onGoToPlan}
+                className="text-xs text-slate-500 hover:text-[#C1121F] hover:underline"
+              >
+                Or add checklist items for step-by-step tracking →
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
@@ -468,7 +687,7 @@ function PlanTab({
             <ChecklistRow key={item.id} item={item} task={task} canManage={canManage} canComplete={canManage || isAssignee} employees={employees} onChanged={onChanged} />
           ))}
         </div>
-        {canManage && (
+        {(canManage || isAssignee) && (
           <div className="flex gap-2 mt-3">
             <input
               value={newItem.dayId === '' ? newItem.title : ''}
