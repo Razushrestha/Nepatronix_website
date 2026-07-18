@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { HR_DEPARTMENTS, departmentRequiresGps, attendanceActionRequiresLocation } from '@/lib/hr/constants'
+import { HR_DEPARTMENTS, departmentRequiresGps, attendanceActionRequiresLocation, ceoRemoteAttendanceAllowed } from '@/lib/hr/constants'
 import { Icon } from '@/app/(admin)/components/icons'
 import { getBestGpsReading } from '@/lib/hr/client-gps'
 import AttendanceSidebar, { type AttendanceView } from './components/AttendanceSidebar'
@@ -298,10 +298,10 @@ function EmployeePortal({ user, onLogout }: { user: User; onLogout: () => void }
       if (needsGps) {
         setMsg('Locating you — please allow GPS and wait a few seconds…')
         payload = await getBestGpsReading()
+      } else if (user && ceoRemoteAttendanceAllowed(user.role, user.department)) {
+        setMsg(action === 'in' ? 'Checking in (remote allowed for CEO)…' : 'Checking out (remote allowed for CEO)…')
       } else if (action === 'in') {
         setMsg('Verifying office Wi‑Fi…')
-      } else if (user?.role === 'ceo') {
-        setMsg('Checking out…')
       }
       const res = await fetch(`/api/hr/attendance/check-${action === 'in' ? 'in' : 'out'}`, {
         method: 'POST',

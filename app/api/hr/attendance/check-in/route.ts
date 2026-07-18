@@ -18,7 +18,7 @@ import {
   toEmployeeSchedule,
 } from '@/lib/hr/attendance-utils'
 import { getClientIpFromHeaders, validateAttendanceLocation } from '@/lib/hr/geo'
-import { departmentRequiresGps } from '@/lib/hr/constants'
+import { ceoRemoteAttendanceAllowed, departmentRequiresGps } from '@/lib/hr/constants'
 import { getEffectiveAllowedIps, getEffectiveOfficeCoords, getEffectiveAttendanceStartDate, formatAttendanceStartLabel } from '@/lib/hr/service'
 
 export const runtime = 'nodejs'
@@ -65,8 +65,10 @@ export async function POST(req: NextRequest) {
     const emp = await HrEmployee.findById(session.id).lean()
     if (!emp) return NextResponse.json({ error: 'Employee not found' }, { status: 404 })
 
-    const loc = await validateLocation(req, emp.department, lat, lng, accuracy)
-    if (!loc.ok) return NextResponse.json({ error: loc.error }, { status: 403 })
+    if (!ceoRemoteAttendanceAllowed(emp.role, emp.department)) {
+      const loc = await validateLocation(req, emp.department, lat, lng, accuracy)
+      if (!loc.ok) return NextResponse.json({ error: loc.error }, { status: 403 })
+    }
 
     const now = new Date()
     const today = dateKey(now)

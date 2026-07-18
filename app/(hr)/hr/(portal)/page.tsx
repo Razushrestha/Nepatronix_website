@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getBestGpsReading } from '@/lib/hr/client-gps'
-import { departmentRequiresGps, attendanceActionRequiresLocation } from '@/lib/hr/constants'
+import { departmentRequiresGps, attendanceActionRequiresLocation, ceoRemoteAttendanceAllowed } from '@/lib/hr/constants'
 
 type TodayAttendance = {
   status?: string
@@ -61,6 +61,8 @@ export default function HrDashboardPage() {
           longitude: pos.longitude,
           accuracy: pos.accuracy,
         }
+      } else if (user && ceoRemoteAttendanceAllowed(user.role, user.department)) {
+        setMsg('Checking in (remote allowed for CEO)…')
       } else {
         setMsg('Verifying office Wi‑Fi…')
       }
@@ -98,7 +100,7 @@ export default function HrDashboardPage() {
           longitude: pos.longitude,
           accuracy: pos.accuracy,
         }
-      } else if (user?.role === 'ceo') {
+      } else if (user && ceoRemoteAttendanceAllowed(user.role, user.department)) {
         setMsg('Checking out (remote allowed for CEO)…')
       }
       const res = await fetch('/api/hr/attendance/check-out', {

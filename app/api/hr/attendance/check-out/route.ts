@@ -4,7 +4,7 @@ import { requireHrSession } from '@/lib/hr/auth'
 import { HrAttendance, HrEmployee } from '@/lib/hr/models'
 import { dateKey } from '@/lib/hr/attendance-utils'
 import { getClientIpFromHeaders, validateAttendanceLocation } from '@/lib/hr/geo'
-import { departmentRequiresGps } from '@/lib/hr/constants'
+import { ceoRemoteAttendanceAllowed, departmentRequiresGps } from '@/lib/hr/constants'
 import { getEffectiveAllowedIps, getEffectiveOfficeCoords, getEffectiveAttendanceStartDate, formatAttendanceStartLabel } from '@/lib/hr/service'
 import { getOfficeSettings } from '@/lib/hr/models'
 
@@ -31,9 +31,9 @@ export async function POST(req: NextRequest) {
     const settings = await getOfficeSettings()
     const office = getEffectiveOfficeCoords(settings)
     const requireGps = departmentRequiresGps(emp.department)
-    const ceoRemoteCheckout = emp.role === 'ceo'
+    const ceoRemote = ceoRemoteAttendanceAllowed(emp.role, emp.department)
 
-    if (!ceoRemoteCheckout) {
+    if (!ceoRemote) {
       const loc = validateAttendanceLocation({
         clientIp: getRequestIp(req),
         allowedIps: getEffectiveAllowedIps(settings),

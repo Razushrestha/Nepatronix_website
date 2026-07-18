@@ -115,14 +115,18 @@ export function isCeoRole(role: string): boolean {
   return role === 'ceo'
 }
 
-/** Check-in always requires office location/network rules; CEO may check out from anywhere. */
+/** Nepatronix CEO may check in/out from any location and network. */
+export function ceoRemoteAttendanceAllowed(role: string, department: string): boolean {
+  return isCeoRole(role) && department === 'nepatronix'
+}
+
+/** Whether check-in or check-out must pass office GPS / Wi‑Fi rules. */
 export function attendanceActionRequiresLocation(
   role: string,
-  action: 'check_in' | 'check_out',
+  _action: 'check_in' | 'check_out',
   department: string
 ): boolean {
-  if (action === 'check_out' && isCeoRole(role)) return false
-  if (!departmentRequiresGps(department)) return true // STEM etc. still need office Wi‑Fi on check-in
+  if (ceoRemoteAttendanceAllowed(role, department)) return false
   return true
 }
 
