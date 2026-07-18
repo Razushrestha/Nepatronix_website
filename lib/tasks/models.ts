@@ -195,6 +195,7 @@ export interface TaskChecklistDoc {
   assignedToId?: OID
   assignedToName?: string
   completed: boolean
+  completionPercent: number
   completedAt?: Date
   completedBy?: ActorRef
   remarks?: string
@@ -215,6 +216,7 @@ const TaskChecklistSchema = new Schema<TaskChecklistDoc>(
     assignedToId: { type: Schema.Types.ObjectId, ref: 'HrEmployee', index: true },
     assignedToName: String,
     completed: { type: Boolean, default: false },
+    completionPercent: { type: Number, default: 0, min: 0, max: 100 },
     completedAt: Date,
     completedBy: ActorRefSchema,
     remarks: String,

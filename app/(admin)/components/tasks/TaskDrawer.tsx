@@ -467,7 +467,7 @@ function AssigneeProgressPanel({
         <p className="text-[11px] font-bold uppercase tracking-wide text-[#C1121F]">My progress</p>
         <p className="text-xs text-slate-500 mt-1">
           {usesChecklist
-            ? `Overall completion is ${task.completionPercent}% (${checklistDone}/${checklistTotal} checklist items done).`
+            ? `Overall completion is ${task.completionPercent}% — average of all checklist item progress (partial % counts too).`
             : 'Set your completion % below, or add checklist items for automatic tracking.'}
         </p>
       </div>
@@ -780,8 +780,15 @@ function ChecklistRow({
 }) {
   const [expanded, setExpanded] = useState(false)
   const [remarks, setRemarks] = useState(item.remarks || '')
+  const [percent, setPercent] = useState(item.completionPercent ?? (item.completed ? 100 : 0))
   const [busy, setBusy] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const itemProgress = item.completed ? 100 : (item.completionPercent ?? 0)
+
+  useEffect(() => {
+    setRemarks(item.remarks || '')
+    setPercent(item.completed ? 100 : (item.completionPercent ?? 0))
+  }, [item.id, item.remarks, item.completionPercent, item.completed])
 
   async function toggle() {
     setBusy(true)
@@ -794,10 +801,22 @@ function ChecklistRow({
       setBusy(false)
     }
   }
-  async function saveRemarks() {
-    await api(`/api/tasks/${task.id}/checklists/${item.id}`, 'PATCH', { remarks })
-    await onChanged()
+
+  async function saveProgress() {
+    setBusy(true)
+    try {
+      await api(`/api/tasks/${task.id}/checklists/${item.id}`, 'PATCH', {
+        completionPercent: percent,
+        remarks: remarks.trim() || undefined,
+      })
+      await onChanged()
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Failed to save progress')
+    } finally {
+      setBusy(false)
+    }
   }
+
   async function assignTo(id: string) {
     await api(`/api/tasks/${task.id}/checklists/${item.id}`, 'PATCH', { assignedToId: id || null })
     await onChanged()
@@ -836,13 +855,34 @@ function ChecklistRow({
           {item.completed && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
         </button>
         <div className="min-w-0 flex-1">
-          <p className={`text-sm ${item.completed ? 'text-slate-400 line-through' : 'text-slate-700'}`}>{item.title}</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className={`text-sm ${item.completed ? 'text-slate-400 line-through' : 'text-slate-700'}`}>{item.title}</p>
+            {!item.completed && itemProgress > 0 && itemProgress < 100 && (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                {itemProgress}%
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2 flex-wrap mt-0.5">
             {item.assignedToName && <span className="text-[10px] text-slate-400">→ {item.assignedToName}</span>}
-            {item.completedBy && <span className="text-[10px] text-emerald-600">✓ {item.completedBy.name} · {relTime(item.completedAt)}</span>}
+            {item.completedBy && item.completed && (
+              <span className="text-[10px] text-emerald-600">✓ {item.completedBy.name} · {relTime(item.completedAt)}</span>
+            )}
+            {!item.completed && item.remarks && (
+              <span className="text-[10px] text-slate-500 italic truncate max-w-[200px]">{item.remarks}</span>
+            )}
             {item.proofUrl && <a href={item.proofUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 underline">proof</a>}
-            <button onClick={() => setExpanded(!expanded)} className="text-[10px] text-slate-400 hover:text-slate-600">{expanded ? 'less' : 'more'}</button>
+            {canComplete && (
+              <button onClick={() => setExpanded(!expanded)} className="text-[10px] text-slate-400 hover:text-slate-600">
+                {expanded ? 'less' : 'update progress'}
+              </button>
+            )}
           </div>
+          {!item.completed && itemProgress > 0 && (
+            <div className="mt-1.5 max-w-xs">
+              <ProgressBar percent={itemProgress} />
+            </div>
+          )}
         </div>
         {canManage && (
           <button onClick={remove} className="text-slate-300 hover:text-red-500 p-0.5" title="Remove">
@@ -850,17 +890,62 @@ function ChecklistRow({
           </button>
         )}
       </div>
-      {expanded && (
-        <div className="pl-8 pb-2 space-y-2">
+      {expanded && canComplete && (
+        <div className="pl-8 pb-2 space-y-3">
           {item.description && <p className="text-xs text-slate-500">{item.description}</p>}
-          {canComplete && (
-            <div className="flex gap-2">
-              <input value={remarks} onChange={(e) => setRemarks(e.target.value)} placeholder="Add remarks…" className="flex-1 text-xs border border-slate-200 rounded-lg px-2 py-1" />
-              <button onClick={saveRemarks} className="text-[11px] font-semibold px-2 rounded-lg bg-slate-100 hover:bg-slate-200">Save</button>
-              <button onClick={() => fileRef.current?.click()} disabled={busy} className="text-[11px] font-semibold px-2 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-50">{busy ? '…' : 'Proof'}</button>
+
+          <div className="rounded-lg border border-slate-200 bg-white p-3 space-y-3">
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <label className="text-xs font-semibold text-slate-600">Work completed</label>
+                <span className="text-xs font-bold text-[#C1121F]">{percent}%</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={percent}
+                disabled={busy}
+                onChange={(e) => setPercent(Number(e.target.value))}
+                className="w-full accent-[#C1121F]"
+              />
+              <p className="text-[10px] text-slate-400 mt-1">
+                Set partial progress if not fully done. 100% marks this item complete.
+              </p>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-600 block mb-1">Remarks</label>
+              <textarea
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                placeholder="What is done so far? Any blockers?"
+                rows={2}
+                disabled={busy}
+                className="w-full text-xs border border-slate-200 rounded-lg px-2 py-1.5 resize-none"
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={saveProgress}
+                disabled={busy}
+                className="text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-[#C1121F] text-white hover:bg-[#8B0D15] disabled:opacity-50"
+              >
+                {busy ? 'Saving…' : 'Save progress'}
+              </button>
+              <button
+                onClick={() => fileRef.current?.click()}
+                disabled={busy}
+                className="text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-50"
+              >
+                Proof
+              </button>
               <input ref={fileRef} type="file" hidden onChange={uploadProof} />
             </div>
-          )}
+          </div>
+
           {canManage && (
             <select value={item.assignedToId || ''} onChange={(e) => assignTo(e.target.value)} className="text-xs border border-slate-200 rounded-lg px-2 py-1">
               <option value="">Assign to…</option>

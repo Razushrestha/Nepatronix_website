@@ -111,6 +111,21 @@ export function isHrAdminRole(role: string): boolean {
   return role === 'hr_staff' || role === 'super_hr_admin'
 }
 
+export function isCeoRole(role: string): boolean {
+  return role === 'ceo'
+}
+
+/** Check-in always requires office location/network rules; CEO may check out from anywhere. */
+export function attendanceActionRequiresLocation(
+  role: string,
+  action: 'check_in' | 'check_out',
+  department: string
+): boolean {
+  if (action === 'check_out' && isCeoRole(role)) return false
+  if (!departmentRequiresGps(department)) return true // STEM etc. still need office Wi‑Fi on check-in
+  return true
+}
+
 /** Employment types that use custom work-day selection (Sat/Sun always off). */
 export function usesFlexibleSchedule(type: string): boolean {
   return type === 'part_time' || type === 'freelance' || type === 'project_basis'

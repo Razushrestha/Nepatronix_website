@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getBestGpsReading } from '@/lib/hr/client-gps'
-import { departmentRequiresGps } from '@/lib/hr/constants'
+import { departmentRequiresGps, attendanceActionRequiresLocation } from '@/lib/hr/constants'
 
 type TodayAttendance = {
   status?: string
@@ -48,7 +48,10 @@ export default function HrDashboardPage() {
     setErr('')
     setMsg('')
     try {
-      const needsGps = user ? departmentRequiresGps(user.department) : true
+      const needsGps =
+        user &&
+        attendanceActionRequiresLocation(user.role, 'check_in', user.department) &&
+        departmentRequiresGps(user.department)
       let payload: Record<string, number> = {}
       if (needsGps) {
         setMsg('Getting GPS location…')
@@ -83,7 +86,10 @@ export default function HrDashboardPage() {
     setErr('')
     setMsg('')
     try {
-      const needsGps = user ? departmentRequiresGps(user.department) : true
+      const needsGps =
+        user &&
+        attendanceActionRequiresLocation(user.role, 'check_out', user.department) &&
+        departmentRequiresGps(user.department)
       let payload: Record<string, number> = {}
       if (needsGps) {
         const pos = await getPosition()
@@ -92,6 +98,8 @@ export default function HrDashboardPage() {
           longitude: pos.longitude,
           accuracy: pos.accuracy,
         }
+      } else if (user?.role === 'ceo') {
+        setMsg('Checking out (remote allowed for CEO)…')
       }
       const res = await fetch('/api/hr/attendance/check-out', {
         method: 'POST',

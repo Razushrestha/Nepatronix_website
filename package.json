@@ -15,6 +15,7 @@
     "sync:facebook": "node scripts/sync-facebook-gallery.mjs",
     "seed:admin": "node scripts/seed-admin.mjs",
     "seed:hr": "node scripts/seed-hr.mjs",
+    "seed:sample-task": "node scripts/seed-sample-module-task.mjs",
     "seed:content": "node scripts/seed-static-content.mjs",
     "db:export": "node scripts/db-export.mjs",
     "db:export:blog": "node scripts/db-export.mjs --collections=posts,galleries,teammembers,courses,coursepdfs,coursevideos,uploads.files,uploads.chunks",

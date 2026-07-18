@@ -44,6 +44,22 @@ export async function PATCH(
 
   let completedChanged = false
 
+  if (body.completionPercent !== undefined && canComplete) {
+    const pct = Math.max(0, Math.min(100, Math.round(Number(body.completionPercent) || 0)))
+    set.completionPercent = pct
+    if (pct >= 100) {
+      set.completed = true
+      set.completedAt = new Date()
+      set.completedBy = ctx.actor
+      completedChanged = !item.completed
+    } else {
+      set.completed = false
+      set.completedAt = undefined
+      set.completedBy = undefined
+      completedChanged = item.completed
+    }
+  }
+
   if (body.completed !== undefined) {
     if (!canComplete) {
       return NextResponse.json({ error: 'You cannot update this item' }, { status: 403 })
@@ -51,9 +67,15 @@ export async function PATCH(
     const completed = Boolean(body.completed)
     set.completed = completed
     if (completed) {
+      set.completionPercent = 100
       set.completedAt = new Date()
       set.completedBy = ctx.actor
     } else {
+      const keep =
+        body.completionPercent !== undefined
+          ? Math.max(0, Math.min(99, Math.round(Number(body.completionPercent) || 0)))
+          : Math.min(item.completionPercent ?? 0, 99)
+      set.completionPercent = keep
       set.completedAt = undefined
       set.completedBy = undefined
     }

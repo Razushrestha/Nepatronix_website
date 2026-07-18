@@ -205,8 +205,19 @@ export async function taskAssigneeIds(
 /* ------------------------------------------------------------------ */
 
 /**
+ * Effective progress for one checklist row (0–100).
+ */
+export function checklistItemPercent(
+  item: Pick<TaskChecklistDoc, 'completed' | 'completionPercent'>
+): number {
+  if (item.completed) return 100
+  const p = typeof item.completionPercent === 'number' ? item.completionPercent : 0
+  return Math.max(0, Math.min(100, Math.round(p)))
+}
+
+/**
  * Recompute completion % from checklists for the whole task and each assignee.
- * Progress = completed checklist items / total checklist items.
+ * Progress = average of each item's completion % (supports partial progress per item).
  */
 export async function recomputeProgress(
   taskId: mongoose.Types.ObjectId | string
@@ -215,8 +226,8 @@ export async function recomputeProgress(
   const items = await TaskChecklist.find({ taskId: tid, deletedAt: null }).lean<TaskChecklistDoc[]>()
 
   const total = items.length
-  const done = items.filter((i) => i.completed).length
-  const overall = total ? Math.round((done / total) * 100) : 0
+  const sum = items.reduce((acc, i) => acc + checklistItemPercent(i), 0)
+  const overall = total ? Math.round(sum / total) : 0
 
   await Task.updateOne({ _id: tid }, { $set: { completionPercent: overall } })
 
@@ -227,7 +238,8 @@ export async function recomputeProgress(
     const own = items.filter((i) => String(i.assignedToId || '') === String(a.assigneeId))
     let percent = overall
     if (own.length) {
-      percent = Math.round((own.filter((i) => i.completed).length / own.length) * 100)
+      const ownSum = own.reduce((acc, i) => acc + checklistItemPercent(i), 0)
+      percent = Math.round(ownSum / own.length)
     }
     const patch: Record<string, unknown> = { completionPercent: percent }
     if (percent === 100 && a.status !== 'completed' && a.status !== 'cancelled') {
@@ -324,6 +336,7 @@ export function serializeChecklist(c: TaskChecklistDoc) {
     assignedToId: c.assignedToId ? String(c.assignedToId) : undefined,
     assignedToName: c.assignedToName,
     completed: c.completed,
+    completionPercent: checklistItemPercent(c),
     completedAt: c.completedAt,
     completedBy: serializeActor(c.completedBy),
     remarks: c.remarks,

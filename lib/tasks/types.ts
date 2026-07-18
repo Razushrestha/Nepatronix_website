@@ -77,6 +77,7 @@ export interface ChecklistDTO {
   assignedToId?: string
   assignedToName?: string
   completed: boolean
+  completionPercent: number
   completedAt?: string
   completedBy?: ActorDTO
   remarks?: string

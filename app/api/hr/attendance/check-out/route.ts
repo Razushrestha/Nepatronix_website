@@ -31,19 +31,23 @@ export async function POST(req: NextRequest) {
     const settings = await getOfficeSettings()
     const office = getEffectiveOfficeCoords(settings)
     const requireGps = departmentRequiresGps(emp.department)
-    const loc = validateAttendanceLocation({
-      clientIp: getRequestIp(req),
-      allowedIps: getEffectiveAllowedIps(settings),
-      latitude: lat ?? NaN,
-      longitude: lng ?? NaN,
-      accuracy,
-      officeLat: office.latitude,
-      officeLng: office.longitude,
-      radiusMeters: office.radiusMeters,
-      requireGps,
-    })
-    if (!loc.ok) {
-      return NextResponse.json({ error: loc.error }, { status: 403 })
+    const ceoRemoteCheckout = emp.role === 'ceo'
+
+    if (!ceoRemoteCheckout) {
+      const loc = validateAttendanceLocation({
+        clientIp: getRequestIp(req),
+        allowedIps: getEffectiveAllowedIps(settings),
+        latitude: lat ?? NaN,
+        longitude: lng ?? NaN,
+        accuracy,
+        officeLat: office.latitude,
+        officeLng: office.longitude,
+        radiusMeters: office.radiusMeters,
+        requireGps,
+      })
+      if (!loc.ok) {
+        return NextResponse.json({ error: loc.error }, { status: 403 })
+      }
     }
 
     const today = dateKey(new Date())
