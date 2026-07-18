@@ -21,6 +21,16 @@ if [ -n "$ENV_BACKUP" ] && [ -f "$ENV_BACKUP" ]; then
   rm -f "$ENV_BACKUP"
 fi
 
+echo "==> Updating nginx upload limits (unlimited body size)..."
+if command -v nginx >/dev/null 2>&1 && [ -f deploy/nginx-nepatronix.conf ]; then
+  sudo cp deploy/nginx-nepatronix.conf /etc/nginx/sites-available/nepatronix
+  if sudo nginx -t; then
+    sudo systemctl reload nginx
+  else
+    echo "WARNING: nginx config test failed — upload limit may still be 1 MB. Fix nginx manually."
+  fi
+fi
+
 echo "==> Installing dependencies..."
 npm ci
 

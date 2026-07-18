@@ -5,6 +5,13 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  experimental: {
+    // Large video/PDF uploads through `next start` (default is only 10 MB).
+    proxyClientMaxBodySize: "5gb",
+    serverActions: {
+      bodySizeLimit: "5gb",
+    },
+  },
   images: {
     remotePatterns: [
       {
