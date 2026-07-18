@@ -34,7 +34,7 @@ export async function taskUpload(file: File): Promise<TaskUploadResult> {
       if (!res.ok) {
         if (res.status === 413) {
           throw new Error(
-            'Upload blocked by server size limit (HTTP 413). Redeploy the app and ensure nginx client_max_body_size is 512M (bash deploy/deploy.sh on the VPS).'
+            'Upload blocked (HTTP 413). On the VPS run: cd /var/www/nepatronix && bash deploy/deploy.sh'
           )
         }
         throw new Error(`Upload failed (${res.status})`)

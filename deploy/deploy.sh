@@ -21,14 +21,23 @@ if [ -n "$ENV_BACKUP" ] && [ -f "$ENV_BACKUP" ]; then
   rm -f "$ENV_BACKUP"
 fi
 
-echo "==> Updating nginx upload limits (unlimited body size)..."
-if command -v nginx >/dev/null 2>&1 && [ -f deploy/nginx-nepatronix.conf ]; then
-  sudo cp deploy/nginx-nepatronix.conf /etc/nginx/sites-available/nepatronix
-  if sudo nginx -t; then
-    sudo systemctl reload nginx
-  else
-    echo "WARNING: nginx config test failed — upload limit may still be 1 MB. Fix nginx manually."
+echo "==> Patching nginx upload limits (unlimited + SSL-safe)..."
+if command -v nginx >/dev/null 2>&1; then
+  if [ -f deploy/patch-nginx-uploads.sh ]; then
+    bash deploy/patch-nginx-uploads.sh /etc/nginx/sites-available/nepatronix || \
+      echo "WARNING: nginx patch failed — run: bash deploy/patch-nginx-uploads.sh"
+  elif [ -f deploy/nginx-nepatronix.conf ]; then
+    sudo cp deploy/nginx-nepatronix.conf /etc/nginx/sites-available/nepatronix
+    sudo nginx -t && sudo systemctl reload nginx
   fi
+fi
+
+# Task upload env (unlimited at app layer)
+if [ -f .env.local ]; then
+  grep -q '^TASK_MAX_UPLOAD_MB=' .env.local || echo 'TASK_MAX_UPLOAD_MB=0' >> .env.local
+  grep -q '^NEXT_PUBLIC_TASK_MAX_UPLOAD_MB=' .env.local || echo 'NEXT_PUBLIC_TASK_MAX_UPLOAD_MB=0' >> .env.local
+  sed -i 's/^TASK_MAX_UPLOAD_MB=.*/TASK_MAX_UPLOAD_MB=0/' .env.local 2>/dev/null || true
+  sed -i 's/^NEXT_PUBLIC_TASK_MAX_UPLOAD_MB=.*/NEXT_PUBLIC_TASK_MAX_UPLOAD_MB=0/' .env.local 2>/dev/null || true
 fi
 
 echo "==> Installing dependencies..."
