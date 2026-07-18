@@ -6,6 +6,9 @@ import {
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
+import InstitutionalPrograms from "./InstitutionalPrograms";
+import StemEducation from "./StemEducation";
+import StemLabSetup from "./StemLabSetup";
 
 /** Optional extra keywords per service id — merged with title, tagline, and defaults. */
 const SERVICE_SEO_EXTRA_KEYWORDS: Partial<Record<string, readonly string[]>> = {
@@ -271,7 +274,8 @@ export default async function ServiceDetail({ params }: { params: Promise<{ id: 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* 1. HERO SECTION (Pristine White Theme) */}
+      {/* 1. HERO SECTION (skipped for services with dedicated heroes) */}
+      {service.id !== "institutional-programs" && service.id !== "stem-education" && service.id !== "stem-lab-setup" && (
       <section className="relative pt-44 pb-32 px-6 overflow-hidden bg-white">
         {/* Background Decorative Elements */}
         <div className="absolute inset-0">
@@ -335,9 +339,21 @@ export default async function ServiceDetail({ params }: { params: Promise<{ id: 
           </div>
         </div>
       </section>
+      )}
+
+      {/* Dedicated professional body for Institutional Programs */}
+      {service.id === "institutional-programs" && (
+        <InstitutionalPrograms service={service} />
+      )}
+
+      {/* Dedicated professional body for STEM Education */}
+      {service.id === "stem-education" && <StemEducation service={service} />}
+
+      {/* Dedicated professional body for STEM Lab Setup */}
+      {service.id === "stem-lab-setup" && <StemLabSetup service={service} />}
 
       {/* 3.1 COURSE CERTIFICATION TABLE (Special for STEM Education) */}
-      {(service as any).certifications && (
+      {service.id !== "stem-education" && (service as any).certifications && (
         <section className="py-16 px-6 bg-white overflow-hidden relative border-b border-slate-100">
            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
            
@@ -347,8 +363,8 @@ export default async function ServiceDetail({ params }: { params: Promise<{ id: 
         </section>
       )}
 
-      {/* 3.2 LAB SETUP TIERS (Special for STEM Lab Setup) */}
-      {(service as any).labTiers && (
+      {/* 3.2 LAB SETUP TIERS (legacy — replaced by StemLabSetup) */}
+      {service.id !== "stem-lab-setup" && (service as any).labTiers && (
         <section className="py-20 px-6 bg-white overflow-hidden relative">
            <div className="max-w-7xl mx-auto">
               <div className="text-center mb-16 space-y-4">
@@ -401,15 +417,16 @@ export default async function ServiceDetail({ params }: { params: Promise<{ id: 
       )}
 
       {/* 3. MODULES/COMPONENTS (Technical Stack) */}
+      {service.id !== "institutional-programs" && service.id !== "stem-education" && service.id !== "stem-lab-setup" && (
       <section className="pt-24 pb-12 bg-white relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="text-center mb-16 space-y-3">
             <span className="text-[#C1121F] font-black uppercase tracking-[0.4em] text-[10px]">
-              {service.id === 'stem-lab-setup' ? 'Our Implementation Process' : 'Detailed Curriculum'}
+              Detailed Curriculum
             </span>
             <h2 className="text-4xl md:text-5xl font-black text-[#020617] tracking-tight">
-               {service.id === 'stem-lab-setup' ? 'How We Setup ' : 'Core Modules & '}
-               <span className="text-[#C1121F]">{service.id === 'stem-lab-setup' ? 'the Labs' : 'Building Blocks'}</span>
+               Core Modules &amp;{' '}
+               <span className="text-[#C1121F]">Building Blocks</span>
             </h2>
           </div>
           
@@ -502,8 +519,10 @@ export default async function ServiceDetail({ params }: { params: Promise<{ id: 
           </div>
         </div>
       </section>
+      )}
 
       {/* 3.3 PARTNERSHIP COLLABORATION (Ecosystem Hub) */}
+      {service.id !== "institutional-programs" && service.id !== "stem-education" && service.id !== "stem-lab-setup" && (
       <section className="pt-12 pb-24 px-6 bg-white relative overflow-hidden">
          {/* Artistic White-Value Background */}
          <div className="absolute inset-0">
@@ -575,6 +594,7 @@ export default async function ServiceDetail({ params }: { params: Promise<{ id: 
             </div>
          </div>
       </section>
+      )}
     </main>
   );
 }

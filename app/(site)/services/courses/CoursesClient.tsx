@@ -1,10 +1,8 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import emailjs from "@emailjs/browser";
-import type { CourseOverview } from "@/lib/course-overview";
-import CourseDetailExplorer from "./CourseDetailExplorer";
+import { useRouter } from "next/navigation";
 
 interface Course {
   id: number;
@@ -26,198 +24,21 @@ interface CoursesClientProps {
   objectives: string[];
 }
 
-interface FormErrors {
-  fullName?: string;
-  email?: string;
-  phone?: string;
-}
-
 type FilterType = "all" | "free" | "paid";
 
 export default function CoursesClient({ courses, objectives }: CoursesClientProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
-  const [expandedCourseId, setExpandedCourseId] = useState<number | null>(null);
-  const [courseOverview, setCourseOverview] = useState<CourseOverview | null>(null);
-  const [overviewLoading, setOverviewLoading] = useState(false);
-  const detailRef = useRef<HTMLDivElement>(null);
 
-  // Filter courses based on active filter
   const filteredCourses = courses.filter((course) => {
     if (activeFilter === "all") return true;
     if (activeFilter === "free") return course.isFree;
     if (activeFilter === "paid") return !course.isFree;
     return true;
   });
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    organization: "",
-    message: "",
-  });
-  const [formErrors, setFormErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
 
-  const openEnrollModal = (course: Course) => {
-    setSelectedCourse(course);
-    setIsModalOpen(true);
-    setSubmitStatus("idle");
-    setFormErrors({});
-  };
-
-  const loadCourseOverview = useCallback(async (course: Course) => {
-    if (expandedCourseId === course.id && courseOverview) {
-      detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      return;
-    }
-    setExpandedCourseId(course.id);
-    setOverviewLoading(true);
-    setCourseOverview(null);
-    try {
-      const res = await fetch(`/api/courses/${course.id}/overview`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to load course");
-      setCourseOverview(data.course);
-      setTimeout(() => {
-        detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
-    } catch (e) {
-      console.error(e);
-      alert(e instanceof Error ? e.message : "Could not load course details");
-      setExpandedCourseId(null);
-    } finally {
-      setOverviewLoading(false);
-    }
-  }, [expandedCourseId, courseOverview]);
-
-  const selectCourse = (course: Course, e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    loadCourseOverview(course);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedCourse(null);
-    setFormData({
-      fullName: "",
-      email: "",
-      phone: "",
-      organization: "",
-      message: "",
-    });
-    setFormErrors({});
-  };
-
-  // Validation functions
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const validatePhone = (phone: string): boolean => {
-    // Allow formats: +977 98XXXXXXXX, 98XXXXXXXX, +977-98XXXXXXXX
-    const phoneRegex = /^(\+?\d{1,3}[-.\s]?)?\d{9,14}$/;
-    return phoneRegex.test(phone.replace(/\s/g, ""));
-  };
-
-  const validateForm = (): boolean => {
-    const errors: FormErrors = {};
-    
-    // Full Name validation
-    if (!formData.fullName.trim()) {
-      errors.fullName = "Full name is required";
-    } else if (formData.fullName.trim().length < 2) {
-      errors.fullName = "Name must be at least 2 characters";
-    }
-    
-    // Email validation
-    if (!formData.email.trim()) {
-      errors.email = "Email is required";
-    } else if (!validateEmail(formData.email)) {
-      errors.email = "Please enter a valid email address";
-    }
-    
-    // Phone validation
-    if (!formData.phone.trim()) {
-      errors.phone = "Phone number is required";
-    } else if (!validatePhone(formData.phone)) {
-      errors.phone = "Please enter a valid phone number";
-    }
-    
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate form first
-    if (!validateForm()) {
-      return;
-    }
-    
-    setIsSubmitting(true);
-
-    try {
-      // Save enrollment to MongoDB via API
-      const enrollResponse = await fetch("/api/enroll", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...formData,
-          courseName: selectedCourse?.name,
-          coursePrice: selectedCourse?.price,
-        }),
-      });
-
-      // Then send email via EmailJS (same credentials as contact form)
-      const SERVICE_ID = "service_kjd43s2";
-      const TEMPLATE_ID = "template_lew7hye";
-      const PUBLIC_KEY = "Qn6NLMmkaLabSyyZR";
-
-      // Initialize EmailJS
-      emailjs.init(PUBLIC_KEY);
-
-      const templateParams = {
-        from_name: formData.fullName,
-        from_email: formData.email,
-        phone_number: formData.phone,
-        message: `
-Course Enrollment Request
--------------------------
-Course: ${selectedCourse?.name}
-Price: ${selectedCourse?.price} ${selectedCourse?.priceUnit}
-Organization: ${formData.organization || "Not specified"}
-Additional Message: ${formData.message || "None"}
-        `,
-        reply_to: formData.email,
-      };
-
-      await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams);
-
-      if (enrollResponse.ok) {
-        setSubmitStatus("success");
-        setTimeout(() => {
-          closeModal();
-        }, 2000);
-      } else {
-        // Enrollment API failed but notification email was sent
-        setSubmitStatus("success");
-        setTimeout(() => {
-          closeModal();
-        }, 2000);
-      }
-    } catch (error) {
-      console.error("Enrollment error:", error);
-      setSubmitStatus("error");
-    } finally {
-      setIsSubmitting(false);
-    }
+  const goToCourse = (course: Course) => {
+    router.push(`/services/courses/${course.id}`);
   };
 
   return (
@@ -352,21 +173,19 @@ Additional Message: ${formData.message || "None"}
                 key={course.id}
                 role="button"
                 tabIndex={0}
-                onClick={() => loadCourseOverview(course)}
+                onClick={() => goToCourse(course)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    loadCourseOverview(course);
+                    goToCourse(course);
                   }
                 }}
                 className={`relative bg-white rounded-2xl shadow-lg overflow-hidden border transition-all duration-300 cursor-pointer group ${
-                  expandedCourseId === course.id
-                    ? 'border-[#C1121F] ring-4 ring-[#C1121F]/25 shadow-2xl scale-[1.02]'
-                    : course.popular
-                      ? 'border-[#C1121F] ring-2 ring-[#C1121F]/20 hover:-translate-y-2 hover:shadow-xl'
-                      : course.isFree
-                        ? 'border-emerald-500 ring-2 ring-emerald-500/20 hover:-translate-y-2 hover:shadow-xl'
-                        : 'border-slate-100 hover:-translate-y-2 hover:shadow-xl hover:border-[#C1121F]/40'
+                  course.popular
+                    ? 'border-[#C1121F] ring-2 ring-[#C1121F]/20 hover:-translate-y-2 hover:shadow-xl'
+                    : course.isFree
+                      ? 'border-emerald-500 ring-2 ring-emerald-500/20 hover:-translate-y-2 hover:shadow-xl'
+                      : 'border-slate-100 hover:-translate-y-2 hover:shadow-xl hover:border-[#C1121F]/40'
                 }`}
               >
                 {/* Badge container */}
@@ -419,16 +238,14 @@ Additional Message: ${formData.message || "None"}
                 
                 {/* Two Buttons */}
                 <div className="px-6 pb-6 flex gap-2" onClick={(e) => e.stopPropagation()}>
-                  <button 
-                    type="button"
-                    onClick={() => openEnrollModal(course)}
+                  <Link
+                    href={`/services/courses/${course.id}?enroll=1`}
                     className="flex-1 text-center py-2.5 rounded-lg bg-[#C1121F] text-white font-semibold text-sm hover:bg-[#A30F19] transition-colors duration-300"
                   >
                     Enroll Now
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => selectCourse(course, e)}
+                  </Link>
+                  <Link
+                    href={`/services/courses/${course.id}`}
                     className="flex-1 text-center py-2.5 rounded-lg bg-slate-900 text-white font-semibold text-sm hover:bg-slate-800 transition-colors duration-300 flex items-center justify-center gap-1"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -436,39 +253,12 @@ Additional Message: ${formData.message || "None"}
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
                     View Course
-                  </button>
+                  </Link>
                 </div>
-                {expandedCourseId === course.id && (
-                  <div className="px-6 pb-4">
-                    <p className="text-center text-[11px] font-semibold text-[#C1121F] uppercase tracking-wider">
-                      ↓ Course details below
-                    </p>
-                  </div>
-                )}
               </div>
             )))
             }
           </div>
-
-          {/* Expanded course detail — PDF + full vibrant view */}
-          {(expandedCourseId || overviewLoading) && (
-            <div ref={detailRef} className="mt-12 scroll-mt-24">
-              {overviewLoading && !courseOverview ? (
-                <div className="rounded-3xl bg-white border border-slate-200 p-16 text-center shadow-lg">
-                  <div className="w-12 h-12 border-4 border-[#C1121F]/30 border-t-[#C1121F] rounded-full animate-spin mx-auto mb-4" />
-                  <p className="text-slate-600 font-medium">Loading course overview…</p>
-                </div>
-              ) : courseOverview ? (
-                <CourseDetailExplorer
-                  course={courseOverview}
-                  onEnroll={() => {
-                    const c = courses.find((x) => x.id === courseOverview.id);
-                    if (c) openEnrollModal(c);
-                  }}
-                />
-              ) : null}
-            </div>
-          )}
 
           {/* Full Table for Desktop */}
           <div className="hidden lg:block mt-12 bg-white rounded-2xl shadow-lg overflow-hidden border border-slate-100">
@@ -491,16 +281,14 @@ Additional Message: ${formData.message || "None"}
                       key={course.id}
                       role="button"
                       tabIndex={0}
-                      onClick={() => loadCourseOverview(course)}
+                      onClick={() => goToCourse(course)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
-                          loadCourseOverview(course);
+                          goToCourse(course);
                         }
                       }}
-                      className={`${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-[#C1121F]/5 transition-colors cursor-pointer ${
-                        expandedCourseId === course.id ? 'bg-[#C1121F]/10' : ''
-                      }`}
+                      className={`${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-[#C1121F]/5 transition-colors cursor-pointer`}
                     >
                       <td className="px-6 py-4 text-sm font-semibold text-[#C1121F]">{course.id}</td>
                       <td className="px-6 py-4 text-sm font-medium text-slate-900">
@@ -565,154 +353,6 @@ Additional Message: ${formData.message || "None"}
           </div>
         </div>
       </div>
-
-      {/* Enrollment Modal */}
-      {isModalOpen && selectedCourse && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={closeModal}
-          />
-          
-          {/* Modal */}
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-            {/* Header */}
-            <div className="sticky top-0 bg-white border-b border-slate-100 p-6 rounded-t-2xl">
-              <button 
-                onClick={closeModal}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <h3 className="text-xl font-bold text-slate-900">Enroll in Course</h3>
-              <p className="text-slate-500 text-sm mt-1">{selectedCourse.name}</p>
-              <div className="mt-2 inline-block bg-[#C1121F]/10 text-[#C1121F] text-sm font-semibold px-3 py-1 rounded-full">
-                {selectedCourse.price} {selectedCourse.priceUnit}
-              </div>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {submitStatus === "success" ? (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <h4 className="text-lg font-bold text-slate-900">Enrollment Request Sent!</h4>
-                  <p className="text-slate-500 text-sm mt-2">We&apos;ll contact you shortly with more details.</p>
-                </div>
-              ) : (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Full Name *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.fullName}
-                      onChange={(e) => {
-                        setFormData({ ...formData, fullName: e.target.value });
-                        if (formErrors.fullName) setFormErrors({ ...formErrors, fullName: undefined });
-                      }}
-                      className={`w-full px-4 py-2.5 rounded-lg border ${formErrors.fullName ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 focus:border-[#C1121F] focus:ring-[#C1121F]/20'} focus:ring-2 outline-none transition-all text-slate-900`}
-                      placeholder="Enter your full name"
-                    />
-                    {formErrors.fullName && (
-                      <p className="text-red-500 text-xs mt-1">{formErrors.fullName}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Email Address *</label>
-                    <input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => {
-                        setFormData({ ...formData, email: e.target.value });
-                        if (formErrors.email) setFormErrors({ ...formErrors, email: undefined });
-                      }}
-                      className={`w-full px-4 py-2.5 rounded-lg border ${formErrors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 focus:border-[#C1121F] focus:ring-[#C1121F]/20'} focus:ring-2 outline-none transition-all text-slate-900`}
-                      placeholder="your@email.com"
-                    />
-                    {formErrors.email && (
-                      <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number *</label>
-                    <input
-                      type="tel"
-                      required
-                      value={formData.phone}
-                      onChange={(e) => {
-                        setFormData({ ...formData, phone: e.target.value });
-                        if (formErrors.phone) setFormErrors({ ...formErrors, phone: undefined });
-                      }}
-                      className={`w-full px-4 py-2.5 rounded-lg border ${formErrors.phone ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 focus:border-[#C1121F] focus:ring-[#C1121F]/20'} focus:ring-2 outline-none transition-all text-slate-900`}
-                      placeholder="+977 98XXXXXXXX"
-                    />
-                    {formErrors.phone && (
-                      <p className="text-red-500 text-xs mt-1">{formErrors.phone}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">School/Organization</label>
-                    <input
-                      type="text"
-                      value={formData.organization}
-                      onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-[#C1121F] focus:ring-2 focus:ring-[#C1121F]/20 outline-none transition-all text-slate-900"
-                      placeholder="Your school or organization name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Message (Optional)</label>
-                    <textarea
-                      value={formData.message}
-                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      rows={3}
-                      className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-[#C1121F] focus:ring-2 focus:ring-[#C1121F]/20 outline-none transition-all text-slate-900 resize-none"
-                      placeholder="Any specific requirements or questions?"
-                    />
-                  </div>
-
-                  {submitStatus === "error" && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                      Something went wrong. Please try again or contact us directly.
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full py-3 rounded-xl bg-[#C1121F] text-white font-semibold hover:bg-[#A30F19] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Submitting...
-                      </>
-                    ) : (
-                      "Submit Enrollment Request"
-                    )}
-                  </button>
-                </>
-              )}
-            </form>
-          </div>
-        </div>
-      )}
     </>
   );
 }

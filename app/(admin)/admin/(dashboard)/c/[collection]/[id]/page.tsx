@@ -7,6 +7,7 @@ import { getCollection } from '@/lib/admin-collections'
 import DynamicForm from '@/app/(admin)/components/DynamicForm'
 import { fetcher, Spinner, adminCard, adminHeading } from '@/app/(admin)/components/ui'
 import CertificateActions from '@/app/(admin)/components/CertificateActions'
+import CoursePreviewLink from '@/app/(admin)/components/CoursePreviewLink'
 
 export default function EditPage({ params }: { params: Promise<{ collection: string; id: string }> }) {
   const { collection, id } = use(params)
@@ -50,6 +51,9 @@ export default function EditPage({ params }: { params: Promise<{ collection: str
       {collection === 'certifications' && !isNew && (
         <CertificateActions item={initial} onChanged={() => mutate()} />
       )}
+
+      {/* Quick link to the public course details page */}
+      {collection === 'courses' && !isNew && <CoursePreviewLink id={id} />}
 
       <div className={`${adminCard} p-6`}>
         <DynamicForm config={config} initial={initial} mode={isNew ? 'new' : 'edit'} />

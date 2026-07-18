@@ -169,7 +169,7 @@ function defaultHomePageSettings(): HomePageSettings {
     testimonials: {
       eyebrow: 'Client Reviews',
       title: 'What Our Clients Say',
-      description: 'Real feedback from our satisfied clients and partners across various projects.',
+      description: 'Real Google reviews from students, clients, and partners of Nepatronix.',
     },
   }
 }
@@ -177,31 +177,34 @@ function defaultHomePageSettings(): HomePageSettings {
 function defaultHomeServices(): HomeServiceItem[] {
   return [
     {
-      title: 'STEM Tutor Program',
+      title: 'Certified STEM Education',
       href: '/services/stem-education',
       iconKey: 'stem',
-      description: 'Personalized STEM education with expert tutors for students at all levels',
+      description:
+        'Globally aligned STEM programs for students and teachers with hands-on projects and certification',
       colorClass: 'text-blue-600',
     },
     {
       title: 'STEM Lab Setup',
       href: '/services/stem-lab-setup',
       iconKey: 'lab',
-      description: 'Complete laboratory setup and equipment for schools and educational institutions',
+      description: 'End-to-end STEM lab design, equipment, installation, and teacher orientation',
       colorClass: 'text-red-600',
     },
     {
-      title: 'Software and APP Development',
+      title: 'Product Engineering',
       href: '/services/product-engineering',
       iconKey: 'software',
-      description: 'Custom software solutions and mobile applications for educational and business needs',
+      description:
+        'Custom product engineering, software, and IoT solutions for institutions and businesses',
       colorClass: 'text-emerald-600',
     },
     {
-      title: 'Research and Innovations',
+      title: 'Government, NGO & CSR Programs',
       href: '/services/institutional-programs',
       iconKey: 'research',
-      description: 'Cutting-edge research projects and innovative solutions for real-world challenges',
+      description:
+        'Large-scale STEM implementation for governments, NGOs, INGOs, and CSR partners',
       colorClass: 'text-purple-600',
     },
   ]
@@ -317,23 +320,42 @@ export async function getHomeFeatures(): Promise<Feature[]> {
   }))
 }
 
-export async function getHomeTestimonials(): Promise<HomeTestimonial[]> {
-  await connectToDatabase()
-  const docs = await Testimonial.find().sort({ order: 1, createdAt: 1 }).lean()
-  if (!docs.length) {
-    return staticTestimonials.map((t) => ({
-      name: t.name,
-      role: t.role,
-      rating: 5,
-      review: t.quote,
-    }))
-  }
-  return docs.map((d) => ({
-    name: d.name || '',
-    role: d.role || '',
-    rating: d.rating || 5,
-    review: d.review || '',
+function mapStaticTestimonials(): HomeTestimonial[] {
+  return staticTestimonials.map((t) => ({
+    name: t.name,
+    role: t.role,
+    rating: t.rating ?? 5,
+    review: t.quote,
   }))
+}
+
+export async function getHomeTestimonials(): Promise<HomeTestimonial[]> {
+  try {
+    await connectToDatabase()
+    const docs = await Testimonial.find().sort({ order: 1, createdAt: 1 }).lean()
+    if (!docs.length) return mapStaticTestimonials()
+
+    const mapped = docs
+      .map((d) => ({
+        name: d.name || '',
+        role: d.role || '',
+        rating: d.rating || 5,
+        review: (d.review || '').trim(),
+      }))
+      .filter((t) => t.name && t.review)
+
+    // Prefer curated Google reviews from static data when CMS still has placeholders
+    const looksPlaceholder = mapped.some(
+      (t) =>
+        /novalearn|jordan blake|evelyn park|flux ai|lumencloud/i.test(
+          `${t.name} ${t.role} ${t.review}`
+        )
+    )
+    if (looksPlaceholder || mapped.length < 3) return mapStaticTestimonials()
+    return mapped
+  } catch {
+    return mapStaticTestimonials()
+  }
 }
 
 export async function getHomeCourseShowcase(): Promise<Course[]> {
@@ -528,12 +550,7 @@ export async function getHomePageContent() {
       partners: getDefaultPartners(),
       recognitions: getDefaultRecognitions(),
       schools: getDefaultSchools(),
-      testimonials: staticTestimonials.map((t) => ({
-        name: t.name,
-        role: t.role,
-        rating: 5,
-        review: t.quote,
-      })),
+      testimonials: mapStaticTestimonials(),
       hero: null as HeroSlideContent | null,
       settings: defaults,
       services: defaultHomeServices(),

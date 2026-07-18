@@ -28,6 +28,7 @@ export type Testimonial = {
 	quote: string;
 	name: string;
 	role: string;
+	rating?: number;
 };
 
 export type Stat = {
@@ -87,10 +88,24 @@ export const aboutUsData = {
     }
   },
   verticals: [
-    { title: "Innovator", description: "Providing STEM kits and training modules for schools and colleges." },
-    { title: "Nep STEM", description: "Research and development solutions for local industries." },
-    { title: "R&D", description: "End-to-end product design, prototyping, and manufacturing." },
-    { title: "KMS", description: "Vocational training and workshops for aspiring engineers." }
+    {
+      title: "STEM Innovation Nepal",
+      tagline: "Education & Talent",
+      description: "Empowering schools and colleges with hands-on STEM kits, teacher training, and future-ready IoT and robotics curriculum.",
+      icon: "education",
+    },
+    {
+      title: "Meta-Tronix",
+      tagline: "Products & Engineering",
+      description: "Designing and building large-scale software and websites from concept to market-ready products.",
+      icon: "code",
+    },
+    {
+      title: "Nepatronix Research and Development",
+      tagline: "Research & Innovation",
+      description: "Driving deep-tech research in IoT, robotics, and automation to solve real-world engineering challenges in Nepal and beyond.",
+      icon: "research",
+    }
   ],
   whyChooseUs: [
     { title: "Local Expertise", description: "Deep understanding of the local market and technological challenges." },
@@ -202,17 +217,136 @@ export const mentors: Mentor[] = [
 export const testimonials: Testimonial[] = [
 	{
 		id: 1,
-		quote:
-			"The mentorship and career support at NovaLearn helped me land my first product role in under 90 days.",
-		name: "Jordan Blake",
-		role: "Associate Product Manager, Flux AI",
+		quote: "One of the best IoT, Robotics and automation companies in Nepal. They provide excellent knowledge and support to students.",
+		name: "Razu Shrestha",
+		role: "Google Review · Local Guide",
+		rating: 5,
 	},
 	{
 		id: 2,
-		quote:
-			"Project-based learning finally made complex ML concepts stick. The portfolio I built here speaks for itself.",
-		name: "Evelyn Park",
-		role: "Machine Learning Engineer, LumenCloud",
+		quote: "I attended the 3-day online IoT and Robotics course conducted by Nepatronix, and it was a highly valuable learning experience. The tutors were knowledgeable, supportive, and encouraged interactive participation throughout the sessions.",
+		name: "Sunil Magar",
+		role: "Student · Google Review",
+		rating: 5,
+	},
+	{
+		id: 3,
+		quote: "I had a great experience attending the 3-day Online IoT and Robotics Course by Nepatronix. The course was beginner-friendly, practical, and packed with hands-on projects. The instructor was very knowledgeable, friendly, and supportive.",
+		name: "Yubraj Shahi",
+		role: "Student · Google Review",
+		rating: 5,
+	},
+	{
+		id: 4,
+		quote: "I'm really happy with my experience at Nepatronix Engineering Solutions! As a student learning Arduino and ESP32 projects, I've gone from knowing nothing to an intermediate level. The teachers are great and make learning fun and easy. I highly recommend this IoT and Robotics course!",
+		name: "Dishesh Mahato",
+		role: "Student · Google Review",
+		rating: 5,
+	},
+	{
+		id: 5,
+		quote: "Nepatronix is a burgeoning technology company based in Nepal, specializing in the development of Internet of Things (IoT) solutions and innovative hardware devices. The company is known for its commitment to creating high-end automation and instrumentation products for local and global markets.",
+		name: "Jyoti Shrestha",
+		role: "Google Review",
+		rating: 5,
+	},
+	{
+		id: 6,
+		quote: "NepaTronix has impressed me with their innovative IoT solutions, seamlessly integrating high-performance hardware and software to meet our specific needs. Their commitment to continuous improvement and customer satisfaction sets them apart from other companies in the industry.",
+		name: "Deepsu Gautam",
+		role: "Client · Google Review",
+		rating: 5,
+	},
+	{
+		id: 7,
+		quote: "My recent visit to Nepatronix left a lasting impression. Their pad vending machine, a blend of innovation and empathy, showcased their commitment to community welfare. What truly stood out was their dedication to education through IoT.",
+		name: "Public Debt Management Office",
+		role: "Tripureshwor · Google Review",
+		rating: 5,
+	},
+	{
+		id: 8,
+		quote: "Best known for IoT development including Robotics and Automation in Nepal. Also provides excellent knowledge and support to students and enthusiasts.",
+		name: "Bikram Karki",
+		role: "Google Review",
+		rating: 5,
+	},
+	{
+		id: 9,
+		quote: "Nepatronix excels in IoT and robotics, offering innovative, scalable solutions that enhance operational efficiency across various industries.",
+		name: "Bikash Rashaili",
+		role: "Client · Google Review",
+		rating: 5,
+	},
+	{
+		id: 10,
+		quote: "Nepatronix is the best platform for students to get introduced to the IT world. Experts from the industry are there for support.",
+		name: "Siddhartha Yadav",
+		role: "Student · Google Review",
+		rating: 5,
+	},
+	{
+		id: 11,
+		quote: "Nepatronix is the best place for learning IoT, robotics, and manufacturing IoT products. They are the best at what they do!",
+		name: "Manu Shrestha",
+		role: "Student · Google Review",
+		rating: 5,
+	},
+	{
+		id: 12,
+		quote: "A talented team that provides top-notch robotics and IoT solutions. You can go for this company's services without a doubt.",
+		name: "Namuna Paudel",
+		role: "Google Review",
+		rating: 5,
+	},
+	{
+		id: 13,
+		quote: "Top-notch IoT course in Kathmandu offering a welcoming atmosphere and supportive instructors.",
+		name: "Sakar Khatri",
+		role: "Student · Google Review",
+		rating: 5,
+	},
+	{
+		id: 14,
+		quote: "Outstanding service and unmatched support — thank you, Nepatronix!",
+		name: "Udit Yadav",
+		role: "Google Review",
+		rating: 5,
+	},
+	{
+		id: 15,
+		quote: "One of the leading IoT and Robotics companies in Nepal.",
+		name: "Saroj Chaudhary",
+		role: "Google Review",
+		rating: 5,
+	},
+	{
+		id: 16,
+		quote: "Got a great experience learning with the Nepatronix team.",
+		name: "Ayush Gupta",
+		role: "Student · Google Review",
+		rating: 5,
+	},
+	{
+		id: 17,
+		quote: "It was a very useful and helpful experience. Excellent.",
+		name: "Maruf Alam",
+		role: "Google Review",
+		rating: 5,
+	},
+	{
+		id: 18,
+		quote: "One of the best IoT platforms.",
+		name: "Ashok Yadav",
+		role: "Google Review",
+		rating: 5,
+	},
+	{
+		id: 19,
+		quote: "Best place for STEAM kits.",
+		name: "Arun Lohar",
+		role: "Google Review",
+		rating: 5,
 	},
 ];
 

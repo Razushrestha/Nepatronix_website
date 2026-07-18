@@ -16,6 +16,17 @@ export async function fetchCoursesOrdered() {
 }
 
 /**
+ * Reverse of {@link fetchCourseByListId}: given a course `_id`, return its
+ * 1-based position in the public listing (or null if not found).
+ */
+export async function getCourseListIdById(id: string): Promise<number | null> {
+  if (!id) return null
+  const docs = await fetchCoursesOrdered()
+  const index = docs.findIndex((d) => String(d._id) === id)
+  return index === -1 ? null : index + 1
+}
+
+/**
  * Courses are ordered like the public listing: `order asc`, 1-based ID = index + 1.
  */
 export async function fetchCourseByListId(

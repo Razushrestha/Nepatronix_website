@@ -52,8 +52,71 @@ function FadeIn({
   );
 }
 
+// --- Vertical card visuals (solid, professional palette) ---
+const VERTICAL_ACCENTS = [
+  { bg: "bg-[#C1121F]", soft: "bg-[#C1121F]/10 text-[#C1121F]", bar: "bg-[#C1121F]", glow: "bg-[#C1121F]/15" },
+  { bg: "bg-[#2563EB]", soft: "bg-[#2563EB]/10 text-[#2563EB]", bar: "bg-[#2563EB]", glow: "bg-[#2563EB]/15" },
+  { bg: "bg-[#7C3AED]", soft: "bg-[#7C3AED]/10 text-[#7C3AED]", bar: "bg-[#7C3AED]", glow: "bg-[#7C3AED]/15" },
+];
+
+function VerticalIcon({ name }: { name?: string }) {
+  const common = { className: "w-7 h-7", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", strokeWidth: 1.6, strokeLinecap: "round", strokeLinejoin: "round" } as const;
+  if (name === "education") {
+    // Heroicons: academic-cap
+    return (
+      <svg {...common}>
+        <path d="M4.26 10.147a60.44 60.44 0 00-.491 6.347A48.62 48.62 0 0112 20.904a48.62 48.62 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.636 50.636 0 00-2.658-.813A59.906 59.906 0 0112 3.493a59.903 59.903 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+      </svg>
+    );
+  }
+  if (name === "code") {
+    // Heroicons: code-bracket
+    return (
+      <svg {...common}>
+        <path d="M17.25 6.75L22.5 12l-5.25 5.25M6.75 17.25L1.5 12l5.25-5.25M14.25 3.75L9.75 20.25" />
+      </svg>
+    );
+  }
+  if (name === "chip") {
+    // Heroicons: cpu-chip
+    return (
+      <svg {...common}>
+        <path d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25zm.75-12h9v9h-9v-9z" />
+      </svg>
+    );
+  }
+  // research (default) — Heroicons: beaker
+  return (
+    <svg {...common}>
+      <path d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+    </svg>
+  );
+}
+
 export default function AboutPage() {
   const [focusedVertical, setFocusedVertical] = useState<number | null>(null);
+  const messageRef = useRef<HTMLQuoteElement>(null);
+  const [messageHeight, setMessageHeight] = useState<number | null>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const onChange = () => setIsDesktop(mq.matches);
+    onChange();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  useEffect(() => {
+    const el = messageRef.current;
+    if (!el) return;
+    const update = () => setMessageHeight(el.offsetHeight);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const canonicalUrl = "https://nepatronix.org/partners";
 
   const breadcrumbJsonLd = {
@@ -158,36 +221,57 @@ export default function AboutPage() {
       </section>
 
       {/* 3. VERTICALS SECTION */}
-      <section className="py-24 bg-[#F8FAFC]">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="relative py-24 bg-[#F8FAFC] overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: "radial-gradient(#020617 0.6px, transparent 0.6px)", backgroundSize: "26px 26px" }} />
+        <div className="relative mx-auto max-w-6xl px-6">
           <FadeIn>
             <div className="text-center mb-16">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#2563EB]/10 px-4 py-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#2563EB]" />
+                <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2563EB]">Our Ecosystem</span>
+              </div>
               <h2 className="text-3xl font-bold text-[#020617] sm:text-4xl">Our Strategic Verticals</h2>
-              <p className="mt-4 text-[#6B7280] text-lg">Four pillars driving our ecosystem of innovation</p>
+              <p className="mt-4 text-[#6B7280] text-lg">Three pillars driving our ecosystem of innovation</p>
             </div>
           </FadeIn>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-             {aboutUsData.verticals.map((vertical, idx) => (
+          <div className="grid gap-6 md:grid-cols-3">
+             {aboutUsData.verticals.map((vertical, idx) => {
+               const accent = VERTICAL_ACCENTS[idx % VERTICAL_ACCENTS.length];
+               const isFocused = focusedVertical === idx;
+               return (
                <FadeIn key={idx} delay={idx * 150} className="h-full">
-                 <div 
+                 <div
                    onMouseEnter={() => setFocusedVertical(idx)}
                    onMouseLeave={() => setFocusedVertical(null)}
-                   className={`h-full relative overflow-hidden rounded-2xl border bg-white p-6 shadow-sm transition-all duration-300 ease-in-out cursor-default
-                     ${focusedVertical === idx 
-                        ? 'border-[#2563EB] shadow-xl scale-105 z-10' 
-                        : 'border-[#E5E7EB] hover:border-[#2563EB]/50 hover:shadow-md'
-                     }
+                   className={`group h-full relative overflow-hidden rounded-3xl border bg-white p-8 shadow-sm transition-all duration-300 ease-out cursor-default
+                     ${isFocused ? "border-transparent shadow-2xl -translate-y-2" : "border-[#E5E7EB] hover:shadow-lg"}
                    `}
                  >
-                    <div className="mb-4 h-12 w-12 rounded-xl bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center font-bold text-xl">
-                       0{idx + 1}
+                    {/* Top accent bar */}
+                    <div className={`absolute inset-x-0 top-0 h-1.5 ${accent.bar}`} />
+                    {/* Corner glow on hover */}
+                    <div className={`absolute -top-16 -right-16 h-40 w-40 rounded-full blur-3xl transition-opacity duration-300 ${accent.glow} ${isFocused ? "opacity-100" : "opacity-0"}`} />
+
+                    <div className="relative z-10">
+                      <div className="flex items-start justify-between">
+                        <div className={`h-14 w-14 rounded-2xl ${accent.bg} text-white flex items-center justify-center shadow-md`}>
+                          <VerticalIcon name={vertical.icon} />
+                        </div>
+                        <span className="text-4xl font-black text-slate-100 leading-none select-none">0{idx + 1}</span>
+                      </div>
+
+                      {"tagline" in vertical && vertical.tagline && (
+                        <p className={`mt-6 inline-block rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wider ${accent.soft}`}>
+                          {vertical.tagline}
+                        </p>
+                      )}
+                      <h3 className="mt-3 text-xl font-bold text-[#020617] leading-snug">{vertical.title}</h3>
+                      <p className="mt-3 text-sm leading-relaxed text-[#6B7280]">{vertical.description}</p>
                     </div>
-                    <h3 className="mb-3 text-xl font-bold text-[#020617]">{vertical.title}</h3>
-                    <p className="text-sm leading-relaxed text-[#6B7280]">{vertical.description}</p>
                  </div>
                </FadeIn>
-             ))}
+             );})}
           </div>
         </div>
       </section>
@@ -210,7 +294,7 @@ export default function AboutPage() {
                      Message from the <span className="text-[#2563EB]">CEO</span>
                   </h2>
                   
-                  <blockquote className="text-xl leading-relaxed text-[#6B7280] italic font-light mb-10 border-l-4 border-[#2563EB]/30 pl-6">
+                  <blockquote ref={messageRef} className="text-xl leading-relaxed text-[#6B7280] italic font-light mb-10 border-l-4 border-[#2563EB]/30 pl-6">
                      &quot;{aboutUsData.ceo.message}&quot;
                   </blockquote>
                   
@@ -237,17 +321,18 @@ export default function AboutPage() {
                   </div>
                </div>
 
-               {/* Right Column: Image */}
-               <div className="order-1 lg:order-2 lg:h-[600px] flex items-center justify-center relative">
-                   <div className="relative w-full max-w-sm aspect-[3/4] rounded-2xl overflow-hidden shadow-lg border border-[#E5E7EB]">
-                      <div className="absolute inset-0 bg-[#F8FAFC] flex items-center justify-center text-[#9CA3AF] font-medium text-lg">
-                         <Image 
-                           src={aboutUsData.ceo.image} 
-                           alt={aboutUsData.ceo.name}
-                           fill
-                           className="object-cover"
-                         />
-                      </div>
+               {/* Right Column: Image (height matches the quote message on desktop) */}
+               <div className="order-1 lg:order-2 flex items-center justify-center">
+                   <div
+                     className="relative w-full h-[420px] rounded-2xl overflow-hidden shadow-lg border border-[#E5E7EB] bg-[#F8FAFC]"
+                     style={isDesktop && messageHeight ? { height: messageHeight } : undefined}
+                   >
+                      <Image 
+                        src={aboutUsData.ceo.image} 
+                        alt={aboutUsData.ceo.name}
+                        fill
+                        className="object-cover"
+                      />
                    </div>
                </div>
             </div>
@@ -256,99 +341,7 @@ export default function AboutPage() {
       </section>
 
 
-      {/* 5. ACHIEVEMENTS STRIP */}
-      <section className="py-20 bg-[#F8FAFC] border-y border-slate-100 overflow-hidden">
-        <div className="mx-auto max-w-6xl px-6">
-
-          {/* Section Heading */}
-          <FadeIn>
-            <div className="flex items-center gap-2 mb-12 justify-center">
-              <span className="h-px w-8 bg-[#C1121F]"></span>
-              <span className="text-[#C1121F] font-bold tracking-[0.2em] text-xs uppercase">Our Credentials & Achievements</span>
-              <span className="h-px w-8 bg-[#C1121F]"></span>
-            </div>
-          </FadeIn>
-
-          {/* Two-column layout: Image LEFT, Description RIGHT */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-
-            {/* LEFT — Certificate Image */}
-            <FadeIn direction="left">
-              <div className="group relative rounded-2xl overflow-hidden shadow-xl border border-slate-200 hover:shadow-2xl transition-all duration-500">
-                <Image
-                  src="/certificate-iitm.png"
-                  alt="IIT Madras SWAYAM Plus Course Completion Certificate – Raju Shrestha"
-                  width={800}
-                  height={566}
-                  className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-700"
-                />
-                {/* Subtle overlay badge */}
-                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1.5 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                  <span className="text-[10px] font-black tracking-widest uppercase text-slate-700">Verified Certificate</span>
-                </div>
-              </div>
-            </FadeIn>
-
-            {/* RIGHT — Description */}
-            <FadeIn direction="right" delay={150}>
-              <div className="flex flex-col justify-center gap-6">
-
-                {/* Label */}
-                <div className="inline-flex items-center gap-2">
-                  <span className="h-px w-6 bg-[#C1121F]"></span>
-                  <span className="text-[#C1121F] font-bold tracking-[0.2em] text-[11px] uppercase">Course Completion</span>
-                </div>
-
-                {/* Title */}
-                <h2 className="text-3xl font-extrabold text-[#020617] leading-tight">
-                  Comprehensive Electronics <br className="hidden sm:block" />
-                  <span className="text-[#2563EB]">&amp; Embedded Systems</span>
-                </h2>
-
-                {/* Description */}
-                <p className="text-slate-500 text-base leading-relaxed">
-                  Raju Shrestha, Founder &amp; CEO of Nepatronix, successfully completed a rigorous <strong className="text-slate-700">5-day (40-hour)</strong> intensive program provided by <strong className="text-slate-700">IIT Madras</strong> through IITM Pravartak on SWAYAM Plus — aligned to <strong className="text-slate-700">NCrF Level 4.5</strong>.
-                </p>
-
-                {/* Meta details */}
-                <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { label: 'Duration', value: '40 Hours' },
-                    { label: 'Level', value: 'NCrF 4.5' },
-                    { label: 'Period', value: 'Dec 2025 – Jan 2026' },
-                    { label: 'Provider', value: 'IIT Madras' },
-                  ].map((item) => (
-                    <div key={item.label} className="bg-white rounded-xl border border-slate-100 px-4 py-3 shadow-sm">
-                      <p className="text-[10px] font-black tracking-[0.15em] uppercase text-slate-400 mb-0.5">{item.label}</p>
-                      <p className="text-sm font-bold text-[#020617]">{item.value}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Issuer tags */}
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {[
-                    { label: 'IIT Madras', color: 'bg-[#C1121F]' },
-                    { label: 'SWAYAM Plus', color: 'bg-orange-500' },
-                    { label: 'IITM Pravartak', color: 'bg-emerald-500' },
-                  ].map((tag) => (
-                    <span key={tag.label} className="inline-flex items-center gap-1.5 bg-white border border-slate-200 rounded-full px-3 py-1 text-[11px] font-semibold text-slate-600 shadow-sm">
-                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${tag.color}`}></span>
-                      {tag.label}
-                    </span>
-                  ))}
-                </div>
-
-              </div>
-            </FadeIn>
-
-          </div>
-        </div>
-      </section>
-
-
-      {/* 6. WHY CHOOSE US */}
+      {/* 5. WHY CHOOSE US */}
       <section className="py-24 bg-white">
         <div className="mx-auto max-w-6xl px-6">
            <FadeIn>
