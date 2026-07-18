@@ -22,17 +22,36 @@ export async function uploadBuffer(
   filename: string,
   contentType: string
 ): Promise<string> {
+  return uploadReadable(Readable.from(buffer), filename, contentType)
+}
+
+/** Stream upload — avoids loading large videos entirely into memory. */
+export async function uploadReadable(
+  source: Readable,
+  filename: string,
+  contentType: string
+): Promise<string> {
   const bucket = await getBucket()
   return new Promise<string>((resolve, reject) => {
     const uploadStream = bucket.openUploadStream(filename, {
       contentType,
       metadata: { uploadedAt: new Date() },
     })
-    Readable.from(buffer)
+    source
       .pipe(uploadStream)
       .on('error', reject)
       .on('finish', () => resolve(uploadStream.id.toString()))
   })
+}
+
+/** Upload from a Fetch/Web ReadableStream (task video uploads). */
+export async function uploadWebStream(
+  webStream: ReadableStream<Uint8Array>,
+  filename: string,
+  contentType: string
+): Promise<string> {
+  const nodeStream = Readable.fromWeb(webStream as Parameters<typeof Readable.fromWeb>[0])
+  return uploadReadable(nodeStream, filename, contentType)
 }
 
 export interface GridFile {
@@ -42,22 +61,38 @@ export interface GridFile {
   filename: string
 }
 
+export interface GridFileRange extends GridFile {
+  rangeStart: number
+  rangeEnd: number
+}
+
 /**
  * Open a download stream for a stored file, or null if not found.
+ * Optional byte range for video seeking (HTTP Range requests).
  */
-export async function getFile(id: string): Promise<GridFile | null> {
+export async function getFile(
+  id: string,
+  range?: { start: number; end: number }
+): Promise<GridFile | GridFileRange | null> {
   if (!ObjectId.isValid(id)) return null
   const bucket = await getBucket()
   const _id = new ObjectId(id)
   const files = await bucket.find({ _id }).toArray()
   if (!files.length) return null
   const file = files[0]
-  return {
-    stream: bucket.openDownloadStream(_id),
+  const stream = range
+    ? bucket.openDownloadStream(_id, { start: range.start, end: range.end + 1 })
+    : bucket.openDownloadStream(_id)
+  const base = {
+    stream,
     contentType: file.contentType || 'application/octet-stream',
     length: file.length,
     filename: file.filename,
   }
+  if (range) {
+    return { ...base, rangeStart: range.start, rangeEnd: range.end }
+  }
+  return base
 }
 
 export async function deleteFile(id: string): Promise<void> {

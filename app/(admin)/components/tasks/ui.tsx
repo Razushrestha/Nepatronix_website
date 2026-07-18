@@ -1,5 +1,6 @@
 'use client'
-import React, { createContext, useContext } from 'react'
+import React, { createContext, useContext, useEffect } from 'react'
+import { setTaskCmsAdminContext } from '@/lib/tasks/client-headers'
 import {
   TASK_PRIORITIES,
   TASK_STATUSES,
@@ -23,6 +24,11 @@ export function TaskCmsAdminProvider({
   children: React.ReactNode
 }) {
   activeCmsAdminContext = value
+  setTaskCmsAdminContext(value)
+  useEffect(() => {
+    setTaskCmsAdminContext(value)
+    return () => setTaskCmsAdminContext(false)
+  }, [value])
   return <TaskCmsAdminContext.Provider value={value}>{children}</TaskCmsAdminContext.Provider>
 }
 

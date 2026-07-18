@@ -48,6 +48,20 @@ async function req(path, { method = 'GET', body, cookie, headers: extraHeaders }
   return { res, json, status: res.status }
 }
 
+async function reqForm(path, { method = 'POST', form, cookie, headers: extraHeaders = {} } = {}) {
+  const headers = { ...extraHeaders }
+  if (cookie) headers.cookie = cookie
+  const res = await fetch(`${BASE}${path}`, { method, headers, body: form })
+  const text = await res.text()
+  let json = null
+  try {
+    json = text ? JSON.parse(text) : null
+  } catch {
+    json = { _raw: text.slice(0, 200) }
+  }
+  return { res, json, status: res.status }
+}
+
 async function login(account) {
   const { res, json, status } = await req('/api/hr/auth', {
     method: 'POST',
@@ -703,6 +717,58 @@ async function main() {
     })
     if (comment.status === 201 && comment.json?.comment?.id) pass('Employee comments on task', comment.json.comment.id)
     else fail('Task comment POST', `${comment.status} ${comment.json?.error || ''}`)
+
+    console.log('\nTask attachments')
+    const uploadForm = new FormData()
+    uploadForm.append('file', new Blob(['verify attachment body'], { type: 'text/plain' }), 'verify-attach.txt')
+    const uploadEmp = await reqForm('/api/hr/upload', { cookie: sessions.employee, form: uploadForm })
+    if (uploadEmp.status === 200 && uploadEmp.json?.id) {
+      pass('Assignee uploads file', uploadEmp.json.id)
+    } else fail('HR upload (employee)', `${uploadEmp.status} ${uploadEmp.json?.error || ''}`)
+
+    if (uploadEmp.json?.id) {
+      const attach = await req(`/api/tasks/${moduleTaskId}/attachments`, {
+        method: 'POST',
+        cookie: sessions.employee,
+        body: {
+          fileId: uploadEmp.json.id,
+          fileName: uploadEmp.json.name || 'verify-attach.txt',
+          contentType: uploadEmp.json.contentType,
+          size: uploadEmp.json.size,
+          title: 'Smoke attachment',
+        },
+      })
+      if (attach.status === 201 && attach.json?.attachment?.id) {
+        pass('Assignee registers task attachment', attach.json.attachment.id)
+      } else fail('Task attachment POST', `${attach.status} ${attach.json?.error || ''}`)
+    }
+
+    const docxForm = new FormData()
+    docxForm.append('file', new Blob(['fake docx'], { type: '' }), 'smoke-report.docx')
+    const uploadDocx = await reqForm('/api/hr/upload', { cookie: sessions.employee, form: docxForm })
+    if (uploadDocx.status === 200 && uploadDocx.json?.contentType?.includes('wordprocessingml')) {
+      pass('Upload MIME from filename', uploadDocx.json.contentType)
+    } else fail('Upload MIME guess (.docx)', `${uploadDocx.status} ${uploadDocx.json?.error || uploadDocx.json?.contentType || ''}`)
+
+    if (cmsCookieEarly && uploadDocx.json?.id) {
+      const mixedCookie = `${cmsCookieEarly}; ${sessions.employee}`
+      const mixedForm = new FormData()
+      mixedForm.append('file', new Blob(['fake docx cms'], { type: '' }), 'cms-context.docx')
+      const mixedUpload = await reqForm('/api/hr/upload', {
+        cookie: mixedCookie,
+        headers: { 'X-HR-Context': 'cms-admin' },
+        form: mixedForm,
+      })
+      if (mixedUpload.status === 200 && mixedUpload.json?.id) {
+        pass('Upload with mixed cookie + CMS context', mixedUpload.json.id)
+      } else fail('Upload mixed cookie CMS context', `${mixedUpload.status} ${mixedUpload.json?.error || ''}`)
+    }
+
+    const attachList = await req(`/api/tasks/${moduleTaskId}/attachments`, { cookie: sessions.manager })
+    const attachCount = attachList.json?.attachments?.length || 0
+    if (attachList.status === 200 && attachCount >= 1) {
+      pass('List task attachments', `${attachCount} file(s)`)
+    } else fail('Task attachments GET', `${attachList.status} count=${attachCount}`)
 
     const notif = await req('/api/notifications', { cookie: sessions.employee })
     if (notif.status === 200 && Array.isArray(notif.json?.notifications)) {

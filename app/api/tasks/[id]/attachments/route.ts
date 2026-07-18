@@ -29,6 +29,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params
   const ctx = await loadTaskContext(session, id)
   if (!ctx) return NextResponse.json({ error: 'Task not found' }, { status: 404 })
+  if (!(ctx.isAdmin || ctx.isCreator || ctx.isAssignee)) {
+    return NextResponse.json({ error: 'You cannot add attachments to this task' }, { status: 403 })
+  }
 
   const body = await req.json()
   const fileId = String(body.fileId || '').trim()
@@ -49,13 +52,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   })
 
   await logHistory(ctx.task._id, ctx.actor, 'attachment_uploaded', `Uploaded "${fileName}"`)
-  await notify([String(ctx.task.createdBy?.id), ...(await taskAssigneeIds(ctx.task._id))], {
-    type: 'task_updated',
-    title: 'New attachment',
-    body: `${ctx.actor.name} added "${fileName}" to ${ctx.task.title}`,
-    taskId: ctx.task._id,
-    link: `/admin/tasks?task=${ctx.task._id}`,
-  }, session.id)
+  try {
+    await notify([String(ctx.task.createdBy?.id), ...(await taskAssigneeIds(ctx.task._id))], {
+      type: 'task_updated',
+      title: 'New attachment',
+      body: `${ctx.actor.name} added "${fileName}" to ${ctx.task.title}`,
+      taskId: ctx.task._id,
+      link: `/admin/tasks?task=${ctx.task._id}`,
+    }, session.id)
+  } catch (err) {
+    console.error('[tasks/attachments notify]', err)
+  }
 
   return NextResponse.json({ attachment: serializeAttachment(attachment) }, { status: 201 })
 }

@@ -1,35 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { uploadBuffer, fileUrl } from '@/lib/gridfs'
+import { uploadWebStream, fileUrl } from '@/lib/gridfs'
 import { requireHrSession } from '@/lib/hr/auth'
 import { connectToDatabase } from '@/lib/mongodb'
-import { MAX_UPLOAD_BYTES } from '@/lib/admin-upload'
+import {
+  isAllowedAttachmentType,
+  resolveAttachmentContentType,
+} from '@/lib/tasks/attachment-mime'
+import { formatTaskMaxUploadSize, getTaskMaxUploadBytes } from '@/lib/tasks/upload-limits'
 
 export const runtime = 'nodejs'
-
-/** Whitelisted content types for task attachments / proofs. */
-const ALLOWED_PREFIXES = ['image/', 'video/']
-const ALLOWED_EXACT = new Set([
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'text/csv',
-  'text/plain',
-  'application/zip',
-  'application/x-zip-compressed',
-  'application/octet-stream',
-])
-
-function isAllowedType(type: string): boolean {
-  if (!type) return true
-  if (ALLOWED_PREFIXES.some((p) => type.startsWith(p))) return true
-  return ALLOWED_EXACT.has(type)
-}
+export const maxDuration = 600
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requireHrSession()
+    const session = await requireHrSession(req)
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -46,35 +30,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
-    if (!isAllowedType(file.type)) {
+    const contentType = resolveAttachmentContentType(file)
+    const maxBytes = getTaskMaxUploadBytes()
+
+    if (!isAllowedAttachmentType(contentType, file.name || '')) {
       return NextResponse.json({ error: 'File type not allowed' }, { status: 415 })
     }
 
-    if (file.size > MAX_UPLOAD_BYTES) {
+    if (file.size > maxBytes) {
       return NextResponse.json(
-        { error: `File exceeds ${Math.round(MAX_UPLOAD_BYTES / 1024 / 1024)} MB limit` },
+        { error: `File exceeds ${formatTaskMaxUploadSize(maxBytes)} limit` },
         { status: 413 }
       )
     }
 
-    const bytes = Buffer.from(await file.arrayBuffer())
-    if (!bytes.length) {
+    if (!file.size) {
       return NextResponse.json({ error: 'Empty file' }, { status: 400 })
     }
 
     await connectToDatabase()
 
-    const id = await uploadBuffer(
-      bytes,
+    const id = await uploadWebStream(
+      file.stream(),
       file.name || 'upload',
-      file.type || 'application/octet-stream'
+      contentType
     )
 
     return NextResponse.json({
       id,
       url: fileUrl(id),
       name: file.name || 'upload',
-      contentType: file.type || 'application/octet-stream',
+      contentType,
       size: file.size,
     })
   } catch (err) {

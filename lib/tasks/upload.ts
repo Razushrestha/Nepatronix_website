@@ -1,4 +1,5 @@
-import { MAX_UPLOAD_BYTES } from '@/lib/admin-upload'
+import { taskClientHeaders } from '@/lib/tasks/client-headers'
+import { formatTaskMaxUploadSize, TASK_MAX_UPLOAD_BYTES } from '@/lib/tasks/upload-limits'
 
 export interface TaskUploadResult {
   id: string
@@ -10,8 +11,8 @@ export interface TaskUploadResult {
 
 /** Upload a file to GridFS through the HR-session upload endpoint. */
 export async function taskUpload(file: File): Promise<TaskUploadResult> {
-  if (file.size > MAX_UPLOAD_BYTES) {
-    throw new Error(`File is too large (max ${Math.round(MAX_UPLOAD_BYTES / 1024 / 1024)} MB)`)
+  if (file.size > TASK_MAX_UPLOAD_BYTES) {
+    throw new Error(`File is too large (max ${formatTaskMaxUploadSize()})`)
   }
 
   const fd = new FormData()
@@ -19,6 +20,7 @@ export async function taskUpload(file: File): Promise<TaskUploadResult> {
 
   const res = await fetch('/api/hr/upload', {
     method: 'POST',
+    headers: taskClientHeaders(),
     body: fd,
     credentials: 'same-origin',
   })
@@ -35,7 +37,7 @@ export async function taskUpload(file: File): Promise<TaskUploadResult> {
 
   if (!res.ok) {
     if (res.status === 401) throw new Error('Session expired — please log in again')
-    if (res.status === 413) throw new Error('File too large')
+    if (res.status === 413) throw new Error(data.error || `File too large (max ${formatTaskMaxUploadSize()})`)
     if (res.status === 415) throw new Error('File type not allowed')
     throw new Error(data.error || `Upload failed (${res.status})`)
   }

@@ -18,6 +18,9 @@ import type {
 } from './shared-types'
 import { parseDescriptionToChecklistItems } from '@/lib/tasks/parse-description-checklist'
 import { taskUpload } from '@/lib/tasks/upload'
+import AttachmentPreviewModal from './AttachmentPreviewModal'
+import { isImageAttachment, isVideoAttachment } from '@/lib/tasks/attachment-mime'
+import { formatTaskMaxUploadSize } from '@/lib/tasks/upload-limits'
 import {
   Avatar,
   EmptyState,
@@ -159,7 +162,13 @@ export default function TaskDrawer({
                 <CommentsTab data={data!} currentUserId={currentUserId} isAdmin={isAdmin} employees={employees} onChanged={refresh} />
               )}
               {tab === 'files' && (
-                <FilesTab data={data!} currentUserId={currentUserId} canManage={canManage} onChanged={refresh} />
+                <FilesTab
+                  data={data!}
+                  currentUserId={currentUserId}
+                  canManage={canManage}
+                  canUpload={canManage || isAssignee}
+                  onChanged={refresh}
+                />
               )}
               {tab === 'timeline' && <TimelineTab history={data!.history} />}
             </div>
@@ -1134,89 +1143,342 @@ function CommentItem({
 
 /* ------------------------------------------------------------------ */
 
+function fileKind(a: AttachmentDTO): { icon: string; label: string } {
+  const ct = (a.contentType || '').toLowerCase()
+  const name = a.fileName || ''
+  if (isImageAttachment(a.contentType)) return { icon: '🖼️', label: 'Image' }
+  if (isVideoAttachment(a.contentType, name)) return { icon: '🎬', label: 'Video' }
+  const lower = name.toLowerCase()
+  if (ct.includes('pdf') || lower.endsWith('.pdf')) return { icon: '📕', label: 'PDF' }
+  if (ct.includes('word') || lower.endsWith('.doc') || lower.endsWith('.docx')) return { icon: '📝', label: 'Word' }
+  if (ct.includes('excel') || ct.includes('spreadsheet') || lower.endsWith('.xls') || lower.endsWith('.xlsx')) {
+    return { icon: '📊', label: 'Excel' }
+  }
+  if (ct.includes('csv') || lower.endsWith('.csv')) return { icon: '📋', label: 'CSV' }
+  if (ct.includes('zip') || lower.endsWith('.zip')) return { icon: '🗜️', label: 'ZIP' }
+  if (ct.startsWith('text/') || lower.endsWith('.txt')) return { icon: '📄', label: 'Text' }
+  return { icon: '📎', label: 'File' }
+}
+
+function formatBytes(n: number): string {
+  if (n < 1024) return `${n} B`
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`
+}
+
+type UploadQueueItem = {
+  id: string
+  name: string
+  size: number
+  status: 'pending' | 'uploading' | 'done' | 'error'
+  error?: string
+}
+
 function FilesTab({
   data,
   currentUserId,
   canManage,
+  canUpload,
   onChanged,
 }: {
   data: TaskDetailResponse
   currentUserId: string
   canManage: boolean
+  canUpload: boolean
   onChanged: () => Promise<void>
 }) {
   const task = data.task
   const [busy, setBusy] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
+  const [queue, setQueue] = useState<UploadQueueItem[]>([])
+  const [progressPct, setProgressPct] = useState(0)
+  const [status, setStatus] = useState('')
   const [meta, setMeta] = useState({ title: '', description: '' })
+  const [previewId, setPreviewId] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const previewIndex = previewId ? data.attachments.findIndex((a) => a.id === previewId) : -1
+  const previewAttachment = previewIndex >= 0 ? data.attachments[previewIndex] : null
 
-  async function upload(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0]
-    if (!f) return
+  const updateQueueItem = useCallback((id: string, patch: Partial<UploadQueueItem>) => {
+    setQueue((prev) => prev.map((item) => (item.id === id ? { ...item, ...patch } : item)))
+  }, [])
+
+  async function uploadFiles(fileList: FileList | File[]) {
+    const files = Array.from(fileList).filter((f) => f.size > 0)
+    if (!files.length) return
+
+    const items: UploadQueueItem[] = files.map((f) => ({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      name: f.name,
+      size: f.size,
+      status: 'pending',
+    }))
+    setQueue(items)
     setBusy(true)
-    try {
-      const up = await taskUpload(f)
-      await api(`/api/tasks/${task.id}/attachments`, 'POST', {
-        fileId: up.id,
-        fileName: up.name,
-        contentType: up.contentType,
-        size: up.size,
-        title: meta.title || undefined,
-        description: meta.description || undefined,
-      })
+    setStatus('')
+    setProgressPct(0)
+
+    let ok = 0
+    const errors: string[] = []
+
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i]
+      const item = items[i]
+      updateQueueItem(item.id, { status: 'uploading' })
+      setProgressPct(Math.round((i / files.length) * 100))
+      setStatus(`Uploading ${i + 1} of ${files.length}…`)
+
+      try {
+        const up = await taskUpload(f)
+        await api(`/api/tasks/${task.id}/attachments`, 'POST', {
+          fileId: up.id,
+          fileName: up.name,
+          contentType: up.contentType,
+          size: up.size,
+          title: files.length === 1 && meta.title ? meta.title : undefined,
+          description: files.length === 1 && meta.description ? meta.description : undefined,
+        })
+        updateQueueItem(item.id, { status: 'done' })
+        ok++
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Upload failed'
+        updateQueueItem(item.id, { status: 'error', error: msg })
+        errors.push(`${f.name}: ${msg}`)
+      }
+      setProgressPct(Math.round(((i + 1) / files.length) * 100))
+    }
+
+    if (ok > 0) {
       setMeta({ title: '', description: '' })
       await onChanged()
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Upload failed')
-    } finally {
-      setBusy(false)
-      e.target.value = ''
+    }
+
+    if (errors.length === 0) {
+      setStatus(ok === 1 ? '✓ File uploaded successfully' : `✓ ${ok} files uploaded successfully`)
+    } else if (ok > 0) {
+      setStatus(`✓ ${ok} uploaded · ${errors.length} failed`)
+    } else {
+      setStatus(`Upload failed — ${errors[0] || 'unknown error'}`)
+    }
+
+    setBusy(false)
+    if (fileRef.current) fileRef.current.value = ''
+
+    if (errors.length === 0) {
+      setTimeout(() => {
+        setQueue([])
+        setProgressPct(0)
+      }, 2500)
     }
   }
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setDragOver(false)
+    if (busy || !e.dataTransfer.files?.length) return
+    uploadFiles(e.dataTransfer.files)
+  }
+
+  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files?.length) return
+    await uploadFiles(e.target.files)
+  }
+
+  useEffect(() => {
+    if (!canUpload) return
+    const onPaste = (e: ClipboardEvent) => {
+      const files = e.clipboardData?.files
+      if (!files?.length || busy) return
+      e.preventDefault()
+      void uploadFiles(files)
+    }
+    document.addEventListener('paste', onPaste)
+    return () => document.removeEventListener('paste', onPaste)
+  }, [canUpload, busy])
   async function remove(a: AttachmentDTO) {
     if (!confirm(`Delete ${a.fileName}?`)) return
     await api(`/api/tasks/${task.id}/attachments/${a.id}`, 'DELETE')
     await onChanged()
   }
 
-  const isImage = (a: AttachmentDTO) => a.contentType?.startsWith('image/')
+  const isImage = (a: AttachmentDTO) => isImageAttachment(a.contentType)
+  const isVideo = (a: AttachmentDTO) => isVideoAttachment(a.contentType, a.fileName)
+  const maxLabel = formatTaskMaxUploadSize()
 
   return (
     <div className="space-y-3">
-      <div className="bg-white rounded-xl border border-slate-200 p-3 space-y-2">
-        <div className="grid grid-cols-2 gap-2">
-          <input value={meta.title} onChange={(e) => setMeta({ ...meta, title: e.target.value })} placeholder="Title (optional)" className="text-sm border border-slate-200 rounded-lg px-2 py-1.5" />
-          <input value={meta.description} onChange={(e) => setMeta({ ...meta, description: e.target.value })} placeholder="Description (optional)" className="text-sm border border-slate-200 rounded-lg px-2 py-1.5" />
+      {previewAttachment && previewIndex >= 0 && (
+        <AttachmentPreviewModal
+          attachment={previewAttachment}
+          attachments={data.attachments}
+          index={previewIndex}
+          onClose={() => setPreviewId(null)}
+          onNavigate={setPreviewId}
+        />
+      )}
+      {canUpload && (
+        <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <input value={meta.title} onChange={(e) => setMeta({ ...meta, title: e.target.value })} placeholder="Title (optional — single file)" className="text-sm border border-slate-200 rounded-lg px-2 py-1.5" />
+            <input value={meta.description} onChange={(e) => setMeta({ ...meta, description: e.target.value })} placeholder="Description (optional — single file)" className="text-sm border border-slate-200 rounded-lg px-2 py-1.5" />
+          </div>
+
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={onDrop}
+            className={`relative rounded-xl border-2 border-dashed transition-all duration-200 ${
+              dragOver
+                ? 'border-[#C1121F] bg-[#C1121F]/5 scale-[1.01] shadow-inner'
+                : busy
+                  ? 'border-slate-200 bg-slate-50'
+                  : 'border-slate-300 hover:border-[#C1121F]/60 hover:bg-slate-50/80 cursor-pointer'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => !busy && fileRef.current?.click()}
+              disabled={busy}
+              className="w-full py-8 px-4 flex flex-col items-center gap-2 disabled:cursor-not-allowed"
+            >
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${dragOver ? 'bg-[#C1121F] text-white' : 'bg-slate-100 text-slate-500'}`}>
+                {busy ? (
+                  <InlineSpinner className="w-6 h-6" />
+                ) : (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                )}
+              </div>
+              <p className="text-sm font-semibold text-slate-800">
+                {busy ? 'Uploading…' : dragOver ? 'Drop files here' : 'Drag & drop or click to upload'}
+              </p>
+              <p className="text-[11px] text-slate-500">
+                Images, PDF, Word, Excel, video (MP4, MOV, WebM…) · up to {maxLabel} each
+              </p>
+            </button>
+          </div>
+
+          {(busy || progressPct > 0) && (
+            <div className="space-y-1">
+              <div className="flex justify-between text-[11px] text-slate-500">
+                <span>{status || 'Processing…'}</span>
+                <span>{progressPct}%</span>
+              </div>
+              <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#C1121F] to-rose-500 transition-all duration-300"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {queue.length > 0 && (
+            <ul className="space-y-1.5 max-h-40 overflow-y-auto rounded-lg border border-slate-100 bg-slate-50/80 p-2">
+              {queue.map((item) => (
+                <li key={item.id} className="flex items-center gap-2 text-xs px-2 py-1.5 rounded-lg bg-white border border-slate-100">
+                  <span className={`shrink-0 w-2 h-2 rounded-full ${
+                    item.status === 'done' ? 'bg-emerald-500' :
+                    item.status === 'error' ? 'bg-red-500' :
+                    item.status === 'uploading' ? 'bg-amber-400 animate-pulse' : 'bg-slate-300'
+                  }`} />
+                  <span className="min-w-0 flex-1 truncate font-medium text-slate-700">{item.name}</span>
+                  <span className="text-slate-400 shrink-0">{formatBytes(item.size)}</span>
+                  <span className={`shrink-0 font-semibold capitalize ${
+                    item.status === 'done' ? 'text-emerald-600' :
+                    item.status === 'error' ? 'text-red-600' :
+                    item.status === 'uploading' ? 'text-amber-600' : 'text-slate-400'
+                  }`}>
+                    {item.status === 'uploading' ? '…' : item.status}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {status && !busy && (
+            <p className={`text-xs text-center font-medium ${status.startsWith('✓') ? 'text-emerald-600' : 'text-red-600'}`}>
+              {status}
+            </p>
+          )}
+
+          <input
+            ref={fileRef}
+            type="file"
+            hidden
+            multiple
+            accept="image/*,video/*,.mp4,.m4v,.mov,.webm,.avi,.mkv,.wmv,.3gp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip"
+            onChange={onPick}
+          />
         </div>
-        <button onClick={() => fileRef.current?.click()} disabled={busy} className="w-full text-sm font-semibold py-2 rounded-lg border-2 border-dashed border-slate-300 text-slate-500 hover:border-[#C1121F] hover:text-[#C1121F] disabled:opacity-50">
-          {busy ? 'Uploading…' : '+ Upload file (image, PDF, Word, Excel, ZIP, video)'}
-        </button>
-        <input ref={fileRef} type="file" hidden onChange={upload} />
-      </div>
+      )}
+
+      {!canUpload && (
+        <p className="text-sm text-slate-500 bg-white rounded-xl border border-slate-200 p-4">
+          Only task assignees and managers can upload attachments.
+        </p>
+      )}
 
       {data.attachments.length === 0 ? (
         <EmptyState title="No attachments" />
       ) : (
         <div className="grid grid-cols-2 gap-3">
-          {data.attachments.map((a) => (
-            <div key={a.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden group">
+          {data.attachments.map((a) => {
+            const kind = fileKind(a)
+            return (
+            <div key={a.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden group hover:border-[#C1121F]/30 hover:shadow-sm transition-all">
+              <button
+                type="button"
+                onClick={() => setPreviewId(a.id)}
+                className="block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C1121F]/40"
+                aria-label={`View ${a.fileName}`}
+              >
               {isImage(a) ? (
-                <a href={a.url} target="_blank" rel="noreferrer"><img src={a.url} alt={a.fileName} className="w-full h-28 object-cover" /></a>
+                <img src={a.url} alt={a.fileName} className="w-full h-28 object-cover group-hover:opacity-95 transition-opacity" />
+              ) : isVideo(a) ? (
+                <div className="relative h-28 w-full bg-black">
+                  <video
+                    src={`${a.url}#t=0.1`}
+                    className="h-full w-full object-cover opacity-90"
+                    muted
+                    playsInline
+                    preload="metadata"
+                  />
+                  <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white text-lg">▶</span>
+                  </span>
+                </div>
               ) : (
-                <a href={a.url} target="_blank" rel="noreferrer" className="flex h-28 items-center justify-center bg-slate-50 text-4xl">📄</a>
+                <div className="flex h-28 flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 gap-1 group-hover:from-[#C1121F]/5 group-hover:to-rose-50 transition-colors">
+                  <span className="text-4xl">{kind.icon}</span>
+                  <span className="text-[10px] font-medium text-slate-500">{kind.label}</span>
+                </div>
               )}
+              </button>
               <div className="p-2">
                 <p className="text-xs font-semibold text-slate-800 truncate">{a.title || a.fileName}</p>
-                <p className="text-[10px] text-slate-400 truncate">{a.uploadedBy?.name} · {relTime(a.createdAt)}</p>
+                <p className="text-[10px] text-slate-400 truncate">
+                  {a.uploadedBy?.name} · {relTime(a.createdAt)}
+                  {a.size ? ` · ${formatBytes(a.size)}` : ''}
+                </p>
                 <div className="flex items-center gap-2 mt-1">
-                  <a href={a.url} download className="text-[11px] text-blue-600 hover:underline">Download</a>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewId(a.id)}
+                    className="text-[11px] font-semibold text-[#C1121F] hover:underline"
+                  >
+                    View
+                  </button>
+                  <a href={a.url} download={a.fileName} className="text-[11px] text-blue-600 hover:underline">Download</a>
                   {(canManage || a.uploadedBy?.id === currentUserId) && (
                     <button onClick={() => remove(a)} className="text-[11px] text-red-500 hover:underline ml-auto">Delete</button>
                   )}
                 </div>
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

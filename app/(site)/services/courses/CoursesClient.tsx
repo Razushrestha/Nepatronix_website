@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import emailjs from "@emailjs/browser";
+import type { CourseOverview } from "@/lib/course-overview";
+import CourseDetailExplorer from "./CourseDetailExplorer";
 
 interface Course {
   id: number;
@@ -36,6 +38,10 @@ export default function CoursesClient({ courses, objectives }: CoursesClientProp
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+  const [expandedCourseId, setExpandedCourseId] = useState<number | null>(null);
+  const [courseOverview, setCourseOverview] = useState<CourseOverview | null>(null);
+  const [overviewLoading, setOverviewLoading] = useState(false);
+  const detailRef = useRef<HTMLDivElement>(null);
 
   // Filter courses based on active filter
   const filteredCourses = courses.filter((course) => {
@@ -60,6 +66,36 @@ export default function CoursesClient({ courses, objectives }: CoursesClientProp
     setIsModalOpen(true);
     setSubmitStatus("idle");
     setFormErrors({});
+  };
+
+  const loadCourseOverview = useCallback(async (course: Course) => {
+    if (expandedCourseId === course.id && courseOverview) {
+      detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    setExpandedCourseId(course.id);
+    setOverviewLoading(true);
+    setCourseOverview(null);
+    try {
+      const res = await fetch(`/api/courses/${course.id}/overview`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load course");
+      setCourseOverview(data.course);
+      setTimeout(() => {
+        detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    } catch (e) {
+      console.error(e);
+      alert(e instanceof Error ? e.message : "Could not load course details");
+      setExpandedCourseId(null);
+    } finally {
+      setOverviewLoading(false);
+    }
+  }, [expandedCourseId, courseOverview]);
+
+  const selectCourse = (course: Course, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    loadCourseOverview(course);
   };
 
   const closeModal = () => {
@@ -314,8 +350,23 @@ Additional Message: ${formData.message || "None"}
               filteredCourses.map((course) => (
               <div 
                 key={course.id}
-                className={`relative bg-white rounded-2xl shadow-lg overflow-hidden border transition-all duration-300 hover:-translate-y-2 hover:shadow-xl ${
-                  course.popular ? 'border-[#C1121F] ring-2 ring-[#C1121F]/20' : course.isFree ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-100'
+                role="button"
+                tabIndex={0}
+                onClick={() => loadCourseOverview(course)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    loadCourseOverview(course);
+                  }
+                }}
+                className={`relative bg-white rounded-2xl shadow-lg overflow-hidden border transition-all duration-300 cursor-pointer group ${
+                  expandedCourseId === course.id
+                    ? 'border-[#C1121F] ring-4 ring-[#C1121F]/25 shadow-2xl scale-[1.02]'
+                    : course.popular
+                      ? 'border-[#C1121F] ring-2 ring-[#C1121F]/20 hover:-translate-y-2 hover:shadow-xl'
+                      : course.isFree
+                        ? 'border-emerald-500 ring-2 ring-emerald-500/20 hover:-translate-y-2 hover:shadow-xl'
+                        : 'border-slate-100 hover:-translate-y-2 hover:shadow-xl hover:border-[#C1121F]/40'
                 }`}
               >
                 {/* Badge container */}
@@ -367,27 +418,57 @@ Additional Message: ${formData.message || "None"}
                 </div>
                 
                 {/* Two Buttons */}
-                <div className="px-6 pb-6 flex gap-2">
+                <div className="px-6 pb-6 flex gap-2" onClick={(e) => e.stopPropagation()}>
                   <button 
+                    type="button"
                     onClick={() => openEnrollModal(course)}
                     className="flex-1 text-center py-2.5 rounded-lg bg-[#C1121F] text-white font-semibold text-sm hover:bg-[#A30F19] transition-colors duration-300"
                   >
                     Enroll Now
                   </button>
-                  <Link 
-                    href={`/services/courses/view/${course.id}`}
-                    className="flex-1 text-center py-2.5 rounded-lg bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition-colors duration-300 flex items-center justify-center gap-1"
+                  <button
+                    type="button"
+                    onClick={(e) => selectCourse(course, e)}
+                    className="flex-1 text-center py-2.5 rounded-lg bg-slate-900 text-white font-semibold text-sm hover:bg-slate-800 transition-colors duration-300 flex items-center justify-center gap-1"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
                     View Course
-                  </Link>
+                  </button>
                 </div>
+                {expandedCourseId === course.id && (
+                  <div className="px-6 pb-4">
+                    <p className="text-center text-[11px] font-semibold text-[#C1121F] uppercase tracking-wider">
+                      ↓ Course details below
+                    </p>
+                  </div>
+                )}
               </div>
             )))
             }
           </div>
+
+          {/* Expanded course detail — PDF + full vibrant view */}
+          {(expandedCourseId || overviewLoading) && (
+            <div ref={detailRef} className="mt-12 scroll-mt-24">
+              {overviewLoading && !courseOverview ? (
+                <div className="rounded-3xl bg-white border border-slate-200 p-16 text-center shadow-lg">
+                  <div className="w-12 h-12 border-4 border-[#C1121F]/30 border-t-[#C1121F] rounded-full animate-spin mx-auto mb-4" />
+                  <p className="text-slate-600 font-medium">Loading course overview…</p>
+                </div>
+              ) : courseOverview ? (
+                <CourseDetailExplorer
+                  course={courseOverview}
+                  onEnroll={() => {
+                    const c = courses.find((x) => x.id === courseOverview.id);
+                    if (c) openEnrollModal(c);
+                  }}
+                />
+              ) : null}
+            </div>
+          )}
 
           {/* Full Table for Desktop */}
           <div className="hidden lg:block mt-12 bg-white rounded-2xl shadow-lg overflow-hidden border border-slate-100">
@@ -406,7 +487,21 @@ Additional Message: ${formData.message || "None"}
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredCourses.map((course, index) => (
-                    <tr key={course.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-[#C1121F]/5 transition-colors`}>
+                    <tr
+                      key={course.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => loadCourseOverview(course)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          loadCourseOverview(course);
+                        }
+                      }}
+                      className={`${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-[#C1121F]/5 transition-colors cursor-pointer ${
+                        expandedCourseId === course.id ? 'bg-[#C1121F]/10' : ''
+                      }`}
+                    >
                       <td className="px-6 py-4 text-sm font-semibold text-[#C1121F]">{course.id}</td>
                       <td className="px-6 py-4 text-sm font-medium text-slate-900">
                         <div className="flex items-center gap-2">
