@@ -9,6 +9,7 @@
     "start:prod": "node scripts/start-prod.mjs",
     "verify": "node scripts/verify-site.mjs",
     "verify:hr": "node scripts/verify-hr.mjs",
+    "backfill:attendance-late": "node scripts/backfill-attendance-late.mjs",
     "start": "next start",
     "lint": "eslint",
     "sync:facebook": "node scripts/sync-facebook-gallery.mjs",

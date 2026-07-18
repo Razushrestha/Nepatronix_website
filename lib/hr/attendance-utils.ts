@@ -1,5 +1,6 @@
 import type { EmploymentType, Weekday } from './constants'
 import {
+  OFFICE_TIMEZONE,
   STANDARD_WEEKLY_OFF,
   TUTOR_CHOICE_OFF_DAYS,
   TUTOR_FIXED_WEEKLY_OFF,
@@ -33,6 +34,29 @@ export function toEmployeeSchedule(emp: {
   }
 }
 
+export function officeLocalParts(date: Date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: OFFICE_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date)
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(parts.find((p) => p.type === type)?.value || 0)
+  return {
+    year: get('year'),
+    month: get('month'),
+    day: get('day'),
+    hours: get('hour'),
+    minutes: get('minute'),
+    seconds: get('second'),
+  }
+}
+
 export function parseTimeToMinutes(time: string): number {
   const [h, m] = time.split(':').map(Number)
   return (h || 0) * 60 + (m || 0)
@@ -50,15 +74,28 @@ export function isWeekend(date: Date): boolean {
 }
 
 export function weekdayKey(date: Date): Weekday {
-  const keys: Weekday[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
-  return keys[date.getDay()]
+  const short = new Intl.DateTimeFormat('en-US', {
+    timeZone: OFFICE_TIMEZONE,
+    weekday: 'short',
+  })
+    .format(date)
+    .slice(0, 3)
+    .toLowerCase()
+  const map: Record<string, Weekday> = {
+    sun: 'sun',
+    mon: 'mon',
+    tue: 'tue',
+    wed: 'wed',
+    thu: 'thu',
+    fri: 'fri',
+    sat: 'sat',
+  }
+  return map[short] || 'mon'
 }
 
 export function dateKey(date: Date): string {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
+  const p = officeLocalParts(date)
+  return `${p.year}-${String(p.month).padStart(2, '0')}-${String(p.day).padStart(2, '0')}`
 }
 
 /** Scheduled weekly off (Sat+Sun for office; Sat + chosen day for STEM tutors). */
@@ -84,8 +121,8 @@ export function isScheduledWorkday(date: Date, schedule: EmployeeSchedule): bool
     schedule.employmentType === 'intern' ||
     schedule.employmentType === 'trainee'
   ) {
-    const d = date.getDay()
-    return d >= 1 && d <= 5
+    const wd = weekdayKey(date)
+    return wd === 'mon' || wd === 'tue' || wd === 'wed' || wd === 'thu' || wd === 'fri'
   }
 
   const days = schedule.scheduledDays?.length
@@ -139,8 +176,78 @@ export function filterCountableRecords<T extends { date: string }>(records: T[],
 
 export function calcLateMinutes(checkIn: Date, scheduledStart: string, graceMinutes = 0): number {
   const startMins = parseTimeToMinutes(scheduledStart) + graceMinutes
-  const checkMins = checkIn.getHours() * 60 + checkIn.getMinutes()
+  const { hours, minutes } = officeLocalParts(checkIn)
+  const checkMins = hours * 60 + minutes
   return Math.max(0, checkMins - startMins)
+}
+
+export type LateCalcContext = {
+  officeStart: string
+  graceMinutes: number
+  monthlyPay: number
+  workingDays: number
+  hoursPerDay: number
+}
+
+/** Recompute late fields from check-in time (fixes records saved under UTC server time). */
+export function resolveAttendanceLate(
+  record: {
+    checkIn?: Date | string | null
+    lateMinutes?: number
+    lateDeduction?: number
+    scheduledStart?: string | null
+    status?: string
+  },
+  ctx: LateCalcContext
+): { lateMinutes: number; lateDeduction: number } {
+  if (!record.checkIn) {
+    return { lateMinutes: record.lateMinutes || 0, lateDeduction: record.lateDeduction || 0 }
+  }
+  if (record.status && !['present', 'half_day'].includes(record.status)) {
+    return { lateMinutes: 0, lateDeduction: 0 }
+  }
+
+  const checkIn = typeof record.checkIn === 'string' ? new Date(record.checkIn) : record.checkIn
+  if (Number.isNaN(checkIn.getTime())) {
+    return { lateMinutes: record.lateMinutes || 0, lateDeduction: record.lateDeduction || 0 }
+  }
+
+  const lateMinutes = calcLateMinutes(
+    checkIn,
+    record.scheduledStart || ctx.officeStart,
+    ctx.graceMinutes
+  )
+  const lateDeduction = calcLateDeduction(
+    lateMinutes,
+    ctx.monthlyPay,
+    ctx.workingDays,
+    ctx.hoursPerDay
+  )
+  return { lateMinutes, lateDeduction }
+}
+
+export function buildLateCalcContext(
+  emp: {
+    scheduledStart?: string
+    monthlyPay?: number
+    employmentType: EmploymentType
+    scheduledHoursPerDay?: number
+    scheduledDays?: Weekday[] | string[]
+    weeklyOffDay?: Weekday | string | null
+  },
+  settings: { startTime?: string; graceMinutes?: number },
+  holidaySet: Set<string>,
+  refDate: Date,
+  attendanceStartDate: string
+): LateCalcContext {
+  const workload = employeeMonthlyWorkload(emp, holidaySet, refDate, attendanceStartDate)
+  return {
+    officeStart: emp.scheduledStart || settings.startTime || '10:00',
+    graceMinutes: settings.graceMinutes || 0,
+    monthlyPay: emp.monthlyPay || 0,
+    workingDays: workload.totalWorkingDays,
+    hoursPerDay: workload.hoursPerDay,
+  }
 }
 
 export function calcLateDeduction(

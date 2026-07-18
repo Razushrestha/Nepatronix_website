@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/mongodb'
 import { requireHrSession, requireHrAdmin } from '@/lib/hr/auth'
 import { HrAttendance, HrEmployee, HrHoliday, getOfficeSettings } from '@/lib/hr/models'
-import { dateKey, filterCountableRecords, resolveDayAttendanceStatus, toEmployeeSchedule } from '@/lib/hr/attendance-utils'
+import { dateKey, filterCountableRecords, resolveDayAttendanceStatus, toEmployeeSchedule, buildLateCalcContext, resolveAttendanceLate } from '@/lib/hr/attendance-utils'
 import { getEffectiveAttendanceStartDate, formatAttendanceStartLabel } from '@/lib/hr/service'
 
 export const runtime = 'nodejs'
@@ -43,9 +43,20 @@ export async function GET(req: NextRequest) {
 
   const holidays = await HrHoliday.find({ date: { $regex: `^${prefix}` } }).lean()
   const holidaySet = new Set(holidays.map((h) => h.date))
+  const refDate = new Date(y, m - 1, 15)
+  const lateCtx = buildLateCalcContext(emp, settings, holidaySet, refDate, attendanceStartDate)
+
+  const enrichedRecords = records.map((r) => {
+    const late = resolveAttendanceLate(r, lateCtx)
+    return {
+      ...r,
+      lateMinutes: late.lateMinutes,
+      lateDeduction: late.lateDeduction,
+    }
+  })
 
   const today = dateKey(now)
-  let todayRecord = records.find((r) => r.date === today)
+  let todayRecord = enrichedRecords.find((r) => r.date === today)
   if (!todayRecord && prefix === today.slice(0, 7)) {
     const d = now
     if (today < attendanceStartDate) {
@@ -69,9 +80,9 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const countable = filterCountableRecords(records, attendanceStartDate)
+  const countable = filterCountableRecords(enrichedRecords, attendanceStartDate)
   const summary = {
-    present: countable.filter((r) => r.status === 'present').length,
+    present: countable.filter((r) => r.status === 'present' || r.status === 'half_day').length,
     lateMinutes: countable.reduce((s, r) => s + (r.lateMinutes || 0), 0),
     lateDeduction: countable.reduce((s, r) => s + (r.lateDeduction || 0), 0),
     absent: countable.filter((r) => r.status === 'absent').length,
@@ -81,7 +92,7 @@ export async function GET(req: NextRequest) {
     employee: { id: String(emp._id), fullName: emp.fullName, employeeCode: emp.employeeCode },
     month: prefix,
     today: todayRecord || null,
-    records,
+    records: enrichedRecords,
     summary,
     attendanceStartDate,
     attendanceStartLabel: formatAttendanceStartLabel(attendanceStartDate),

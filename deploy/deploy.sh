@@ -27,6 +27,9 @@ fi
 echo "==> Seeding HR office settings..."
 npm run seed:hr || true
 
+echo "==> Backfilling attendance late minutes (Nepal timezone)..."
+npm run backfill:attendance-late || true
+
 echo "==> Restarting app..."
 pm2 delete nepatronix 2>/dev/null || true
 pm2 start ecosystem.config.js

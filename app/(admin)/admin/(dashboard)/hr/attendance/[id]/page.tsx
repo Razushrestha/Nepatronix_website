@@ -61,7 +61,7 @@ export default function AdminHrEmployeeAttendancePage({ params }: { params: Prom
               <tr key={r.date} className="border-b border-slate-100">
                 <td className="py-2 pr-4">{r.date}</td>
                 <td className="py-2 pr-4 capitalize">{r.status}</td>
-                <td className="py-2 pr-4">{r.checkIn ? new Date(r.checkIn).toLocaleTimeString() : '—'}</td>
+                <td className="py-2 pr-4">{r.checkIn ? new Date(r.checkIn).toLocaleTimeString('en-US', { timeZone: 'Asia/Kathmandu' }) : '—'}</td>
                 <td className="py-2 pr-4">{r.lateMinutes || 0} min</td>
                 <td className="py-2">NPR {r.lateDeduction || 0}</td>
               </tr>

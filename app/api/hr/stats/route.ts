@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/mongodb'
 import { requireHrAdmin } from '@/lib/hr/auth'
-import { HrAttendance, HrEmployee, HrLeaveRequest, HrTask, getOfficeSettings } from '@/lib/hr/models'
-import { dateKey, filterCountableRecords, isCountableAttendanceDate } from '@/lib/hr/attendance-utils'
+import { HrAttendance, HrEmployee, HrHoliday, HrLeaveRequest, HrTask, getOfficeSettings } from '@/lib/hr/models'
+import { dateKey, filterCountableRecords, isCountableAttendanceDate, buildLateCalcContext, resolveAttendanceLate } from '@/lib/hr/attendance-utils'
 import { getEffectiveAttendanceStartDate } from '@/lib/hr/service'
 
 export const runtime = 'nodejs'
@@ -82,10 +82,25 @@ export async function GET(req: NextRequest) {
 
     const attendanceStartDate = getEffectiveAttendanceStartDate(officeSettings)
 
+    const holidays = await HrHoliday.find({ date: { $regex: `^${monthPrefix}` } }).lean()
+    const holidaySet = new Set(holidays.map((h) => h.date))
+    const lateCtxByEmp = new Map(
+      activeEmployees.map((e) => [
+        String(e._id),
+        buildLateCalcContext(e, officeSettings, holidaySet, refDate, attendanceStartDate),
+      ])
+    )
+
     const monthPresent = monthRecords.filter(
-      (r) => r.status === 'present' && isCountableAttendanceDate(r.date, attendanceStartDate)
+      (r) =>
+        (r.status === 'present' || r.status === 'half_day') &&
+        isCountableAttendanceDate(r.date, attendanceStartDate)
     ).length
-    const countableMonth = filterCountableRecords(monthRecords, attendanceStartDate)
+    const countableMonth = filterCountableRecords(monthRecords, attendanceStartDate).map((r) => {
+      const lateCtx = lateCtxByEmp.get(String(r.employeeId))
+      if (!lateCtx) return r
+      return { ...r, ...resolveAttendanceLate(r, lateCtx) }
+    })
     const monthLateDeduction = countableMonth.reduce((s, r) => s + (r.lateDeduction || 0), 0)
     const monthLateMinutes = countableMonth.reduce((s, r) => s + (r.lateMinutes || 0), 0)
     const netPayroll = Math.max(0, grossPayroll - monthLateDeduction)

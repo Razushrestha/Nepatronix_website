@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/mongodb'
 import { requireHrAdmin } from '@/lib/hr/auth'
 import { HrAttendance, HrEmployee, HrHoliday, getOfficeSettings } from '@/lib/hr/models'
-import { dateKey, employeeMonthlyWorkload, isCountableAttendanceDate } from '@/lib/hr/attendance-utils'
+import { dateKey, employeeMonthlyWorkload, isCountableAttendanceDate, buildLateCalcContext, resolveAttendanceLate } from '@/lib/hr/attendance-utils'
 import { getEffectiveAttendanceStartDate, formatAttendanceStartLabel } from '@/lib/hr/service'
 import type { HrDepartment } from '@/lib/hr/constants'
 
@@ -197,16 +197,25 @@ export async function GET(req: NextRequest) {
       })
     }
 
+    const lateCtxByEmp = new Map(
+      employees.map((e) => [
+        String(e._id),
+        buildLateCalcContext(e, settings, holidaySet, refDate, attendanceStartDate),
+      ])
+    )
+
     for (const r of records) {
       if (!isCountableAttendanceDate(r.date, attendanceStartDate)) continue
       const id = String(r.employeeId)
       const s = summaryByEmp.get(id)
       if (!s) continue
-      if (r.status === 'present') s.present++
+      const lateCtx = lateCtxByEmp.get(id)
+      const late = lateCtx ? resolveAttendanceLate(r, lateCtx) : { lateMinutes: r.lateMinutes || 0, lateDeduction: r.lateDeduction || 0 }
+      if (r.status === 'present' || r.status === 'half_day') s.present++
       if (r.status === 'absent') s.absent++
       if (r.status === 'leave') s.leave++
-      s.lateMinutes += r.lateMinutes || 0
-      s.lateDeduction += r.lateDeduction || 0
+      s.lateMinutes += late.lateMinutes
+      s.lateDeduction += late.lateDeduction
       if (today && r.date === today) s.todayStatus = r.status
     }
 

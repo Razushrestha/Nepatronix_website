@@ -60,6 +60,9 @@ export const LEAVE_STATUSES = [
 
 export type LeaveStatus = (typeof LEAVE_STATUSES)[number]
 
+/** All attendance dates/times use Nepal office local time (not server UTC). */
+export const OFFICE_TIMEZONE = 'Asia/Kathmandu'
+
 export const DEFAULT_OFFICE = {
   startTime: '10:00',
   endTime: '18:00',
