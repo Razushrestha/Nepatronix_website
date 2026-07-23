@@ -15,7 +15,11 @@ export async function GET() {
   if (!emp) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   return NextResponse.json({
-    user: session,
+    user: {
+      ...session,
+      position: emp.position || '',
+      allowRemoteAttendance: !!emp.allowRemoteAttendance,
+    },
     profile: sanitizeEmployee(emp, isHrAdminRole(session.role)),
   })
 }

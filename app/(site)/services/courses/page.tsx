@@ -3,6 +3,9 @@ import { indexingRobots } from "@/lib/seo/indexingRobots";
 import CoursesClient from "./CoursesClient";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Course } from "@/lib/models";
+import { FaqSection } from "../../components/FaqSection";
+import { COURSES_FAQS } from "../../data/faqs";
+import { breadcrumbJsonLd, faqJsonLd } from "@/lib/seo/jsonLd";
 
 export const metadata: Metadata = {
   title: "Courses | STEM, IoT & Robotics Training Programs",
@@ -108,12 +111,16 @@ export default async function CoursesPage() {
         ],
         "provider": {
           "@type": "EducationalOrganization",
+          "@id": "https://nepatronix.org/#organization",
           "name": "Nepatronix Engineering Solutions",
           "url": "https://nepatronix.org",
           "address": {
             "@type": "PostalAddress",
-            "addressCountry": "NP",
-            "addressLocality": "Kathmandu"
+            "streetAddress": "Kupondole",
+            "addressLocality": "Lalitpur",
+            "addressRegion": "Bagmati",
+            "postalCode": "44700",
+            "addressCountry": "NP"
           }
         },
         "offers": {
@@ -138,9 +145,18 @@ export default async function CoursesPage() {
     }))
   };
 
+  const breadcrumbLd = breadcrumbJsonLd([
+    { name: "Home", url: "https://nepatronix.org" },
+    { name: "Services", url: "https://nepatronix.org/services" },
+    { name: "Courses", url: "https://nepatronix.org/services/courses" },
+  ]);
+  const faqLd = faqJsonLd(COURSES_FAQS);
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(coursesJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
       <div className="relative bg-[#020617] pt-32 pb-20 overflow-hidden">
@@ -169,6 +185,14 @@ export default async function CoursesPage() {
 
       {/* Client Component with interactive features */}
       <CoursesClient courses={courses} objectives={objectives} />
+
+      <FaqSection
+        eyebrow="Course FAQ"
+        title="Questions about Nepatronix courses"
+        description="Everything students and teachers ask before enrolling in a Nepatronix program."
+        items={COURSES_FAQS}
+        className="bg-slate-50"
+      />
     </div>
     </>
   );

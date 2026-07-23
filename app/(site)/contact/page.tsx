@@ -27,7 +27,7 @@ const DEFAULT_CONTACT: ContactPageData = {
   contactDetails: {
     email: "info@nepatronix.org",
     phone: "+977-9803661701",
-    address: "Tinkune, Kathmandu, Nepal",
+    address: "Kupondole, Lalitpur, Nepal",
     hours: "Sun-Fri, 9:00 AM - 6:00 PM",
   },
   formTitle: "Send us a message",
@@ -72,7 +72,9 @@ export default async function ContactPage() {
       "address": {
         "@type": "PostalAddress",
         "streetAddress": data.contactDetails?.address,
-        "addressLocality": "Kathmandu",
+        "addressLocality": "Lalitpur",
+        "addressRegion": "Bagmati",
+        "postalCode": "44700",
         "addressCountry": "NP"
       },
       "sameAs": socialLinks.map((s) => s.url),

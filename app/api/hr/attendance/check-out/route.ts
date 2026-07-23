@@ -31,7 +31,12 @@ export async function POST(req: NextRequest) {
     const settings = await getOfficeSettings()
     const office = getEffectiveOfficeCoords(settings)
     const requireGps = departmentRequiresGps(emp.department)
-    const ceoRemote = ceoRemoteAttendanceAllowed(emp.role, emp.department)
+    const ceoRemote = ceoRemoteAttendanceAllowed({
+      role: emp.role,
+      department: emp.department,
+      position: emp.position,
+      allowRemoteAttendance: emp.allowRemoteAttendance,
+    })
 
     if (!ceoRemote) {
       const loc = validateAttendanceLocation({

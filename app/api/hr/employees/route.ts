@@ -170,6 +170,7 @@ export async function POST(req: NextRequest) {
       currentAddress: body.currentAddress,
       emergencyContact: body.emergencyContact,
       paidLeaveEligible: body.paidLeaveEligible,
+      allowRemoteAttendance: !!body.allowRemoteAttendance,
     })
 
     return NextResponse.json({

@@ -13,7 +13,8 @@ import {
   type BlogPostDoc,
 } from "@/lib/blog/queries";
 import { resolveImageUrl } from "@/lib/content-image";
-import { BlogBody, hasBlogBody } from "@/lib/portable-text";
+import { BlogBody, hasBlogBody, blogBodyToPlainText } from "@/lib/portable-text";
+import { authorJsonLd, findAuthorByName } from "@/lib/seo/authors";
 
 const SITE = "https://nepatronix.org";
 const OG_FALLBACK = `${SITE}/og-banner.png`;
@@ -28,14 +29,24 @@ interface BlogPost {
   categories: string[];
   tags: string[];
   mainImage?: BlogPostDoc["mainImage"];
+  ogImage?: BlogPostDoc["mainImage"];
   author: string;
   body: unknown;
   seoTitle?: string;
   seoDescription?: string;
   keywords?: string[];
+  canonicalUrl?: string;
+  noIndex?: boolean;
+}
+
+interface RawPostDoc extends BlogPostDoc {
+  ogImage?: BlogPostDoc["mainImage"];
+  canonicalUrl?: string;
+  noIndex?: boolean;
 }
 
 function mapPostDoc(doc: BlogPostDoc): BlogPost {
+  const raw = doc as RawPostDoc;
   return {
     _id: String(doc._id),
     title: doc.title || "",
@@ -48,11 +59,14 @@ function mapPostDoc(doc: BlogPostDoc): BlogPost {
     categories: doc.categories || [],
     tags: doc.tags || [],
     mainImage: doc.mainImage,
+    ogImage: raw.ogImage,
     author: doc.author || "",
     body: doc.body ?? null,
     seoTitle: doc.seoTitle,
     seoDescription: doc.seoDescription,
     keywords: doc.keywords,
+    canonicalUrl: raw.canonicalUrl || undefined,
+    noIndex: !!raw.noIndex,
   };
 }
 
@@ -121,8 +135,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     };
   }
 
-  const imageUrl = post.mainImage ? blogPostImageUrl(post) : "";
-  const canonicalUrl = `${SITE}/blog/${slug}`;
+  const mainImgUrl = post.mainImage ? blogPostImageUrl(post) : "";
+  const ogImgUrl = post.ogImage
+    ? resolveImageUrl(post.ogImage)
+    : mainImgUrl || OG_FALLBACK;
+  const canonicalUrl = post.canonicalUrl?.trim() || `${SITE}/blog/${slug}`;
   const titleBase = titleForMetadata(post.seoTitle, post.title);
   const description = metaDescription(post.seoDescription, post.excerpt);
   const ogDesc = ogDescription(post.seoDescription, post.excerpt);
@@ -140,9 +157,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   ];
   const keywords = dedupeKeywords(keywordParts);
 
-  const ogImage = imageUrl
-    ? [{ url: imageUrl, width: 1200, height: 630, alt: post.title }]
-    : [{ url: OG_FALLBACK, width: 1200, height: 630, alt: post.title }];
+  const ogImages = [
+    {
+      url: ogImgUrl,
+      width: 1200,
+      height: 630,
+      alt: post.title,
+    },
+  ];
+
+  const isIndexable = !post.noIndex;
 
   return {
     title: titleBase,
@@ -155,29 +179,34 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title: brandedTitle,
       description: ogDesc,
       url: canonicalUrl,
-      images: ogImage,
+      images: ogImages,
       type: "article",
+      locale: "en_US",
       publishedTime: post.publishedAt,
+      modifiedTime: post._updatedAt || post.publishedAt,
       authors: [post.author || "Nepatronix Team"],
+      section: post.categories?.[0],
       tags: keywords.slice(0, 20),
     },
     twitter: {
       card: "summary_large_image",
       title: brandedTitle,
       description: ogDesc,
-      images: [imageUrl || OG_FALLBACK],
+      images: [ogImgUrl],
     },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-        "max-video-preview": -1,
-      },
-    },
+    robots: isIndexable
+      ? {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+            "max-video-preview": -1,
+          },
+        }
+      : { index: false, follow: false },
   };
 }
 
@@ -222,6 +251,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
   // field from the post: title, description, image, dates, author, publisher,
   // categories (articleSection), and the merged keyword set.
   const pageUrl = `https://nepatronix.org/blog/${slug}`;
+  const canonicalPageUrl = post.canonicalUrl?.trim() || pageUrl;
   const articleDescription = metaDescription(post.seoDescription, post.excerpt);
   const articleKeywords = dedupeKeywords([
     ...(Array.isArray(post.keywords) ? post.keywords : []),
@@ -234,12 +264,15 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
     "Robotics",
   ]);
   const articleImageUrl = post.mainImage ? blogPostImageUrl(post, OG_FALLBACK) : OG_FALLBACK;
+  const plainBody = blogBodyToPlainText(post.body);
+  const wordCount = plainBody ? plainBody.split(/\s+/).filter(Boolean).length : undefined;
+  const articleBodySnippet = plainBody ? plainBody.slice(0, 500) : undefined;
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    "@id": `${pageUrl}#article`,
-    url: pageUrl,
+    "@id": `${canonicalPageUrl}#article`,
+    url: canonicalPageUrl,
     headline: (post.title || "Nepatronix Blog Post").slice(0, 110),
     name: post.title,
     description: articleDescription,
@@ -251,16 +284,20 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
     },
     datePublished: post.publishedAt,
     dateModified: post._updatedAt || post.publishedAt,
-    inLanguage: "en-US",
+    inLanguage: "en",
     articleSection: post.categories?.[0] || "Innovation",
+    about: (post.categories || []).slice(0, 5).map((c) => ({ "@type": "Thing", name: c })),
     keywords: articleKeywords.join(", "),
-    "author": {
-      "@type": "Person",
-      "name": post.author || "Nepatronix Team",
-      "url": SITE,
+    ...(wordCount ? { wordCount } : {}),
+    ...(articleBodySnippet ? { articleBody: articleBodySnippet } : {}),
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["h1", ".prose p:first-of-type", ".blog-html-body p:first-of-type"],
     },
+    "author": authorJsonLd(findAuthorByName(post.author)),
     "publisher": {
       "@type": "Organization",
+      "@id": "https://nepatronix.org/#organization",
       "name": "Nepatronix Engineering Solutions",
       "url": SITE,
       "logo": {
@@ -277,8 +314,8 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `${pageUrl}#webpage`,
-      url: pageUrl,
+      "@id": `${canonicalPageUrl}#webpage`,
+      url: canonicalPageUrl,
     },
   };
 

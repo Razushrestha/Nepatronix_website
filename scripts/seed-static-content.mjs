@@ -65,20 +65,138 @@ const recognitions = [
   { name: 'EU Business Forum', logo: '/recognition/EUbusinessforum.png' },
 ]
 
+/** Google reviews shown on homepage Client Reviews (also editable in Admin → Testimonials). */
 const testimonials = [
   {
-    name: 'Jordan Blake',
-    role: 'Associate Product Manager, Flux AI',
+    name: 'Razu Shrestha',
+    role: 'Google Review · Local Guide',
     rating: 5,
-    review: 'The mentorship and career support at Nepatronix helped me land my first product role in under 90 days.',
+    review:
+      'One of the best IoT, Robotics and automation companies in Nepal. They provide excellent knowledge and support to students.',
   },
   {
-    name: 'Evelyn Park',
-    role: 'Machine Learning Engineer, LumenCloud',
+    name: 'Sunil Magar',
+    role: 'Student · Google Review',
     rating: 5,
-    review: 'Project-based learning finally made complex ML concepts stick. The portfolio I built here speaks for itself.',
+    review:
+      'I attended the 3-day online IoT and Robotics course conducted by Nepatronix, and it was a highly valuable learning experience. The tutors were knowledgeable, supportive, and encouraged interactive participation throughout the sessions.',
+  },
+  {
+    name: 'Yubraj Shahi',
+    role: 'Student · Google Review',
+    rating: 5,
+    review:
+      'I had a great experience attending the 3-day Online IoT and Robotics Course by Nepatronix. The course was beginner-friendly, practical, and packed with hands-on projects. The instructor was very knowledgeable, friendly, and supportive.',
+  },
+  {
+    name: 'Dishesh Mahato',
+    role: 'Student · Google Review',
+    rating: 5,
+    review:
+      "I'm really happy with my experience at Nepatronix Engineering Solutions! As a student learning Arduino and ESP32 projects, I've gone from knowing nothing to an intermediate level. The teachers are great and make learning fun and easy. I highly recommend this IoT and Robotics course!",
+  },
+  {
+    name: 'Jyoti Shrestha',
+    role: 'Google Review',
+    rating: 5,
+    review:
+      'Nepatronix is a burgeoning technology company based in Nepal, specializing in the development of Internet of Things (IoT) solutions and innovative hardware devices. The company is known for its commitment to creating high-end automation and instrumentation products for local and global markets.',
+  },
+  {
+    name: 'Deepsu Gautam',
+    role: 'Client · Google Review',
+    rating: 5,
+    review:
+      'NepaTronix has impressed me with their innovative IoT solutions, seamlessly integrating high-performance hardware and software to meet our specific needs. Their commitment to continuous improvement and customer satisfaction sets them apart from other companies in the industry.',
+  },
+  {
+    name: 'Public Debt Management Office',
+    role: 'Tripureshwor · Google Review',
+    rating: 5,
+    review:
+      'My recent visit to Nepatronix left a lasting impression. Their pad vending machine, a blend of innovation and empathy, showcased their commitment to community welfare. What truly stood out was their dedication to education through IoT.',
+  },
+  {
+    name: 'Bikram Karki',
+    role: 'Google Review',
+    rating: 5,
+    review:
+      'Best known for IoT development including Robotics and Automation in Nepal. Also provides excellent knowledge and support to students and enthusiasts.',
+  },
+  {
+    name: 'Bikash Rashaili',
+    role: 'Client · Google Review',
+    rating: 5,
+    review:
+      'Nepatronix excels in IoT and robotics, offering innovative, scalable solutions that enhance operational efficiency across various industries.',
+  },
+  {
+    name: 'Siddhartha Yadav',
+    role: 'Student · Google Review',
+    rating: 5,
+    review:
+      'Nepatronix is the best platform for students to get introduced to the IT world. Experts from the industry are there for support.',
+  },
+  {
+    name: 'Manu Shrestha',
+    role: 'Student · Google Review',
+    rating: 5,
+    review:
+      'Nepatronix is the best place for learning IoT, robotics, and manufacturing IoT products. They are the best at what they do!',
+  },
+  {
+    name: 'Namuna Paudel',
+    role: 'Google Review',
+    rating: 5,
+    review:
+      "A talented team that provides top-notch robotics and IoT solutions. You can go for this company's services without a doubt.",
+  },
+  {
+    name: 'Sakar Khatri',
+    role: 'Student · Google Review',
+    rating: 5,
+    review:
+      'Top-notch IoT course in Kathmandu offering a welcoming atmosphere and supportive instructors.',
+  },
+  {
+    name: 'Udit Yadav',
+    role: 'Google Review',
+    rating: 5,
+    review: 'Outstanding service and unmatched support — thank you, Nepatronix!',
+  },
+  {
+    name: 'Saroj Chaudhary',
+    role: 'Google Review',
+    rating: 5,
+    review: 'One of the leading IoT and Robotics companies in Nepal.',
+  },
+  {
+    name: 'Ayush Gupta',
+    role: 'Student · Google Review',
+    rating: 5,
+    review: 'Got a great experience learning with the Nepatronix team.',
+  },
+  {
+    name: 'Maruf Alam',
+    role: 'Google Review',
+    rating: 5,
+    review: 'It was a very useful and helpful experience. Excellent.',
+  },
+  {
+    name: 'Ashok Yadav',
+    role: 'Google Review',
+    rating: 5,
+    review: 'One of the best IoT platforms.',
+  },
+  {
+    name: 'Arun Lohar',
+    role: 'Google Review',
+    rating: 5,
+    review: 'Best place for STEAM kits.',
   },
 ]
+
+const PLACEHOLDER_TESTIMONIAL_NAMES = ['Jordan Blake', 'Evelyn Park']
 
 const stats = [
   { value: '50+', label: 'Partners with school', detail: 'Across Nepal' },
@@ -94,8 +212,8 @@ const footerDoc = {
   description:
     "Nepatronix Engineering Solutions is Nepal's leading IoT, robotics, and STEM education institute.",
   contactInfo: {
-    address: 'Tinkune, Kathmandu, Nepal',
-    postalCode: '44600',
+    address: 'Kupondole, Lalitpur, Nepal',
+    postalCode: '44700',
     weekdayHours: 'Sun–Fri: 9:00 AM – 6:00 PM',
     weekendHours: 'Sat: By appointment',
   },
@@ -133,7 +251,7 @@ const contactPageDoc = {
   contactDetails: {
     email: 'info@nepatronix.org',
     phone: '+977-9803661701',
-    address: 'Tinkune, Kathmandu, Nepal',
+    address: 'Kupondole, Lalitpur, Nepal',
     hours: 'Sun-Fri, 9:00 AM - 6:00 PM',
   },
   formTitle: 'Send us a message',
@@ -205,37 +323,37 @@ const homePageDoc = {
   testimonials: {
     eyebrow: 'Client Reviews',
     title: 'What Our Clients Say',
-    description: 'Real feedback from our satisfied clients and partners across various projects.',
+    description: 'Real Google reviews from students, clients, and partners of Nepatronix.',
   },
 }
 
 const homeServices = [
   {
-    title: 'STEM Tutor Program',
+    title: 'Certified STEM Education',
     href: '/services/stem-education',
     iconKey: 'stem',
-    description: 'Personalized STEM education with expert tutors for students at all levels',
+    description: 'Globally aligned STEM programs for students and teachers with hands-on projects and certification',
     colorClass: 'text-blue-600',
   },
   {
     title: 'STEM Lab Setup',
     href: '/services/stem-lab-setup',
     iconKey: 'lab',
-    description: 'Complete laboratory setup and equipment for schools and educational institutions',
+    description: 'End-to-end STEM lab design, equipment, installation, and teacher orientation',
     colorClass: 'text-red-600',
   },
   {
-    title: 'Software and APP Development',
+    title: 'Product Engineering',
     href: '/services/product-engineering',
     iconKey: 'software',
-    description: 'Custom software solutions and mobile applications for educational and business needs',
+    description: 'Custom product engineering, software, and IoT solutions for institutions and businesses',
     colorClass: 'text-emerald-600',
   },
   {
-    title: 'Research and Innovations',
+    title: 'Government, NGO & CSR Programs',
     href: '/services/institutional-programs',
     iconKey: 'research',
-    description: 'Cutting-edge research projects and innovative solutions for real-world challenges',
+    description: 'Large-scale STEM implementation for governments, NGOs, INGOs, and CSR partners',
     colorClass: 'text-purple-600',
   },
 ]
@@ -331,11 +449,18 @@ async function main() {
   const r = await upsertMany(db.collection('recognitions'), recognitions, (d) => ({
     logo: { url: d.logo, alt: d.name, caption: '' },
   }))
+  // Remove old placeholder reviews so Admin + homepage only show real Google reviews
+  const removedPlaceholders = await db.collection('testimonials').deleteMany({
+    name: { $in: PLACEHOLDER_TESTIMONIAL_NAMES },
+  })
   const t = await upsertMany(db.collection('testimonials'), testimonials, (d) => ({
     role: d.role,
     rating: d.rating,
     review: d.review,
   }))
+  if (removedPlaceholders.deletedCount) {
+    console.log(`🧹 Removed ${removedPlaceholders.deletedCount} placeholder testimonial(s)`)
+  }
 
   // Stats have no `name` field — replace collection to avoid duplicate-key upserts.
   await db.collection('stats').deleteMany({})
@@ -368,12 +493,35 @@ async function main() {
     { upsert: true }
   )
 
-  const hs = await upsertByTitle(db.collection('homeservices'), homeServices, (d) => ({
-    description: d.description,
-    href: d.href,
-    iconKey: d.iconKey,
-    colorClass: d.colorClass,
-  }))
+  // Match by href so title renames update existing cards instead of duplicating
+  let hs = 0
+  for (let i = 0; i < homeServices.length; i++) {
+    const d = homeServices[i]
+    await db.collection('homeservices').updateOne(
+      { href: d.href },
+      {
+        $set: {
+          title: d.title,
+          description: d.description,
+          href: d.href,
+          iconKey: d.iconKey,
+          colorClass: d.colorClass,
+          order: i,
+          updatedAt: new Date(),
+        },
+        $setOnInsert: { createdAt: new Date() },
+      },
+      { upsert: true }
+    )
+    hs++
+  }
+  // Drop leftover cards that still use old titles for the same service URLs
+  await db.collection('homeservices').deleteMany({
+    href: { $in: homeServices.map((d) => d.href) },
+    title: {
+      $nin: homeServices.map((d) => d.title),
+    },
+  })
   const ac = await upsertByTitle(db.collection('accreditations'), accreditations, (d) => ({
     badge: d.badge,
     description: d.description,

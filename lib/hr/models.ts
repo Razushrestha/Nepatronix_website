@@ -59,6 +59,8 @@ export interface HrEmployeeDoc {
   bankName?: string
   bankAccount?: string
   paidLeaveEligible: boolean
+  /** When true, check-in/out skips office GPS / Wi‑Fi rules. */
+  allowRemoteAttendance: boolean
   lastLoginAt?: Date
   active: boolean
 }
@@ -112,6 +114,7 @@ const HrEmployeeSchema = new Schema<HrEmployeeDoc>(
     bankName: String,
     bankAccount: String,
     paidLeaveEligible: { type: Boolean, default: true },
+    allowRemoteAttendance: { type: Boolean, default: false },
     lastLoginAt: Date,
     active: { type: Boolean, default: true },
   },
@@ -152,7 +155,7 @@ const HrOfficeSettingsSchema = new Schema<HrOfficeSettingsDoc>(
         '2400:1a00:4b2b:6bc9:e551:175:f19c:bc16',
       ],
     },
-    officeName: { type: String, default: 'Nepatronix Office — Tinkune' },
+    officeName: { type: String, default: 'Nepatronix Office — Kupondole, Lalitpur' },
     attendanceStartDate: { type: String, default: '2026-07-17' },
   },
   { timestamps: true }
@@ -380,6 +383,7 @@ export function sanitizeEmployee(emp: HrEmployeeDoc, includePay = false) {
     scheduledEnd: emp.scheduledEnd,
     scheduledHoursPerDay: emp.scheduledHoursPerDay,
     paidLeaveEligible: emp.paidLeaveEligible,
+    allowRemoteAttendance: !!emp.allowRemoteAttendance,
     active: emp.active,
   }
   if (!includePay) return base

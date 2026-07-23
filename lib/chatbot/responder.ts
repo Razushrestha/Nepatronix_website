@@ -114,7 +114,7 @@ function buildIntents(): IntentMatch[] {
     {
       id: 'location',
       respond: (kb) =>
-        `Our office and innovation lab are in **Tinkune, Kathmandu, Nepal**. You're welcome to visit and see our STEM workshops in action.\n\n📍 ${kb.contact.address}\n🕐 ${kb.contact.hours}\n\nMap & form: ${kb.baseUrl}/contact`,
+        `Our office and innovation lab are in **Kupondole, Lalitpur, Nepal**. You're welcome to visit and see our STEM workshops in action.\n\n📍 ${kb.contact.address}\n🕐 ${kb.contact.hours}\n\nMap & form: ${kb.baseUrl}/contact`,
     },
     {
       id: 'certificate_apply',
@@ -230,7 +230,7 @@ function buildIntents(): IntentMatch[] {
     {
       id: 'tech_robotics',
       respond: (kb) =>
-        `**Robotics** combines mechanical design, electronics, and programming. Our Tinkune lab prototypes educational robots and industrial automation systems.\n\nPrograms: ${kb.baseUrl}/services/stem-education`,
+        `**Robotics** combines mechanical design, electronics, and programming. Our Kupondole (Lalitpur) lab prototypes educational robots and industrial automation systems.\n\nPrograms: ${kb.baseUrl}/services/stem-education`,
     },
     {
       id: 'tech_stem',

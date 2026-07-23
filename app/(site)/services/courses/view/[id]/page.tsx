@@ -114,15 +114,54 @@ export default async function ViewCoursePage({ params }: { params: Promise<{ id:
   const courseJsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Course",
+    "@id": `${canonicalUrl}#course`,
     name: courseName,
     description: courseDescription,
     url: canonicalUrl,
+    inLanguage: "en",
     provider: {
       "@type": "EducationalOrganization",
+      "@id": "https://nepatronix.org/#organization",
       name: "Nepatronix Engineering Solutions",
       url: "https://nepatronix.org",
     },
-    inLanguage: "en",
+    educationalCredentialAwarded: "Certificate of Completion from Nepatronix",
+    hasCourseInstance: {
+      "@type": "CourseInstance",
+      courseMode: ["Onsite", "Online"],
+      inLanguage: "en",
+      location: {
+        "@type": "Place",
+        name: "Nepatronix Lab",
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: "Kupondole",
+          addressLocality: "Lalitpur",
+          addressRegion: "Bagmati",
+          addressCountry: "NP",
+        },
+      },
+    },
+    offers: {
+      "@type": "Offer",
+      url: canonicalUrl,
+      priceCurrency: "NPR",
+      price: "0",
+      category: "Education",
+      availability: "https://schema.org/InStock",
+    },
+    audience: {
+      "@type": "EducationalAudience",
+      educationalRole: "Students, Teachers, School Institutions",
+    },
+    teaches: [
+      "IoT fundamentals",
+      "Robotics",
+      "Arduino programming",
+      "STEM education",
+      "Engineering problem solving",
+    ],
+    about: ["IoT", "Robotics", "STEM", "Arduino", "Electronics"],
   };
 
   if (pdfUrl) {

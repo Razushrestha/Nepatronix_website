@@ -26,7 +26,7 @@ export async function loadChatKnowledge(): Promise<ChatKnowledge> {
   let contact = {
     email: 'info@nepatronix.org',
     phone: '+977-9803661701',
-    address: 'Tinkune, Kathmandu, Nepal',
+    address: 'Kupondole, Lalitpur, Nepal',
     hours: 'Sun–Fri: 9:00 AM – 6:00 PM',
   }
   let courses: ChatKnowledge['courses'] = []
@@ -126,7 +126,7 @@ export async function loadChatKnowledge(): Promise<ChatKnowledge> {
     company: {
       name: 'NepaTronix Engineering Solutions',
       founded: '2021',
-      location: 'Tinkune, Kathmandu, Nepal',
+      location: 'Kupondole, Lalitpur, Nepal',
       about: aboutUsData.about,
       mission: aboutUsData.mission,
       vision: aboutUsData.vision,

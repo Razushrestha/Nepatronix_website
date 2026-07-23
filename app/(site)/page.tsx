@@ -15,6 +15,10 @@ import {
   mergeSeoKeywordGroups,
 } from "./data/stemEducationSeoKeywords";
 import { indexingRobots } from "@/lib/seo/indexingRobots";
+import { FaqSection } from "./components/FaqSection";
+import { AboutBlurb } from "./components/AboutBlurb";
+import { HOME_FAQS } from "./data/faqs";
+import { faqJsonLd } from "@/lib/seo/jsonLd";
 
 export const revalidate = 1800;
 
@@ -67,41 +71,12 @@ export default async function Home() {
     ]
   };
 
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "What does Nepatronix specialize in?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Nepatronix specializes in STEM education, IoT and robotics training, engineering workshops, and lab setup solutions for schools and institutions."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Where is Nepatronix located?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Nepatronix is based in Kathmandu, Nepal and serves students, teachers, schools, and partner institutions."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "How can I enroll in courses?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "You can explore available programs under the courses section and complete registration through the enrollment or application flow on the website."
-        }
-      }
-    ]
-  };
+  const faqLd = faqJsonLd(HOME_FAQS);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
     <div className="relative overflow-hidden">
       <HeroSection slide={homeContent.hero} />
 
@@ -298,6 +273,15 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      <AboutBlurb />
+
+      <FaqSection
+        eyebrow="Questions"
+        title="Frequently asked questions"
+        description="Quick answers about Nepatronix, our programs, and how to work with us."
+        items={HOME_FAQS}
+      />
     </div>
     </>
   );

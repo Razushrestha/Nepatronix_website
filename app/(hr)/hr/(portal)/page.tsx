@@ -14,7 +14,14 @@ type TodayAttendance = {
 }
 
 export default function HrDashboardPage() {
-  const [user, setUser] = useState<{ fullName: string; employeeCode: string; role: string; department: string } | null>(null)
+  const [user, setUser] = useState<{
+    fullName: string
+    employeeCode: string
+    role: string
+    department: string
+    position?: string
+    allowRemoteAttendance?: boolean
+  } | null>(null)
   const [today, setToday] = useState<TodayAttendance | null>(null)
   const [settings, setSettings] = useState<{ startTime: string; endTime: string } | null>(null)
   const [openTasks, setOpenTasks] = useState(0)
@@ -48,9 +55,26 @@ export default function HrDashboardPage() {
     setErr('')
     setMsg('')
     try {
+      const remoteOk = user
+        ? ceoRemoteAttendanceAllowed({
+            role: user.role,
+            department: user.department,
+            position: user.position,
+            allowRemoteAttendance: user.allowRemoteAttendance,
+          })
+        : false
       const needsGps =
         user &&
-        attendanceActionRequiresLocation(user.role, 'check_in', user.department) &&
+        !remoteOk &&
+        attendanceActionRequiresLocation(
+          {
+            role: user.role,
+            department: user.department,
+            position: user.position,
+            allowRemoteAttendance: user.allowRemoteAttendance,
+          },
+          'check_in'
+        ) &&
         departmentRequiresGps(user.department)
       let payload: Record<string, number> = {}
       if (needsGps) {
@@ -61,7 +85,7 @@ export default function HrDashboardPage() {
           longitude: pos.longitude,
           accuracy: pos.accuracy,
         }
-      } else if (user && ceoRemoteAttendanceAllowed(user.role, user.department)) {
+      } else if (remoteOk) {
         setMsg('Checking in (remote allowed for CEO)…')
       } else {
         setMsg('Verifying office Wi‑Fi…')
@@ -88,9 +112,26 @@ export default function HrDashboardPage() {
     setErr('')
     setMsg('')
     try {
+      const remoteOk = user
+        ? ceoRemoteAttendanceAllowed({
+            role: user.role,
+            department: user.department,
+            position: user.position,
+            allowRemoteAttendance: user.allowRemoteAttendance,
+          })
+        : false
       const needsGps =
         user &&
-        attendanceActionRequiresLocation(user.role, 'check_out', user.department) &&
+        !remoteOk &&
+        attendanceActionRequiresLocation(
+          {
+            role: user.role,
+            department: user.department,
+            position: user.position,
+            allowRemoteAttendance: user.allowRemoteAttendance,
+          },
+          'check_out'
+        ) &&
         departmentRequiresGps(user.department)
       let payload: Record<string, number> = {}
       if (needsGps) {
@@ -100,7 +141,7 @@ export default function HrDashboardPage() {
           longitude: pos.longitude,
           accuracy: pos.accuracy,
         }
-      } else if (user && ceoRemoteAttendanceAllowed(user.role, user.department)) {
+      } else if (remoteOk) {
         setMsg('Checking out (remote allowed for CEO)…')
       }
       const res = await fetch('/api/hr/attendance/check-out', {

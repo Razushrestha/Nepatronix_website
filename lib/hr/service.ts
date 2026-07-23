@@ -151,6 +151,7 @@ export async function createEmployeeWithDefaults(
       (employmentType === 'full_time' ||
         employmentType === 'part_time' ||
         employmentType === 'tutor'),
+    allowRemoteAttendance: !!input.allowRemoteAttendance,
     active: true,
   })
 

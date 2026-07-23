@@ -17,6 +17,7 @@
     "seed:hr": "node scripts/seed-hr.mjs",
     "seed:sample-task": "node scripts/seed-sample-module-task.mjs",
     "seed:content": "node scripts/seed-static-content.mjs",
+    "seed:testimonials": "node scripts/seed-testimonials.mjs",
     "db:export": "node scripts/db-export.mjs",
     "db:export:blog": "node scripts/db-export.mjs --collections=posts,galleries,teammembers,courses,coursepdfs,coursevideos,uploads.files,uploads.chunks",
     "db:import": "node scripts/db-import.mjs",

@@ -304,6 +304,32 @@ export function hasBlogBody(value: unknown): boolean {
   return Array.isArray(value) && value.length > 0
 }
 
+/** Extract plain text from either admin HTML or portable-text blocks for SEO signals (word counts, `articleBody`, meta). */
+export function blogBodyToPlainText(value: unknown): string {
+  if (typeof value === 'string') {
+    return value
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/\s+/g, ' ')
+      .trim()
+  }
+  if (!Array.isArray(value)) return ''
+  const blocks = value as PortableBlock[]
+  const parts: string[] = []
+  for (const block of blocks) {
+    if (block._type === 'block' && block.children?.length) {
+      parts.push(block.children.map((c) => c.text || '').join(' '))
+    }
+  }
+  return parts.join(' ').replace(/\s+/g, ' ').trim()
+}
+
 /** Render blog body from admin HTML or migrated portable text blocks. */
 export function BlogBody({ value }: { value: unknown }) {
   if (typeof value === 'string') {

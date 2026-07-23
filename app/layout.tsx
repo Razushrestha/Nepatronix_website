@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
+import { getOrgReviewSchema } from "@/lib/seo/org-reviews";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -90,94 +91,117 @@ export const metadata: Metadata = {
   },
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+    other: {
+      'msvalidate.01': process.env.BING_SITE_VERIFICATION || '',
+      'yandex-verification': process.env.YANDEX_SITE_VERIFICATION || '',
+    },
   },
 };
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": ["EducationalOrganization", "LocalBusiness"],
-      "@id": "https://nepatronix.org/#organization",
-      "name": "Nepatronix Engineering Solutions",
-      "legalName": "Nepatronix Engineering Solution Pvt. Ltd.",
-      "url": "https://nepatronix.org",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://nepatronix.org/logo.png",
-        "width": 200,
-        "height": 60
-      },
-      "image": "https://nepatronix.org/og-banner.png",
-      "description": "Nepal's leading IoT, Robotics and STEM EdTech company. We train students and teachers with hands-on engineering education.",
-      "telephone": "+977-9803661701",
-      "email": "info@nepatronix.org",
-      "foundingDate": "2021",
-      "numberOfEmployees": { "@type": "QuantitativeValue", "value": 20 },
-      "priceRange": "NPR 5,000 - 50,000",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "Tinkune",
-        "addressLocality": "Kathmandu",
-        "addressRegion": "Bagmati",
-        "postalCode": "44600",
-        "addressCountry": "NP"
-      },
-      "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": 27.6939,
-        "longitude": 85.3442
-      },
-      "openingHoursSpecification": {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday"],
-        "opens": "09:00",
-        "closes": "18:00"
-      },
-      "sameAs": [
-        "https://www.facebook.com/NepaTronixx",
-        "https://linkedin.com/company/nepatronix"
-      ],
-      "contactPoint": [
-        {
-          "@type": "ContactPoint",
-          "telephone": "+977-9803661701",
-          "contactType": "customer service",
-          "areaServed": "NP",
-          "availableLanguage": ["English", "Nepali"]
-        }
-      ],
-      "hasOfferCatalog": {
-        "@type": "OfferCatalog",
-        "name": "STEM & IoT Training Programs",
-        "itemListElement": [
-          { "@type": "Offer", "itemOffered": { "@type": "Course", "name": "Certified STEM Education" } },
-          { "@type": "Offer", "itemOffered": { "@type": "Course", "name": "IoT & Robotics Training" } },
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "STEM Lab Setup" } }
-        ]
-      }
+function buildOrgJsonLd(reviewSchema: Awaited<ReturnType<typeof getOrgReviewSchema>>) {
+  const org: Record<string, unknown> = {
+    "@type": ["EducationalOrganization", "LocalBusiness"],
+    "@id": "https://nepatronix.org/#organization",
+    "name": "Nepatronix Engineering Solutions",
+    "legalName": "Nepatronix Engineering Solution Pvt. Ltd.",
+    "url": "https://nepatronix.org",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://nepatronix.org/logo.png",
+      "width": 200,
+      "height": 60,
     },
-    {
-      "@type": "WebSite",
-      "@id": "https://nepatronix.org/#website",
-      "url": "https://nepatronix.org",
-      "name": "Nepatronix",
-      "description": "Nepal's leading IoT, Robotics and STEM education platform",
-      "publisher": { "@id": "https://nepatronix.org/#organization" },
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": { "@type": "EntryPoint", "urlTemplate": "https://nepatronix.org/blog?q={search_term_string}" },
-        "query-input": "required name=search_term_string"
-      }
-    }
-  ]
-};
+    "image": "https://nepatronix.org/og-banner.png",
+    "description":
+      "Nepal's leading IoT, Robotics and STEM EdTech company. We train students and teachers with hands-on engineering education.",
+    "telephone": "+977-9803661701",
+    "email": "info@nepatronix.org",
+    "foundingDate": "2021",
+    "numberOfEmployees": { "@type": "QuantitativeValue", "value": 20 },
+    "priceRange": "NPR 5,000 - 50,000",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Kupondole",
+      "addressLocality": "Lalitpur",
+      "addressRegion": "Bagmati",
+      "postalCode": "44700",
+      "addressCountry": "NP",
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 27.6858125,
+      "longitude": 85.3165781,
+    },
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      "opens": "09:00",
+      "closes": "18:00",
+    },
+    "sameAs": [
+      "https://www.facebook.com/NepaTronixx",
+      "https://linkedin.com/company/nepatronix",
+    ],
+    "contactPoint": [
+      {
+        "@type": "ContactPoint",
+        "telephone": "+977-9803661701",
+        "contactType": "customer service",
+        "areaServed": "NP",
+        "availableLanguage": ["English", "Nepali"],
+      },
+    ],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "STEM & IoT Training Programs",
+      "itemListElement": [
+        { "@type": "Offer", "itemOffered": { "@type": "Course", "name": "Certified STEM Education" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Course", "name": "IoT & Robotics Training" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "STEM Lab Setup" } },
+      ],
+    },
+  };
 
-export default function RootLayout({
+  if (reviewSchema.aggregateRating) {
+    org.aggregateRating = reviewSchema.aggregateRating;
+  }
+  if (reviewSchema.reviews.length) {
+    org.review = reviewSchema.reviews;
+  }
+
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      org,
+      {
+        "@type": "WebSite",
+        "@id": "https://nepatronix.org/#website",
+        "url": "https://nepatronix.org",
+        "name": "Nepatronix",
+        "description": "Nepal's leading IoT, Robotics and STEM education platform",
+        "inLanguage": "en",
+        "publisher": { "@id": "https://nepatronix.org/#organization" },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://nepatronix.org/blog?q={search_term_string}",
+          },
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
+  };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const reviewSchema = await getOrgReviewSchema();
+  const jsonLd = buildOrgJsonLd(reviewSchema);
+
   return (
     <html lang="en">
       <head>

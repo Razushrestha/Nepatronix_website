@@ -65,7 +65,14 @@ export async function POST(req: NextRequest) {
     const emp = await HrEmployee.findById(session.id).lean()
     if (!emp) return NextResponse.json({ error: 'Employee not found' }, { status: 404 })
 
-    if (!ceoRemoteAttendanceAllowed(emp.role, emp.department)) {
+    if (
+      !ceoRemoteAttendanceAllowed({
+        role: emp.role,
+        department: emp.department,
+        position: emp.position,
+        allowRemoteAttendance: emp.allowRemoteAttendance,
+      })
+    ) {
       const loc = await validateLocation(req, emp.department, lat, lng, accuracy)
       if (!loc.ok) return NextResponse.json({ error: loc.error }, { status: 403 })
     }

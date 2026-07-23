@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { FaqSection } from "@/app/(site)/components/FaqSection";
+import { VERIFY_CERT_FAQS } from "@/app/(site)/data/faqs";
+import { breadcrumbJsonLd, faqJsonLd } from "@/lib/seo/jsonLd";
 
 const canonicalUrl = "https://nepatronix.org/verify-certificate";
 
@@ -38,12 +41,19 @@ export default function VerifyCertificateHubPage() {
     name: "Verify a Nepatronix certificate",
     url: canonicalUrl,
     description: pageDescription,
-    isPartOf: { "@type": "WebSite", name: "Nepatronix", url: "https://nepatronix.org" },
+    isPartOf: { "@id": "https://nepatronix.org/#website" },
   };
+  const breadcrumbLd = breadcrumbJsonLd([
+    { name: "Home", url: "https://nepatronix.org" },
+    { name: "Verify Certificate", url: canonicalUrl },
+  ]);
+  const faqLd = faqJsonLd(VERIFY_CERT_FAQS);
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <div className="min-h-screen bg-slate-50 text-slate-900">
         <div className="mx-auto max-w-2xl px-4 py-16 sm:py-24">
           <p className="text-xs font-bold uppercase tracking-widest text-[#C1121F] mb-3">Nepatronix</p>
@@ -84,6 +94,14 @@ export default function VerifyCertificateHubPage() {
             </Link>
           </div>
         </div>
+
+        <FaqSection
+          eyebrow="Verification FAQ"
+          title="Common questions about certificate verification"
+          description="Quick answers about verifying and sharing a Nepatronix certificate."
+          items={VERIFY_CERT_FAQS}
+          className="bg-white"
+        />
       </div>
     </>
   );

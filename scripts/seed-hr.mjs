@@ -121,7 +121,7 @@ async function main() {
     {},
     {
       $set: {
-        officeName: 'Nepatronix Office — Tinkune, Kathmandu',
+        officeName: 'Nepatronix Office — Kupondole, Lalitpur',
         graceMinutes: 0,
         latitude: 27.6858125,
         longitude: 85.3165781,

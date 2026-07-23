@@ -138,10 +138,12 @@ export default async function WatchCoursePage({ params }: { params: Promise<{ id
         overviewPdf?: { url?: string };
         duration?: string;
         order?: number;
+        createdAt?: Date | string;
+        updatedAt?: Date | string;
       }[]
     >();
 
-  const videos: CourseVideo[] = videoDocs.map((video) => {
+  const videos = videoDocs.map((video) => {
     const fileUrl = resolveFileUrl(video.videoFile);
     const thumbUrl = resolveImageUrl(video.thumbnail);
     const overviewUrl = resolveFileUrl(video.overviewPdf);
@@ -155,11 +157,23 @@ export default async function WatchCoursePage({ params }: { params: Promise<{ id
       overviewPdf: overviewUrl ? { asset: { url: overviewUrl }, url: overviewUrl } : undefined,
       duration: video.duration,
       order: video.order || 0,
+      createdAt: video.createdAt,
+      updatedAt: video.updatedAt,
     };
-  });
+  }) as (CourseVideo & { createdAt?: Date | string; updatedAt?: Date | string })[];
 
   const canonicalUrl = `https://nepatronix.org/services/courses/watch/${id}`;
   const courseUrl = "https://nepatronix.org/services/courses";
+
+  const toIso = (d: Date | string | undefined) => {
+    if (!d) return undefined;
+    try {
+      const iso = new Date(d).toISOString();
+      return Number.isFinite(new Date(iso).getTime()) ? iso : undefined;
+    } catch {
+      return undefined;
+    }
+  };
 
   const videoObjects = videos.map((video, index) => {
     const contentUrl =
@@ -171,18 +185,30 @@ export default async function WatchCoursePage({ params }: { params: Promise<{ id
       video.thumbnail?.url ||
       "https://nepatronix.org/og-banner.png";
 
+    const uploadDate = toIso(video.createdAt) || toIso(video.updatedAt) || new Date().toISOString();
+
     const baseVideo: Record<string, unknown> = {
       "@type": "VideoObject",
+      "@id": `${canonicalUrl}#video-${index + 1}`,
       name: video.title,
       description: video.description || `${video.title} from ${courseName}.`,
       thumbnailUrl,
       url: canonicalUrl,
+      uploadDate,
+      inLanguage: "en",
       position: index + 1,
+      isFamilyFriendly: true,
       publisher: {
         "@type": "Organization",
+        "@id": "https://nepatronix.org/#organization",
         name: "Nepatronix Engineering Solutions",
         url: "https://nepatronix.org",
+        logo: {
+          "@type": "ImageObject",
+          url: "https://nepatronix.org/logo.png",
+        },
       },
+      hasPart: { "@type": "Course", name: courseName, url: canonicalUrl },
     };
 
     const isoDuration = toIsoDuration(video.duration);

@@ -32,6 +32,7 @@ export default function HrNewEmployeePage() {
     managerId: '', scheduledDays: ['mon', 'tue', 'wed', 'thu', 'fri'] as string[],
     weeklyOffDay: 'fri',
     scheduledHoursPerDay: '8', bankName: '', bankAccount: '',
+    allowRemoteAttendance: false,
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -72,6 +73,7 @@ export default function HrNewEmployeePage() {
         position: form.position.trim(),
         employmentType: form.employmentType,
         role: form.role,
+        allowRemoteAttendance: !!form.allowRemoteAttendance,
         monthlyPay: Number(form.monthlyPay) || 0,
         scheduledDays: form.scheduledDays,
         weeklyOffDay: form.employmentType === 'tutor' ? form.weeklyOffDay : undefined,
@@ -121,6 +123,20 @@ export default function HrNewEmployeePage() {
           <select className="hr-input" value={form.role} onChange={(e) => set('role', e.target.value)}>
             {HR_ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
           </select>
+          <label className="sm:col-span-2 flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 cursor-pointer">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={!!form.allowRemoteAttendance}
+              onChange={(e) => set('allowRemoteAttendance', e.target.checked)}
+            />
+            <span>
+              <span className="block text-sm font-medium text-slate-900">Allow remote attendance</span>
+              <span className="block text-xs text-slate-500 mt-0.5">
+                Check in / out from any location (no office GPS or Wi‑Fi). Use for the CEO.
+              </span>
+            </span>
+          </label>
           <select className="hr-input" value={form.managerId} onChange={(e) => set('managerId', e.target.value)}>
             <option value="">Reporting manager</option>
             {managers.map((m) => <option key={m.id} value={m.id}>{m.fullName} ({m.employeeCode})</option>)}

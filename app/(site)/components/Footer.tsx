@@ -72,7 +72,7 @@ const SITE_URL = "https://nepatronix.org";
 
 // SEO: keyword-rich description reused for visible copy and structured data.
 const SEO_DESCRIPTION =
-  "Nepatronix Engineering Solutions is Nepal's leading IoT, robotics, and STEM education institute based in Kathmandu, offering hands-on Arduino training, PCB design courses, robotics workshops, drone building, and STEM lab setup for schools across Nepal.";
+  "Nepatronix Engineering Solutions is Nepal's leading IoT, robotics, and STEM education institute based in Kupondole, Lalitpur, offering hands-on Arduino training, PCB design courses, robotics workshops, drone building, and STEM lab setup for schools across Nepal.";
 
 const SEO_KEYWORDS = [
   "IoT training in Nepal",
@@ -93,8 +93,8 @@ const DEFAULT_FOOTER: FooterData = {
   description:
     "Nepatronix Engineering Solutions is Nepal's leading IoT, robotics, and STEM education institute.",
   contactInfo: {
-    address: "Tinkune, Kathmandu, Nepal",
-    postalCode: "44600",
+    address: "Kupondole, Lalitpur, Nepal",
+    postalCode: "44700",
     weekdayHours: "Sun–Fri: 9:00 AM – 6:00 PM",
     weekendHours: "Sat: By appointment",
   },
@@ -231,7 +231,8 @@ export async function Footer() {
     address: {
       "@type": "PostalAddress",
       streetAddress: footerData.contactInfo?.address,
-      addressLocality: "Kathmandu",
+      addressLocality: "Lalitpur",
+      addressRegion: "Bagmati",
       addressCountry: "NP",
       postalCode: footerData.contactInfo?.postalCode,
     },

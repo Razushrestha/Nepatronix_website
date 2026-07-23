@@ -115,19 +115,54 @@ export function isCeoRole(role: string): boolean {
   return role === 'ceo'
 }
 
-/** Nepatronix CEO may check in/out from any location and network. */
-export function ceoRemoteAttendanceAllowed(role: string, department: string): boolean {
-  return isCeoRole(role) && department === 'nepatronix'
+export type RemoteAttendanceSubject = {
+  role: string
+  department: string
+  position?: string
+  allowRemoteAttendance?: boolean
+}
+
+function isCeoOrFounderTitle(position?: string): boolean {
+  return /\b(ceo|founder)\b/i.test(position || '')
+}
+
+/**
+ * Who may check in/out from any place (no office GPS / Wi‑Fi).
+ * - System role `ceo`
+ * - Explicit `allowRemoteAttendance` on the employee
+ * - Nepatronix CEO/Founder title with an elevated HR role (e.g. Super HR Admin who is the CEO)
+ */
+export function ceoRemoteAttendanceAllowed(
+  roleOrSubject: string | RemoteAttendanceSubject,
+  department?: string
+): boolean {
+  const emp: RemoteAttendanceSubject =
+    typeof roleOrSubject === 'object'
+      ? roleOrSubject
+      : { role: roleOrSubject, department: department || '' }
+
+  if (emp.allowRemoteAttendance) return true
+  if (isCeoRole(emp.role)) return true
+  if (
+    emp.department === 'nepatronix' &&
+    isCeoOrFounderTitle(emp.position) &&
+    (emp.role === 'super_hr_admin' || emp.role === 'manager' || emp.role === 'hr_staff')
+  ) {
+    return true
+  }
+  return false
 }
 
 /** Whether check-in or check-out must pass office GPS / Wi‑Fi rules. */
 export function attendanceActionRequiresLocation(
-  role: string,
+  roleOrSubject: string | RemoteAttendanceSubject,
   _action: 'check_in' | 'check_out',
-  department: string
+  department?: string
 ): boolean {
-  if (ceoRemoteAttendanceAllowed(role, department)) return false
-  return true
+  if (typeof roleOrSubject === 'object') {
+    return !ceoRemoteAttendanceAllowed(roleOrSubject)
+  }
+  return !ceoRemoteAttendanceAllowed(roleOrSubject, department || '')
 }
 
 /** Employment types that use custom work-day selection (Sat/Sun always off). */

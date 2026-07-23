@@ -4,6 +4,9 @@ import { useState, useEffect, useRef, ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ourServices, servicesPageData } from "../data";
+import { FaqSection } from "../components/FaqSection";
+import { SERVICES_FAQS } from "../data/faqs";
+import { faqJsonLd } from "@/lib/seo/jsonLd";
 
 // --- SVG Icon Components ---
 function MicroscopeIcon() {
@@ -133,34 +136,13 @@ export default function ServicesPage() {
     })),
   };
 
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "What services does Nepatronix provide?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Nepatronix provides STEM education programs, lab setup solutions, training courses, and engineering innovation services.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Do you provide services for schools and institutions?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Yes. Nepatronix works with schools, colleges, and institutions on STEM labs, training, and implementation support.",
-        },
-      },
-    ],
-  };
+  const faqLd = faqJsonLd(SERVICES_FAQS);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceItemListJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <div className="overflow-hidden bg-white font-sans">
       
       {/* 1. HERO SECTION */}
@@ -477,6 +459,15 @@ export default function ServicesPage() {
             </div>
         </div>
       </section>
+
+      {/* FAQ — visible so it matches the FAQPage JSON-LD */}
+      <FaqSection
+        eyebrow="FAQ"
+        title="Questions about our services"
+        description="Everything institutions and partners commonly ask about working with Nepatronix."
+        items={SERVICES_FAQS}
+        className="bg-white"
+      />
 
       {/* 5. FINAL CTA */}
       <section className="py-8 px-6 bg-white">

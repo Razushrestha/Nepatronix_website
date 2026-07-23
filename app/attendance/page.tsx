@@ -15,6 +15,8 @@ type User = {
   employeeCode: string
   department: string
   role: string
+  position?: string
+  allowRemoteAttendance?: boolean
 }
 
 type AttendanceData = {
@@ -290,15 +292,32 @@ function EmployeePortal({ user, onLogout }: { user: User; onLogout: () => void }
     setMsg('')
     setErr('')
     try {
+      const remoteOk = user
+        ? ceoRemoteAttendanceAllowed({
+            role: user.role,
+            department: user.department,
+            position: user.position,
+            allowRemoteAttendance: user.allowRemoteAttendance,
+          })
+        : false
       const needsGps =
         user &&
-        attendanceActionRequiresLocation(user.role, action === 'in' ? 'check_in' : 'check_out', user.department) &&
+        !remoteOk &&
+        attendanceActionRequiresLocation(
+          {
+            role: user.role,
+            department: user.department,
+            position: user.position,
+            allowRemoteAttendance: user.allowRemoteAttendance,
+          },
+          action === 'in' ? 'check_in' : 'check_out'
+        ) &&
         departmentRequiresGps(user.department)
       let payload: Record<string, number> = {}
       if (needsGps) {
         setMsg('Locating you — please allow GPS and wait a few seconds…')
         payload = await getBestGpsReading()
-      } else if (user && ceoRemoteAttendanceAllowed(user.role, user.department)) {
+      } else if (remoteOk) {
         setMsg(action === 'in' ? 'Checking in (remote allowed for CEO)…' : 'Checking out (remote allowed for CEO)…')
       } else if (action === 'in') {
         setMsg('Verifying office Wi‑Fi…')

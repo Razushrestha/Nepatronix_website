@@ -118,6 +118,7 @@ export default function AboutPage() {
   }, []);
 
   const canonicalUrl = "https://nepatronix.org/partners";
+  const ceoSocials = Object.values(aboutUsData.ceo.socials || {}).filter(Boolean) as string[];
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -128,22 +129,46 @@ export default function AboutPage() {
     ],
   };
 
+  const ceoPersonJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": "https://nepatronix.org/partners#ceo",
+    name: aboutUsData.ceo.name,
+    jobTitle: aboutUsData.ceo.role,
+    image: `https://nepatronix.org${aboutUsData.ceo.image}`,
+    worksFor: { "@id": "https://nepatronix.org/#organization" },
+    description: aboutUsData.ceo.message.replace(/\s+/g, " ").trim(),
+    sameAs: ceoSocials,
+  };
+
   const aboutPageJsonLd = {
     "@context": "https://schema.org",
     "@type": "AboutPage",
-    name: "Partners & About Nepatronix",
+    name: "About Nepatronix",
     url: canonicalUrl,
+    inLanguage: "en",
+    isPartOf: { "@id": "https://nepatronix.org/#website" },
+    mainEntity: { "@id": "https://nepatronix.org/#organization" },
     about: {
       "@type": "EducationalOrganization",
+      "@id": "https://nepatronix.org/#organization",
       name: "Nepatronix Engineering Solutions",
       url: "https://nepatronix.org",
       description: aboutUsData.about,
+      foundingDate: "2021",
+      founder: { "@id": "https://nepatronix.org/partners#ceo" },
+      subOrganization: (aboutUsData.verticals || []).map((v) => ({
+        "@type": "Organization",
+        name: v.title,
+        description: v.description,
+      })),
     },
   };
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ceoPersonJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutPageJsonLd) }} />
       <div className="overflow-hidden bg-white">
       
