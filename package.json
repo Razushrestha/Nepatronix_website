@@ -18,6 +18,7 @@
     "seed:sample-task": "node scripts/seed-sample-module-task.mjs",
     "seed:content": "node scripts/seed-static-content.mjs",
     "seed:testimonials": "node scripts/seed-testimonials.mjs",
+    "fix:office-address": "node scripts/fix-office-address.mjs",
     "db:export": "node scripts/db-export.mjs",
     "db:export:blog": "node scripts/db-export.mjs --collections=posts,galleries,teammembers,courses,coursepdfs,coursevideos,uploads.files,uploads.chunks",
     "db:import": "node scripts/db-import.mjs",
