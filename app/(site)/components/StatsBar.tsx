@@ -2,16 +2,26 @@ import type { Stat } from "../data";
 
 export function StatsBar({ stats }: { stats: Stat[] }) {
   return (
-    <div className="grid gap-6 rounded-3xl border border-[#e3f2fd] surface-card p-8 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
-      {stats.map((stat) => (
-        <div key={stat.id} className="flex flex-col gap-1 items-center text-center">
-          <span className="text-3xl font-semibold text-[#1f2933]">{stat.value}</span>
-          <span className="text-sm font-medium uppercase tracking-[0.3em] text-[#0a3d62]">
-            {stat.label}
-          </span>
-          <span className="text-sm text-[#6B7280]">{stat.detail}</span>
-        </div>
-      ))}
+    <div className="mx-auto max-w-4xl">
+      <div className="grid grid-cols-2 divide-x divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm sm:divide-y-0 sm:grid-cols-4">
+        {stats.map((stat) => (
+          <div
+            key={stat.id}
+            className="group flex flex-col items-center justify-center gap-1 px-4 py-5 text-center transition-colors hover:bg-slate-50"
+          >
+            <span className="text-2xl font-bold tracking-tight text-[#0a3d62] transition-colors group-hover:text-[#C1121F] sm:text-[1.75rem]">
+              {stat.value}
+            </span>
+            <span className="mt-0.5 h-0.5 w-6 rounded-full bg-[#C1121F]/60 transition-all group-hover:w-10" />
+            <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-700">
+              {stat.label}
+            </span>
+            <span className="text-[11px] leading-snug text-slate-400">
+              {stat.detail}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

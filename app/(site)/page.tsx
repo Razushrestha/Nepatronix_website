@@ -16,7 +16,6 @@ import {
 } from "./data/stemEducationSeoKeywords";
 import { indexingRobots } from "@/lib/seo/indexingRobots";
 import { FaqSection } from "./components/FaqSection";
-import { AboutBlurb } from "./components/AboutBlurb";
 import { HOME_FAQS } from "./data/faqs";
 import { faqJsonLd } from "@/lib/seo/jsonLd";
 
@@ -273,8 +272,6 @@ export default async function Home() {
           </div>
         </div>
       </section>
-
-      <AboutBlurb />
 
       <FaqSection
         eyebrow="Questions"
